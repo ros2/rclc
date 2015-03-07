@@ -7,6 +7,11 @@ find_package(rcl REQUIRED)
 
 ament_export_include_directories(include)
 
+if(AMENT_ENABLE_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
 ament_package()
 
 install(
