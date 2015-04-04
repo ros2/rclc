@@ -23,12 +23,14 @@ typedef rcl_publisher_t rclc_publisher_t;
 
 typedef void (*rclc_callback_t)(const void *);
 
-typedef struct rclc_subscription_t {
+typedef struct rclc_subscription_t
+{
   rclc_subscription_t * rcl_subscription;
   rclc_callback_t user_callback;
 } rclc_subscription_t;
 
-typedef struct rclc_executor_t {
+typedef struct rclc_executor_t
+{
   // TODO: Fill this out
 } rclc_executor_t;
 
