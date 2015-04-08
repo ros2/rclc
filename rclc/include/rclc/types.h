@@ -21,7 +21,7 @@ typedef rcl_ret_t rclc_ret_t;
 typedef rcl_node_t rclc_node_t;
 typedef rcl_publisher_t rclc_publisher_t;
 
-typedef void (*rclc_callback_t)(const void *);
+typedef void (* rclc_callback_t)(const void *);
 
 typedef struct rclc_subscription_t
 {
