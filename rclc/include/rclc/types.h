@@ -25,7 +25,7 @@ typedef void (* rclc_callback_t)(const void *);
 
 typedef struct rclc_subscription_t
 {
-  rclc_subscription_t * rcl_subscription;
+  struct rclc_subscription_t * rcl_subscription;
   rclc_callback_t user_callback;
 } rclc_subscription_t;
 
