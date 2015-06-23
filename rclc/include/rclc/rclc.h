@@ -70,7 +70,8 @@ rclc_create_subscription(
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
   void (* callback)(const void *),
-  size_t queue_size);
+  size_t queue_size,
+  bool ignore_local_publications);
 
 /// Destroys a rclc_subscription_t.
 rclc_ret_t
