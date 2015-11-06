@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC_RCLC_RCLC_H_
-#define RCLC_RCLC_RCLC_H_
+#ifndef RCLC__RCLC_H_
+#define RCLC__RCLC_H_
 
 #include <stdbool.h>  // For bool
 #include <stddef.h>  // For size_t
@@ -21,7 +21,7 @@
 // For rosidl_message_type_support_t
 #include <rosidl_generator_c/message_type_support.h>
 
-#include "types.h"  // For rclc_*_t types
+#include "rclc/types.h"  // For rclc_*_t types
 
 /// Global initialization for rclc; should be called once per process.
 rclc_ret_t
@@ -93,4 +93,4 @@ rclc_executor_add_node(rclc_executor_t * executor, const rclc_node_t * node);
 rclc_ret_t
 rclc_executor_spin();
 
-#endif  /* RCLC_RCLC_RCLC_H_ */
+#endif  // RCLC__RCLC_H_
