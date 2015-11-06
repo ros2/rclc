@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC_RCLC_TYPES_H_
-#define RCLC_RCLC_TYPES_H_
+#ifndef RCLC__TYPES_H_
+#define RCLC__TYPES_H_
 
-#include <rcl/types.h>
+#include "rcl/types.h"
 
 typedef rcl_ret_t rclc_ret_t;
 typedef rcl_node_t rclc_node_t;
@@ -31,7 +31,7 @@ typedef struct rclc_subscription_t
 
 typedef struct rclc_executor_t
 {
-  // TODO: Fill this out
+  // TODO(wjwwood): Fill this out
 } rclc_executor_t;
 
-#endif  /* RCLC_RCLC_TYPES_H_ */
+#endif  // RCLC__TYPES_H_
