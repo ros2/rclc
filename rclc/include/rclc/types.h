@@ -15,6 +15,9 @@
 #ifndef RCLC__TYPES_H_
 #define RCLC__TYPES_H_
 
+#include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/subscription.h"
 #include "rcl/types.h"
 
 typedef rcl_ret_t rclc_ret_t;
