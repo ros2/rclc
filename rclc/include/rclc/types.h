@@ -28,13 +28,11 @@ typedef void (* rclc_callback_t)(const void *);
 
 typedef struct rclc_subscription_t
 {
-  struct rclc_subscription_t * rcl_subscription;
+  struct rcl_subscription_t * rcl_subscription;
   rclc_callback_t user_callback;
 } rclc_subscription_t;
 
-typedef struct rclc_executor_t
-{
-  // TODO(wjwwood): Fill this out
-} rclc_executor_t;
+struct rclc_executor_t;
+typedef struct rclc_executor_t rclc_executor_t;
 
 #endif  // RCLC__TYPES_H_

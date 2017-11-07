@@ -3,9 +3,7 @@
 <package format="2">
   <name>rclc</name>
   <version>0.0.0</version>
-  <description>The ROS client library for C.
-    This package provides the ROS client library interface for the C language.
-  </description>
+  <description>The ROS client library in C.</description>
   <maintainer email="william@osrfoundation.org">William Woodall</maintainer>
   <license>Apache License 2.0</license>
 
