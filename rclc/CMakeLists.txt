@@ -11,22 +11,19 @@ ament_export_include_directories(include)
 include_directories(include)
 
 set(rclc_sources
-  "src/allocators.c"
-  "src/convert_rcutils_ret_to_rmw_ret.c"
-  "src/error_handling.c"
-  "src/names_and_types.c"
-  "src/sanity_checks.c"
-  "src/node_security_options.c"
-  "src/validate_full_topic_name.c"
-  "src/validate_namespace.c"
-  "src/validate_node_name.c"
+  "src/functions.c"
 )
 set_source_files_properties(${rclc_sources} PROPERTIES LANGUAGE "C")
 add_library(${PROJECT_NAME} ${rclc_sources})
+ament_target_dependencies(${PROJECT_NAME}
+  rcl
+  rosidl_generator_c
+)
 
 ament_export_dependencies(
   rcl
   rmw
+  rosidl_generator_c
 )
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})

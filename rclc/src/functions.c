@@ -44,7 +44,10 @@ void rclc_sleep_ms(size_t milliseconds) {
 
   rc = rcl_wait(&wait_set, RCL_MS_TO_NS(milliseconds));
   if (rc == RCL_RET_TIMEOUT) {
-    rcl_wait_set_fini(&wait_set);
+    rc = rcl_wait_set_fini(&wait_set);
+    if(rc != RCL_RET_OK) {
+      puts("ERROR : rcl_wait_set_fini");
+    }
     return;
   }
 
@@ -65,12 +68,15 @@ void rclc_sleep_ms(size_t milliseconds) {
     }
   }
 
-  rcl_wait_set_fini(&wait_set);
+  rc = rcl_wait_set_fini(&wait_set);
+  if(rc != RCL_RET_OK) {
+    puts("ERROR : rcl_wait_set_fini");
+  }
 }
 
 void rclc_spin_node(rclc_node_t * node) {
   (void)node;
-  
+
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
   if(rc != RCL_RET_OK) {
@@ -98,6 +104,7 @@ void rclc_spin_node(rclc_node_t * node) {
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i]) {
         char msg[64];
+        puts("rcl_take");
         rc = rcl_take(wait_set.subscriptions[i], (void*)&msg, NULL);
         if(rc != RCL_RET_OK) {
           puts("ERROR : rcl_take");
@@ -113,16 +120,21 @@ void rclc_spin_node(rclc_node_t * node) {
     }
   }
 
-  rcl_wait_set_fini(&wait_set);
+  rc = rcl_wait_set_fini(&wait_set);
+  if(rc != RCL_RET_OK) {
+    puts("ERROR : rcl_wait_set_fini");
+  }
 }
 
 rclc_node_t * rclc_create_node(const char * name) {
+  const char* namespace_ = ""; // TODO : put as parameter
+
   rclc_node_t* ret = malloc(sizeof(rclc_node_t));
   rcl_node_t node = rcl_get_zero_initialized_node();
   memcpy(ret, &node, sizeof(node));
   
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rcl_ret_t rc = rcl_node_init(ret, name, &node_ops);
+  rcl_ret_t rc = rcl_node_init(ret, name, namespace_, &node_ops);
   if(rc != RCL_RET_OK) {
     puts("ERROR : rcl_node_init");
     return NULL;

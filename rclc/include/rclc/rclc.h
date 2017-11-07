@@ -19,7 +19,7 @@
 #include <stddef.h>  // For size_t
 
 // For rosidl_message_type_support_t
-#include <rosidl_generator_c/message_type_support.h>
+#include "rosidl_generator_c/message_type_support_struct.h"
 
 #include "rclc/types.h"  // For rclc_*_t types
 
