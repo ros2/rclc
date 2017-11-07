@@ -21,18 +21,19 @@
 #include "rcl/types.h"
 
 typedef rcl_ret_t rclc_ret_t;
-typedef rcl_node_t rclc_node_t;
-typedef rcl_publisher_t rclc_publisher_t;
 
-typedef void (* rclc_callback_t)(const void *);
+struct rclc_node_t;
+typedef struct rclc_node_t rclc_node_t;
 
-typedef struct rclc_subscription_t
-{
-  struct rcl_subscription_t * rcl_subscription;
-  rclc_callback_t user_callback;
-} rclc_subscription_t;
+struct rclc_publisher_t;
+typedef struct rclc_publisher_t rclc_publisher_t;
+
+struct rclc_subscription_t;
+typedef struct rclc_subscription_t rclc_subscription_t;
 
 struct rclc_executor_t;
 typedef struct rclc_executor_t rclc_executor_t;
+
+typedef void (* rclc_callback_t)(const void *);
 
 #endif  // RCLC__TYPES_H_

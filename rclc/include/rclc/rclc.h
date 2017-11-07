@@ -50,7 +50,7 @@ rclc_destroy_node(rclc_node_t * node);
 /// Creates a rclc_publisher_t, which represents a ROS Publisher.
 rclc_publisher_t *
 rclc_create_publisher(
-  const rclc_node_t * node,
+  rclc_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
   size_t queue_size);
@@ -66,7 +66,7 @@ rclc_publish(const rclc_publisher_t * publisher, const void * ros_message);
 /// Creates a rclc_subscription_t, which represents a ROS Subscription.
 rclc_subscription_t *
 rclc_create_subscription(
-  const rclc_node_t * node,
+  rclc_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
   void (* callback)(const void *),
