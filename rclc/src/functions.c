@@ -1,6 +1,7 @@
 #include <rclc/rclc.h>
 
 #include <rcl/rcl.h>
+#include <rcl/error_handling.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +34,8 @@ rclc_ret_t rclc_init(int argc, char ** argv)
 {
   rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator());
   if(ret != RCL_RET_OK) {
-    puts("ERROR : rcl_init");
+    fprintf(stderr, "[rclc_init] error in rcl_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
   return ret;
 }
@@ -48,49 +50,51 @@ void rclc_sleep_ms(size_t milliseconds)
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_wait_set_init");
+    fprintf(stderr, "[rclc_sleep_ms] error in rcl_wait_set_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
 
   rc = rcl_wait_set_clear_subscriptions(&wait_set);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_wait_set_clear_subscriptions");
+    fprintf(stderr, "[rclc_sleep_ms] error in rcl_wait_set_clear_subscriptions: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
 
   rc = rcl_wait(&wait_set, RCL_MS_TO_NS(milliseconds));
-  if (rc == RCL_RET_TIMEOUT) {
-    rc = rcl_wait_set_fini(&wait_set);
-    if(rc != RCL_RET_OK) {
-      puts("ERROR : rcl_wait_set_fini");
-    }
+  if (rc != RCL_RET_OK && rc != RCL_RET_TIMEOUT) {
+    fprintf(stderr, "[rclc_sleep_ms] error in rcl_wait: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
     return;
   }
 
   rc = rcl_wait_set_fini(&wait_set);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_wait_set_fini");
+    fprintf(stderr, "[rclc_sleep_ms] error in rcl_wait_set_fini: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
 }
 
 void rclc_spin_node(rclc_node_t * node)
 {
-  (void)node;
-
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_wait_set_init");
+    fprintf(stderr, "[rclc_spin_node] error in rcl_wait_set_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
 
   while(1) {
     rc = rcl_wait_set_clear_subscriptions(&wait_set);
     if(rc != RCL_RET_OK) {
-      puts("ERROR : rcl_wait_set_clear_subscriptions");
+      fprintf(stderr, "[rclc_spin_node] error in rcl_wait_set_clear_subscriptions: %s\n", rcl_get_error_string_safe());
+      rcl_reset_error();
     }
 
     for (size_t i = 0; i < node->subs_s; ++i) {
       rc = rcl_wait_set_add_subscription(&wait_set, node->subs[i]->rcl_subscription);
       if(rc != RCL_RET_OK) {
-        puts("ERROR : rcl_wait_set_add_subscription");
+        fprintf(stderr, "[rclc_spin_node] error in rcl_wait_set_add_subscription: %s\n", rcl_get_error_string_safe());
+        rcl_reset_error();
       }
     }
 
@@ -98,13 +102,18 @@ void rclc_spin_node(rclc_node_t * node)
     if (rc == RCL_RET_TIMEOUT) {
       continue;
     }
+    else if(rc != RCL_RET_OK) {
+      fprintf(stderr, "[rclc_spin_node] error in rcl_wait: %s\n", rcl_get_error_string_safe());
+      rcl_reset_error();
+    }
 
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i]) {
         char msg[64];
         rc = rcl_take(wait_set.subscriptions[i], (void*)&msg, NULL);
         if(rc != RCL_RET_OK) {
-          puts("ERROR : rcl_take");
+          fprintf(stderr, "[rclc_spin_node] error in rcl_take: %s\n", rcl_get_error_string_safe());
+          rcl_reset_error();
         }
         else {
           for (size_t i = 0; i < node->subs_s; ++i) {
@@ -119,7 +128,8 @@ void rclc_spin_node(rclc_node_t * node)
 
   rc = rcl_wait_set_fini(&wait_set);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_wait_set_fini");
+    fprintf(stderr, "[rclc_spin_node] error in rcl_wait_set_fini: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
   }
 }
 
@@ -139,7 +149,8 @@ rclc_node_t * rclc_create_node(const char * name)
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   rcl_ret_t rc = rcl_node_init(ret->rcl_node, name, namespace_, &node_ops);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_node_init");
+    fprintf(stderr, "[rclc_create_node] error in rcl_node_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
     return NULL;
   }
   
@@ -162,13 +173,18 @@ rclc_publisher_t * rclc_create_publisher(
   (void)queue_size;
   
   rclc_publisher_t* ret = malloc(sizeof(rclc_publisher_t));
-  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-  memcpy(ret, &pub, sizeof(pub));
-  
+
+  {
+    rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+    ret->rcl_publisher = malloc(sizeof(rcl_publisher_t));
+    memcpy(ret->rcl_publisher, &pub, sizeof(pub));
+  }
+
   rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
   rcl_ret_t rc = rcl_publisher_init(ret->rcl_publisher, node->rcl_node, type_support, topic_name, &pub_opt);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_publisher_init");
+    fprintf(stderr, "[rclc_create_publisher] error in rcl_publisher_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
     return NULL;
   }
 
@@ -213,7 +229,8 @@ rclc_subscription_t * rclc_create_subscription(
   rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
   rcl_ret_t rc = rcl_subscription_init(ret->rcl_subscription, node->rcl_node, type_support, topic_name, &subscription_ops);
   if(rc != RCL_RET_OK) {
-    puts("ERROR : rcl_subscription_init");
+    fprintf(stderr, "[rclc_create_subscription] error in rcl_subscription_init: %s\n", rcl_get_error_string_safe());
+    rcl_reset_error();
     return NULL;
   }
 
