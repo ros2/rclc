@@ -5,7 +5,6 @@ project(rclc)
 find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
-find_package(rosidl_typesupport_test REQUIRED)
 
 ament_export_include_directories(include)
 include_directories(include)
