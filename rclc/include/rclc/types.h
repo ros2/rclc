@@ -15,23 +15,16 @@
 #ifndef RCLC__TYPES_H_
 #define RCLC__TYPES_H_
 
-#include "rcl/node.h"
-#include "rcl/publisher.h"
-#include "rcl/subscription.h"
 #include "rcl/types.h"
 
 typedef rcl_ret_t rclc_ret_t;
 
-struct rclc_node_t;
 typedef struct rclc_node_t rclc_node_t;
 
-struct rclc_publisher_t;
 typedef struct rclc_publisher_t rclc_publisher_t;
 
-struct rclc_subscription_t;
 typedef struct rclc_subscription_t rclc_subscription_t;
 
-struct rclc_executor_t;
 typedef struct rclc_executor_t rclc_executor_t;
 
 typedef void (* rclc_callback_t)(const void *);

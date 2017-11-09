@@ -29,7 +29,7 @@ rclc_init(int argc, char ** argv);
 
 /// Global state check; returns false on user shutdown after ctrl-c.
 bool
-rclc_ok();
+rclc_ok(void);
 
 /// Sleeps (blocks) for a given number of milliseconds.
 void
@@ -41,7 +41,7 @@ rclc_spin_node(rclc_node_t * node);
 
 /// Creates a rclc_node_t, which represents a ROS Node.
 rclc_node_t *
-rclc_create_node(const char * name);
+rclc_create_node(const char * name, const char * namespace_);
 
 /// Destroys a rclc_node_t.
 rclc_ret_t
@@ -69,7 +69,7 @@ rclc_create_subscription(
   rclc_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  void (* callback)(const void *),
+  rclc_callback_t callback,
   size_t queue_size,
   bool ignore_local_publications);
 

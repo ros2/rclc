@@ -40,7 +40,8 @@ struct rclc_node_t
   size_t subs_s;
 };
 
-rclc_ret_t rclc_init(int argc, char ** argv)
+rclc_ret_t
+rclc_init(int argc, char ** argv)
 {
   rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator());
   if(ret != RCL_RET_OK) {
@@ -50,12 +51,14 @@ rclc_ret_t rclc_init(int argc, char ** argv)
   return ret;
 }
 
-bool rclc_ok()
+bool
+rclc_ok(void)
 {
   return true;
 }
 
-void rclc_sleep_ms(size_t milliseconds)
+void
+rclc_sleep_ms(size_t milliseconds)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
@@ -84,7 +87,8 @@ void rclc_sleep_ms(size_t milliseconds)
   }
 }
 
-void rclc_spin_node(rclc_node_t * node)
+void
+rclc_spin_node(rclc_node_t * node)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
@@ -143,10 +147,9 @@ void rclc_spin_node(rclc_node_t * node)
   }
 }
 
-rclc_node_t * rclc_create_node(const char * name)
+rclc_node_t *
+rclc_create_node(const char * name, const char * namespace_)
 {
-  const char* namespace_ = ""; // TODO : put as parameter
-
   rclc_node_t* ret = ALLOCATE(sizeof(rclc_node_t));
   ret->rcl_node = rcl_get_zero_initialized_node();
   ret->subs = NULL;
@@ -163,14 +166,16 @@ rclc_node_t * rclc_create_node(const char * name)
   return ret;
 }
 
-rclc_ret_t rclc_destroy_node(rclc_node_t * node)
+rclc_ret_t
+rclc_destroy_node(rclc_node_t * node)
 {
   rcl_ret_t ret = rcl_node_fini(&node->rcl_node);
   DEALLOCATE(node);
   return ret;
 }
 
-rclc_publisher_t * rclc_create_publisher(
+rclc_publisher_t *
+rclc_create_publisher(
   rclc_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
@@ -193,7 +198,8 @@ rclc_publisher_t * rclc_create_publisher(
   return ret;
 }
 
-rclc_ret_t rclc_destroy_publisher(rclc_publisher_t * publisher)
+rclc_ret_t
+rclc_destroy_publisher(rclc_publisher_t * publisher)
 {
   rcl_ret_t rc = rcl_publisher_fini(&publisher->rcl_publisher, &publisher->node->rcl_node);
   if(rc != RCL_RET_OK) {
@@ -204,16 +210,18 @@ rclc_ret_t rclc_destroy_publisher(rclc_publisher_t * publisher)
   return RCL_RET_OK;
 }
 
-rclc_ret_t rclc_publish(const rclc_publisher_t * publisher, const void * ros_message)
+rclc_ret_t
+rclc_publish(const rclc_publisher_t * publisher, const void * ros_message)
 {
   return rcl_publish(&publisher->rcl_publisher, ros_message);
 }
 
-rclc_subscription_t * rclc_create_subscription(
+rclc_subscription_t *
+rclc_create_subscription(
   rclc_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  void (* callback)(const void *),
+  rclc_callback_t callback,
   size_t queue_size,
   bool ignore_local_publications)
 {
@@ -242,7 +250,8 @@ rclc_subscription_t * rclc_create_subscription(
   return ret;
 }
 
-rclc_ret_t rclc_destroy_subscription(rclc_subscription_t * subscription)
+rclc_ret_t
+rclc_destroy_subscription(rclc_subscription_t * subscription)
 {
   // TODO : remove from subs list
   rcl_ret_t rc = rcl_subscription_fini(&subscription->rcl_subscription, &subscription->node->rcl_node);
