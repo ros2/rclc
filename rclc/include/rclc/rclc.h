@@ -33,7 +33,7 @@ rclc_ok(void);
 
 /// Sleeps (blocks) for a given number of milliseconds.
 void
-rclc_sleep_ms(size_t milliseconds);
+rclc_spin_node_once(rclc_node_t * node, size_t timeout_ms);
 
 /// Processes node callbacks and blocks until user shutdown or ctrl-c.
 void

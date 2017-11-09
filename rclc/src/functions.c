@@ -61,32 +61,6 @@ rclc_ok(void)
   return rcl_ok();
 }
 
-void
-rclc_sleep_ms(size_t milliseconds)
-{
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t rc = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
-  if(rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rclc_sleep_ms, rcl_wait_set_init);
-  }
-
-  rc = rcl_wait_set_clear_subscriptions(&wait_set);
-  if(rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rclc_sleep_ms, rcl_wait_set_clear_subscriptions);
-  }
-
-  rc = rcl_wait(&wait_set, RCL_MS_TO_NS(milliseconds));
-  if (rc != RCL_RET_OK && rc != RCL_RET_TIMEOUT) {
-    PRINT_RCL_ERROR(rclc_sleep_ms, rcl_wait);
-    return;
-  }
-
-  rc = rcl_wait_set_fini(&wait_set);
-  if(rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rclc_sleep_ms, rcl_wait_set_fini);
-  }
-}
-
 static
 inline
 void
@@ -95,6 +69,69 @@ _rclc_spin_node_exit(rcl_wait_set_t * wait_set) {
   if(rc != RCL_RET_OK) {
     PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_fini);
   }
+}
+
+void
+rclc_spin_node_once(rclc_node_t * node, size_t timeout_ms)
+{
+  const size_t dummy_timer_num = node->subs_s?0:1; // This is used to make the wait set not empty if there is no subscription
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t rc = rcl_wait_set_init(&wait_set, node->subs_s, 0, dummy_timer_num, 0, 0, rcl_get_default_allocator());
+  if(rc != RCL_RET_OK) {
+    PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_init);
+    return;
+  }
+
+  rc = rcl_wait_set_clear_subscriptions(&wait_set);
+  if(rc != RCL_RET_OK) {
+    PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_clear_subscriptions);
+    _rclc_spin_node_exit(&wait_set);
+    return;
+  }
+
+  for (size_t i = 0; i < node->subs_s; ++i) {
+    rc = rcl_wait_set_add_subscription(&wait_set, &node->subs[i]->rcl_subscription);
+    if(rc != RCL_RET_OK) {
+      PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_add_subscription);
+      _rclc_spin_node_exit(&wait_set);
+      return;
+    }
+  }
+
+  rc = rcl_wait(&wait_set, RCL_MS_TO_NS(timeout_ms));
+  if(rc == RCL_RET_TIMEOUT) {
+    _rclc_spin_node_exit(&wait_set);
+    return;
+  }
+
+  if(rc != RCL_RET_OK) {
+    PRINT_RCL_ERROR(rclc_spin_node, rcl_wait);
+    _rclc_spin_node_exit(&wait_set);
+    return;
+  }
+
+  for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
+    if (wait_set.subscriptions[i]) {
+      char msg[64];
+
+      rc = rcl_take(wait_set.subscriptions[i], (void*)&msg, NULL);
+      if(rc != RCL_RET_OK) {
+        PRINT_RCL_ERROR(rclc_spin_node, rcl_take);
+        _rclc_spin_node_exit(&wait_set);
+        return;
+      }
+
+      for (size_t j = 0; j < node->subs_s; ++j) {
+        if(&node->subs[j]->rcl_subscription == wait_set.subscriptions[i]) {
+          node->subs[j]->user_callback((const void*)&msg);
+        }
+      }
+
+    }
+  }
+
+  _rclc_spin_node_exit(&wait_set);
 }
 
 void
