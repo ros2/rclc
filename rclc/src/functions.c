@@ -26,6 +26,7 @@ struct rclc_subscription_t
 {
   rcl_subscription_t rcl_subscription;
   rclc_callback_t user_callback;
+  size_t typesupport_size_of;
 
   rclc_node_t * node;
 };
@@ -224,7 +225,7 @@ rclc_destroy_node(rclc_node_t * node)
 rclc_publisher_t *
 rclc_create_publisher(
   rclc_node_t * node,
-  const rosidl_message_type_support_t * type_support,
+  const rclc_type_support_t type_support,
   const char * topic_name,
   size_t queue_size)
 {
@@ -235,7 +236,12 @@ rclc_create_publisher(
   rclc_publisher->node = node;
 
   rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
-  rcl_ret_t rc = rcl_publisher_init(&rclc_publisher->rcl_publisher, &node->rcl_node, type_support, topic_name, &pub_opt);
+  rcl_ret_t rc = rcl_publisher_init(
+        &rclc_publisher->rcl_publisher,
+        &node->rcl_node,
+        type_support.rosidl_message_type_support,
+        topic_name,
+        &pub_opt);
   if(rc != RCL_RET_OK) {
     PRINT_RCL_ERROR(rclc_create_publisher, rcl_publisher_init);
     return NULL;
@@ -269,7 +275,7 @@ rclc_publish(const rclc_publisher_t * publisher, const void * ros_message)
 rclc_subscription_t *
 rclc_create_subscription(
   rclc_node_t * node,
-  const rosidl_message_type_support_t * type_support,
+  const rclc_type_support_t type_support,
   const char * topic_name,
   rclc_callback_t callback,
   size_t queue_size,
@@ -281,10 +287,18 @@ rclc_create_subscription(
   rclc_subscription_t* rclc_subscription = ALLOCATE(sizeof(rclc_subscription_t));
   rclc_subscription->rcl_subscription = rcl_get_zero_initialized_subscription();
   rclc_subscription->user_callback = callback;
+  rclc_subscription->typesupport_size_of = type_support.size_of;
+
   rclc_subscription->node = node;
 
   rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
-  rcl_ret_t rc = rcl_subscription_init(&rclc_subscription->rcl_subscription, &node->rcl_node, type_support, topic_name, &subscription_ops);
+
+  rcl_ret_t rc = rcl_subscription_init(
+        &rclc_subscription->rcl_subscription,
+        &node->rcl_node,
+        type_support.rosidl_message_type_support,
+        topic_name,
+        &subscription_ops);
   if(rc != RCL_RET_OK) {
     PRINT_RCL_ERROR(rclc_create_subscription, rcl_subscription_init);
     return NULL;

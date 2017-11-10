@@ -18,10 +18,8 @@
 #include <stdbool.h>  // For bool
 #include <stddef.h>  // For size_t
 
-// For rosidl_message_type_support_t
-#include "rosidl_generator_c/message_type_support_struct.h"
-
 #include "rclc/types.h"  // For rclc_*_t types
+#include "rclc/type_support.h"  // For rclc_type_support_t type
 
 /// Global initialization for rclc; should be called once per process.
 rclc_ret_t
@@ -51,7 +49,7 @@ rclc_destroy_node(rclc_node_t * node);
 rclc_publisher_t *
 rclc_create_publisher(
   rclc_node_t * node,
-  const rosidl_message_type_support_t * type_support,
+  const rclc_type_support_t type_support,
   const char * topic_name,
   size_t queue_size);
 
@@ -67,7 +65,7 @@ rclc_publish(const rclc_publisher_t * publisher, const void * ros_message);
 rclc_subscription_t *
 rclc_create_subscription(
   rclc_node_t * node,
-  const rosidl_message_type_support_t * type_support,
+  const rclc_type_support_t type_support,
   const char * topic_name,
   rclc_callback_t callback,
   size_t queue_size,
