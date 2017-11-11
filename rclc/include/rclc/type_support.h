@@ -18,15 +18,16 @@
 #include "rosidl_generator_c/message_type_support_struct.h"
 
 typedef struct rclc_type_support_t rclc_type_support_t;
-struct rclc_type_support_t {
-    const rosidl_message_type_support_t * rosidl_message_type_support;
-    const size_t size_of;
+struct rclc_type_support_t
+{
+  const rosidl_message_type_support_t * rosidl_message_type_support;
+  const size_t size_of;
 };
 
 #define RCLC_GET_MSG_TYPE_SUPPORT(pkg, dir, msg) \
-    ((const rclc_type_support_t){ \
-        ROSIDL_GET_MSG_TYPE_SUPPORT(pkg, dir, msg), \
-        sizeof(pkg##__##dir##__##msg) \
-    })
+  ((const rclc_type_support_t) { \
+    ROSIDL_GET_MSG_TYPE_SUPPORT(pkg, dir, msg), \
+    sizeof(pkg ## __ ## dir ## __ ## msg) \
+  })
 
 #endif  // RCLC__TYPE_SUPPORT_H_
