@@ -21,19 +21,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*/
 #define ALLOCATE(s) \
   rcl_get_default_allocator().allocate(s, rcl_get_default_allocator().state)
 #define DEALLOCATE(ptr) \
   rcl_get_default_allocator().deallocate(ptr, rcl_get_default_allocator().state)
 #define REALLOCATE(ptr, s) \
   rcl_get_default_allocator().reallocate(ptr, s, rcl_get_default_allocator().state)
-/*/
-#define ALLOCATE(s) malloc(s)
-#define DEALLOCATE(ptr) free(ptr)
-#define REALLOCATE(ptr, s) realloc(ptr, s)
-#define ZERO_ALLOCATE(s) calloc(s, 1)
-//*/
+#define ZERO_ALLOCATE(s) \
+  rcl_get_default_allocator().zero_allocate(s, 1, rcl_get_default_allocator().state)
 
 #define PRINT_RCL_ERROR(rclc, rcl) \
   do { \
