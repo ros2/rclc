@@ -15,6 +15,7 @@
 #define ALLOCATE(s) malloc(s)
 #define DEALLOCATE(ptr) free(ptr)
 #define REALLOCATE(ptr, s) realloc(ptr, s)
+#define ZERO_ALLOCATE(s) calloc(s,1)
 //*/
 
 #define PRINT_RCL_ERROR(rclc, rcl) do { \
@@ -26,7 +27,9 @@ struct rclc_subscription_t
 {
   rcl_subscription_t rcl_subscription;
   rclc_callback_t user_callback;
+
   size_t typesupport_size_of;
+  const rosidl_message_type_support_t * type_support;
 
   rclc_node_t * node;
 };
@@ -113,23 +116,29 @@ rclc_spin_node_once(rclc_node_t * node, size_t timeout_ms)
   }
 
   for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
-    if (wait_set.subscriptions[i]) {
-      char msg[64];
+    rclc_subscription_t * sub = NULL;
 
-      rc = rcl_take(wait_set.subscriptions[i], (void*)&msg, NULL);
-      if(rc != RCL_RET_OK) {
-        PRINT_RCL_ERROR(rclc_spin_node, rcl_take);
-        _rclc_spin_node_exit(&wait_set);
-        return;
+    for (size_t j = 0; j < node->subs_s; ++j) {
+      if(&node->subs[j]->rcl_subscription == wait_set.subscriptions[i]) {
+        sub = node->subs[j];
       }
-
-      for (size_t j = 0; j < node->subs_s; ++j) {
-        if(&node->subs[j]->rcl_subscription == wait_set.subscriptions[i]) {
-          node->subs[j]->user_callback((const void*)&msg);
-        }
-      }
-
     }
+
+    if(sub == NULL) {
+      fprintf(stderr, "[rclc_spin_node] unable to find subscription in node.\n");
+      _rclc_spin_node_exit(&wait_set);
+    }
+
+    void * msg = ZERO_ALLOCATE(sub->typesupport_size_of);
+
+    rc = rcl_take(wait_set.subscriptions[i], msg, NULL);
+    if(rc != RCL_RET_OK) {
+      PRINT_RCL_ERROR(rclc_spin_node, rcl_take);
+      _rclc_spin_node_exit(&wait_set);
+      return;
+    }
+
+    sub->user_callback(msg);
   }
 
   _rclc_spin_node_exit(&wait_set);
@@ -171,21 +180,29 @@ rclc_spin_node(rclc_node_t * node)
 
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i]) {
-        char msg[64];
+        rclc_subscription_t * sub = NULL;
 
-        rc = rcl_take(wait_set.subscriptions[i], (void*)&msg, NULL);
+        for (size_t j = 0; j < node->subs_s; ++j) {
+          if(&node->subs[j]->rcl_subscription == wait_set.subscriptions[i]) {
+            sub = node->subs[j];
+          }
+        }
+
+        if(sub == NULL) {
+          fprintf(stderr, "[rclc_spin_node] unable to find subscription in node.\n");
+          _rclc_spin_node_exit(&wait_set);
+        }
+
+        void * msg = ZERO_ALLOCATE(sub->typesupport_size_of);
+
+        rc = rcl_take(wait_set.subscriptions[i], msg, NULL);
         if(rc != RCL_RET_OK) {
           PRINT_RCL_ERROR(rclc_spin_node, rcl_take);
           _rclc_spin_node_exit(&wait_set);
           return;
         }
 
-        for (size_t j = 0; j < node->subs_s; ++j) {
-          if(&node->subs[j]->rcl_subscription == wait_set.subscriptions[i]) {
-            node->subs[j]->user_callback((const void*)&msg);
-          }
-        }
-
+        sub->user_callback(msg);
       }
     }
   }
@@ -200,14 +217,14 @@ rclc_create_node(const char * name, const char * namespace_)
   rclc_node->rcl_node = rcl_get_zero_initialized_node();
   rclc_node->subs = NULL;
   rclc_node->subs_s = 0;
-  
+
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   rcl_ret_t rc = rcl_node_init(&rclc_node->rcl_node, name, namespace_, &node_ops);
   if(rc != RCL_RET_OK) {
     PRINT_RCL_ERROR(rclc_create_node, rcl_node_init);
     return NULL;
   }
-  
+
   return rclc_node;
 }
 
@@ -230,7 +247,7 @@ rclc_create_publisher(
   size_t queue_size)
 {
   (void)queue_size;
-  
+
   rclc_publisher_t* rclc_publisher = ALLOCATE(sizeof(rclc_publisher_t));
   rclc_publisher->rcl_publisher = rcl_get_zero_initialized_publisher();
   rclc_publisher->node = node;
@@ -288,6 +305,7 @@ rclc_create_subscription(
   rclc_subscription->rcl_subscription = rcl_get_zero_initialized_subscription();
   rclc_subscription->user_callback = callback;
   rclc_subscription->typesupport_size_of = type_support.size_of;
+  rclc_subscription->type_support = type_support.rosidl_message_type_support;
 
   rclc_subscription->node = node;
 

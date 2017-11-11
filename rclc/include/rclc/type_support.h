@@ -24,7 +24,7 @@ struct rclc_type_support_t {
 };
 
 #define RCLC_GET_MSG_TYPE_SUPPORT(pkg, dir, msg) \
-    ((rclc_type_support_t){ \
+    ((const rclc_type_support_t){ \
         ROSIDL_GET_MSG_TYPE_SUPPORT(pkg, dir, msg), \
         sizeof(pkg##__##dir##__##msg) \
     })
