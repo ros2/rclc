@@ -15,7 +15,9 @@
 #ifndef RCLC__TYPES_H_
 #define RCLC__TYPES_H_
 
-#include "rcl/types.h"
+#include "rcl/rcl.h"
+
+#include "rclc/type_support.h"
 
 typedef rcl_ret_t rclc_ret_t;
 
@@ -28,5 +30,31 @@ typedef struct rclc_subscription_t rclc_subscription_t;
 typedef struct rclc_executor_t rclc_executor_t;
 
 typedef void (* rclc_callback_t)(const void *);
+
+// impl
+struct rclc_subscription_t
+{
+  rcl_subscription_t rcl_subscription;
+  rclc_callback_t user_callback;
+
+  rclc_type_support_t type_support;
+
+  rclc_node_t * node;
+};
+
+struct rclc_publisher_t
+{
+  rcl_publisher_t rcl_publisher;
+
+  rclc_node_t * node;
+};
+
+struct rclc_node_t
+{
+  rcl_node_t rcl_node;
+
+  rclc_subscription_t ** subs;
+  size_t subs_s;
+};
 
 #endif  // RCLC__TYPES_H_

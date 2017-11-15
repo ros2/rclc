@@ -36,32 +36,6 @@
     rcl_reset_error(); \
   } while (0)
 
-struct rclc_subscription_t
-{
-  rcl_subscription_t rcl_subscription;
-  rclc_callback_t user_callback;
-
-  size_t typesupport_size_of;
-  const rosidl_message_type_support_t * type_support;
-
-  rclc_node_t * node;
-};
-
-struct rclc_publisher_t
-{
-  rcl_publisher_t rcl_publisher;
-
-  rclc_node_t * node;
-};
-
-struct rclc_node_t
-{
-  rcl_node_t rcl_node;
-
-  rclc_subscription_t ** subs;
-  size_t subs_s;
-};
-
 rclc_ret_t
 rclc_init(int argc, char ** argv)
 {
@@ -145,7 +119,7 @@ rclc_spin_node_once(rclc_node_t * node, size_t timeout_ms)
       _rclc_spin_node_exit(&wait_set);
     }
 
-    void * msg = ZERO_ALLOCATE(sub->typesupport_size_of);
+    void * msg = ZERO_ALLOCATE(sub->type_support.size_of);
 
     rc = rcl_take(wait_set.subscriptions[i], msg, NULL);
     if (rc != RCL_RET_OK) {
@@ -210,7 +184,7 @@ rclc_spin_node(rclc_node_t * node)
           _rclc_spin_node_exit(&wait_set);
         }
 
-        void * msg = ZERO_ALLOCATE(sub->typesupport_size_of);
+        void * msg = ZERO_ALLOCATE(sub->type_support.size_of);
 
         rc = rcl_take(wait_set.subscriptions[i], msg, NULL);
         if (rc != RCL_RET_OK) {
@@ -321,8 +295,7 @@ rclc_create_subscription(
   rclc_subscription_t * rclc_subscription = ALLOCATE(sizeof(rclc_subscription_t));
   rclc_subscription->rcl_subscription = rcl_get_zero_initialized_subscription();
   rclc_subscription->user_callback = callback;
-  rclc_subscription->typesupport_size_of = type_support.size_of;
-  rclc_subscription->type_support = type_support.rosidl_message_type_support;
+  rclc_subscription->type_support = type_support;
 
   rclc_subscription->node = node;
 

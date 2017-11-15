@@ -15,6 +15,8 @@
 #ifndef RCLC__TYPE_SUPPORT_H_
 #define RCLC__TYPE_SUPPORT_H_
 
+#include <stddef.h>
+
 #include "rosidl_generator_c/message_type_support_struct.h"
 
 typedef struct rclc_type_support_t rclc_type_support_t;

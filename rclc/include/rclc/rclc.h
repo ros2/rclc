@@ -19,7 +19,6 @@
 #include <stddef.h>  // For size_t
 
 #include "rclc/types.h"  // For rclc_*_t types
-#include "rclc/type_support.h"  // For rclc_type_support_t type
 
 /// Global initialization for rclc; should be called once per process.
 rclc_ret_t
