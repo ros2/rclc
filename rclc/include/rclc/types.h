@@ -37,7 +37,7 @@ struct rclc_subscription_t
   rcl_subscription_t rcl_subscription;
   rclc_callback_t user_callback;
 
-  rclc_type_support_t type_support;
+  rclc_message_type_support_t type_support;
 
   rclc_node_t * node;
 };

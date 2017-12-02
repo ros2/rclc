@@ -2,18 +2,26 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rclc)
 
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 
 ament_export_include_directories(include)
 include_directories(include)
 
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 11)
+endif()
+
 set(rclc_sources
   "src/functions.c"
 )
-set_source_files_properties(${rclc_sources} PROPERTIES LANGUAGE "C")
-add_library(${PROJECT_NAME} ${rclc_sources})
+
+add_library(${PROJECT_NAME} 
+  SHARED
+  ${rclc_sources}
+)
+
 ament_target_dependencies(${PROJECT_NAME}
   rcl
   rosidl_generator_c

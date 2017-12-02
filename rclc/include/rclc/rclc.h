@@ -28,9 +28,9 @@ rclc_init(int argc, char ** argv);
 bool
 rclc_ok(void);
 
-/// Sleeps (blocks) for a given number of milliseconds.
+/// Processes node callbacks and blocks for a given number of milliseconds.
 void
-rclc_spin_node_once(rclc_node_t * node, size_t timeout_ms);
+rclc_spin_node_once(rclc_node_t * node, int64_t timeout_ms);
 
 /// Processes node callbacks and blocks until user shutdown or ctrl-c.
 void
@@ -48,7 +48,7 @@ rclc_destroy_node(rclc_node_t * node);
 rclc_publisher_t *
 rclc_create_publisher(
   rclc_node_t * node,
-  const rclc_type_support_t type_support,
+  const rclc_message_type_support_t type_support,
   const char * topic_name,
   size_t queue_size);
 
@@ -64,7 +64,7 @@ rclc_publish(const rclc_publisher_t * publisher, const void * ros_message);
 rclc_subscription_t *
 rclc_create_subscription(
   rclc_node_t * node,
-  const rclc_type_support_t type_support,
+  const rclc_message_type_support_t type_support,
   const char * topic_name,
   rclc_callback_t callback,
   size_t queue_size,
