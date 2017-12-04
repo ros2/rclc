@@ -15,6 +15,11 @@
 #ifndef RCLC__TYPES_H_
 #define RCLC__TYPES_H_
 
+#if __cplusplus
+extern "C"
+{
+#endif
+
 #include "rcl/rcl.h"
 
 #include "rclc/type_support.h"
@@ -56,5 +61,9 @@ struct rclc_node_t
   rclc_subscription_t ** subs;
   size_t subs_s;
 };
+
+#if __cplusplus
+}
+#endif
 
 #endif  // RCLC__TYPES_H_

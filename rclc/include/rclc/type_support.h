@@ -15,6 +15,11 @@
 #ifndef RCLC__TYPE_SUPPORT_H_
 #define RCLC__TYPE_SUPPORT_H_
 
+#if __cplusplus
+extern "C"
+{
+#endif
+
 #include <stddef.h>
 
 #include "rosidl_generator_c/message_type_support_struct.h"
@@ -31,5 +36,9 @@ struct rclc_message_type_support_t
     ROSIDL_GET_MSG_TYPE_SUPPORT(pkg, dir, msg), \
     sizeof(pkg ## __ ## dir ## __ ## msg) \
   })
+
+#if __cplusplus
+}
+#endif
 
 #endif  // RCLC__TYPE_SUPPORT_H_
