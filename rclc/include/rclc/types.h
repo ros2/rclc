@@ -15,26 +15,55 @@
 #ifndef RCLC__TYPES_H_
 #define RCLC__TYPES_H_
 
-#include "rcl/node.h"
-#include "rcl/publisher.h"
-#include "rcl/subscription.h"
-#include "rcl/types.h"
+#if __cplusplus
+extern "C"
+{
+#endif
+
+#include "rcl/rcl.h"
+
+#include "rclc/type_support.h"
 
 typedef rcl_ret_t rclc_ret_t;
-typedef rcl_node_t rclc_node_t;
-typedef rcl_publisher_t rclc_publisher_t;
+
+typedef struct rclc_node_t rclc_node_t;
+
+typedef struct rclc_publisher_t rclc_publisher_t;
+
+typedef struct rclc_subscription_t rclc_subscription_t;
+
+typedef struct rclc_executor_t rclc_executor_t;
 
 typedef void (* rclc_callback_t)(const void *);
 
-typedef struct rclc_subscription_t
+// impl
+struct rclc_subscription_t
 {
-  struct rclc_subscription_t * rcl_subscription;
+  rcl_subscription_t rcl_subscription;
   rclc_callback_t user_callback;
-} rclc_subscription_t;
 
-typedef struct rclc_executor_t
+  rclc_message_type_support_t type_support;
+
+  rclc_node_t * node;
+};
+
+struct rclc_publisher_t
 {
-  // TODO(wjwwood): Fill this out
-} rclc_executor_t;
+  rcl_publisher_t rcl_publisher;
+
+  rclc_node_t * node;
+};
+
+struct rclc_node_t
+{
+  rcl_node_t rcl_node;
+
+  rclc_subscription_t ** subs;
+  size_t subs_s;
+};
+
+#if __cplusplus
+}
+#endif
 
 #endif  // RCLC__TYPES_H_
