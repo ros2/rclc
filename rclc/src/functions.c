@@ -37,7 +37,7 @@
   } while (0)
 
 rclc_ret_t
-rclc_init(int argc, char ** argv)
+rclc_init(int argc, char const * const * argv)
 {
   rcl_ret_t rc = rcl_init(argc, argv, rcl_get_default_allocator());
   if (rc != RCL_RET_OK) {
