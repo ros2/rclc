@@ -27,7 +27,7 @@ extern "C"
 
 /// Global initialization for rclc; should be called once per process.
 rclc_ret_t
-rclc_init(int argc, char ** argv);
+rclc_init(int argc, char const * const * argv);
 
 /// Global state check; returns false on user shutdown after ctrl-c.
 bool
