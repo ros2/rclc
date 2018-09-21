@@ -53,20 +53,20 @@ TEST_F(TestSubscription, construction_and_destruction) {
       (void)msg;
     };
 
-  {
-    rclc_subscription_t * sub =
-      rclc_create_subscription(node,
-        RCLC_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, IntraProcessMessage),
-        "topic", callback, 0, false);
-    EXPECT_NON_NULL(sub);
-    rclc_destroy_subscription(sub);
-  }
+  // {
+  //   rclc_subscription_t * sub =
+  //     rclc_create_subscription(node,
+  //       RCLC_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, IntraProcessMessage),
+  //       "topic", callback, 0, false);
+  //   EXPECT_NON_NULL(sub);
+  //   rclc_destroy_subscription(sub);
+  // }
 
-  {
-    rclc_subscription_t * sub =
-      rclc_create_subscription(node,
-        RCLC_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, IntraProcessMessage),
-        "invalid_topic?", callback, 0, false);
-    EXPECT_NULL(sub);
-  }
+  // {
+  //   rclc_subscription_t * sub =
+  //     rclc_create_subscription(node,
+  //       RCLC_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, IntraProcessMessage),
+  //       "invalid_topic?", callback, 0, false);
+  //   EXPECT_NULL(sub);
+  // }
 }
