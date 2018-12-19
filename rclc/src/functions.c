@@ -42,7 +42,7 @@ static rcl_init_options_t init_options;
 
 rclc_ret_t
 rclc_init(int argc, char const * const * argv)
-{ 
+{
   rcl_ret_t rc;
 
   init_options = rcl_get_zero_initialized_init_options();
