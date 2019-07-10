@@ -41,13 +41,11 @@ rclc_ok(void);
 
 /// Processes node callbacks and blocks for a given number of milliseconds.
 RCLC_PUBLIC
-RCLC_WARN_UNUSED
 void
 rclc_spin_node_once(rclc_node_t * node, int64_t timeout_ms);
 
 /// Processes node callbacks and blocks until user shutdown or ctrl-c.
 RCLC_PUBLIC
-RCLC_WARN_UNUSED
 void
 rclc_spin_node(rclc_node_t * node);
 
