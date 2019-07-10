@@ -98,9 +98,8 @@ rclc_spin_node_once(rclc_node_t * node, int64_t timeout_ms)
     return;
   }
 
-  size_t index = 0;
   for (size_t i = 0; i < node->subs_s; ++i) {
-    rc = rcl_wait_set_add_subscription(&wait_set, &node->subs[i]->rcl_subscription, &index);
+    rc = rcl_wait_set_add_subscription(&wait_set, &node->subs[i]->rcl_subscription, NULL);
     if (rc != RCL_RET_OK) {
       PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_add_subscription);
       _rclc_spin_node_exit(&wait_set);
@@ -173,9 +172,8 @@ rclc_spin_node(rclc_node_t * node)
       return;
     }
 
-    size_t index = 0;
     for (size_t i = 0; i < node->subs_s; ++i) {
-      rc = rcl_wait_set_add_subscription(&wait_set, &node->subs[i]->rcl_subscription, &index);
+      rc = rcl_wait_set_add_subscription(&wait_set, &node->subs[i]->rcl_subscription, NULL);
       if (rc != RCL_RET_OK) {
         PRINT_RCL_ERROR(rclc_spin_node, rcl_wait_set_add_subscription);
         _rclc_spin_node_exit(&wait_set);
