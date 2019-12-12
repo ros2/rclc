@@ -1,3 +1,5 @@
+// Copyright (c) 2019 - for information on the respective copyright owner
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,45 +24,15 @@ extern "C"
 
 #include "rcl/rcl.h"
 
-#include "rclc/type_support.h"
-
 typedef rcl_ret_t rclc_ret_t;
 
-typedef struct rclc_node_t rclc_node_t;
+typedef rcl_node_t rclc_node_t;
 
-typedef struct rclc_publisher_t rclc_publisher_t;
+typedef rcl_publisher_t rclc_publisher_t;
 
-typedef struct rclc_subscription_t rclc_subscription_t;
+typedef rcl_subscription_t rclc_subscription_t;
 
-typedef struct rclc_executor_t rclc_executor_t;
-
-typedef void (* rclc_callback_t)(const void *);
-
-// impl
-struct rclc_subscription_t
-{
-  rcl_subscription_t rcl_subscription;
-  rclc_callback_t user_callback;
-
-  rclc_message_type_support_t type_support;
-
-  rclc_node_t * node;
-};
-
-struct rclc_publisher_t
-{
-  rcl_publisher_t rcl_publisher;
-
-  rclc_node_t * node;
-};
-
-struct rclc_node_t
-{
-  rcl_node_t rcl_node;
-
-  rclc_subscription_t ** subs;
-  size_t subs_s;
-};
+// TODO(Jan): Add rcl_ext_init_t type and rename it to rclc_init_t.
 
 #if __cplusplus
 }

@@ -1,6 +1,5 @@
 // Copyright (c) 2019 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
-// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,27 +13,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC__RCLC_H_
-#define RCLC__RCLC_H_
-
-#if __cplusplus
-extern "C"
-{
-#endif
-
-#include <stdbool.h>  // For bool
-#include <stddef.h>  // For size_t
-
-#include "rclc/types.h" 
-// TODO(Jan): Add functions from https://github.com/micro-ROS/rcl/blob/feature/rcl_ext_and_executor/rcl_ext/include/rcl_ext/rcl_ext.h and distributed them in the following files.
-#include "rclc/init.h"
-#include "rclc/node.h"
-#include "rclc/publisher.h"
-#include "rclc/subscription.h"
-#include "rclc/timer.h"
-
-#if __cplusplus
-}
-#endif
-
-#endif  // RCLC__RCLC_H_
+// TODO(Jan): Add content from let_executor.h and rename types (e.g., to rclc_let_executor_t).
