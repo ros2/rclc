@@ -26,7 +26,6 @@ extern "C"
 #include <stddef.h>  // For size_t
 
 #include "rclc/types.h" 
-// TODO(Jan): Add functions from https://github.com/micro-ROS/rcl/blob/feature/rcl_ext_and_executor/rcl_ext/include/rcl_ext/rcl_ext.h and distributed them in the following files.
 #include "rclc/init.h"
 #include "rclc/node.h"
 #include "rclc/publisher.h"

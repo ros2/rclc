@@ -1,5 +1,6 @@
 // Copyright (c) 2019 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
+// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +13,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#ifndef RCLC__EXECUTOR_HANDLE_H_
+#define RCLC__EXECUTOR_HANDLE_H_
 
-// TODO(Jan): Add rcle_handle_t and rename it to rclc_executor_handle_t and add all related types/functions from handle.h.
+#if __cplusplus
+extern "C"
+{
+#endif
+
+#if __cplusplus
+}
+#endif
+
+#endif  // RCLC__EXECUTOR_HANDLE_H_

@@ -1,5 +1,6 @@
 // Copyright (c) 2019 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
+// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +13,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#ifndef RCLC__LET_EXECUTOR_H_
+#define RCLC__LET_EXECUTOR_H_
 
-// TODO(Jan): Add content from let_executor.h and rename types (e.g., to rclc_let_executor_t).
+#if __cplusplus
+extern "C"
+{
+#endif
+
+#if __cplusplus
+}
+#endif
+
+#endif  // RCLC__LET_EXECUTOR_H_

@@ -22,8 +22,12 @@ extern "C"
 {
 #endif
 
-#include "rcl/rcl.h"
+#include <rcl/init_options.h>
+#include <rcl/context.h>
+#include<rcl/allocator.h>
+#include<rcl/time.h>
 
+/*
 typedef rcl_ret_t rclc_ret_t;
 
 typedef rcl_node_t rclc_node_t;
@@ -31,8 +35,28 @@ typedef rcl_node_t rclc_node_t;
 typedef rcl_publisher_t rclc_publisher_t;
 
 typedef rcl_subscription_t rclc_subscription_t;
+*/
 
-// TODO(Jan): Add rcl_ext_init_t type and rename it to rclc_init_t.
+typedef struct
+{
+  rcl_init_options_t init_options;
+  rcl_context_t context;
+  rcl_allocator_t * allocator;
+  rcl_clock_t clock;
+} rclc_support_t;
+
+
+/**
+ * macro to print errors
+ */
+#ifndef PRINT_RCLC_ERROR
+#define PRINT_RCLC_ERROR(rclc, rcl) \
+  do { \
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, \
+      "[" #rclc "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \
+    rcl_reset_error(); \
+  } while (0)
+#endif
 
 #if __cplusplus
 }
