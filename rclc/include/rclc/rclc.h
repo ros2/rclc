@@ -25,7 +25,7 @@ extern "C"
 #include <stdbool.h>  // For bool
 #include <stddef.h>  // For size_t
 
-#include "rclc/types.h" 
+#include "rclc/types.h"
 #include "rclc/init.h"
 #include "rclc/node.h"
 #include "rclc/publisher.h"

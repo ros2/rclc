@@ -51,7 +51,7 @@ add_library(${PROJECT_NAME} src/init.c
   src/subscription.c
   src/timer.c
   src/node.c
-# src/executor_handle.c
+  src/executor_handle.c
 # src/let_executor.c
   )
 
@@ -76,12 +76,16 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
-  find_package(rcl REQUIRED)
+  find_package(std_msgs REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
     test/test_init.cpp
+    test/test_node.cpp
+    test/test_publisher.cpp
+    test/test_subscription.cpp
+    test/test_timer.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include)
@@ -91,6 +95,7 @@ if(BUILD_TESTING)
     rcutils
     rosidl_generator_c
     osrf_testing_tools_cpp
+    std_msgs
   )
 endif()
 
