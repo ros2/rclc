@@ -24,7 +24,7 @@ extern "C"
 #include <rcl/rcl.h>
 
 /// TODO (jst3si) Where is this defined? - in my build environment this variable is not set.
-#define ROS_PACKAGE_NAME "rcl_executor"
+// #define ROS_PACKAGE_NAME "rclc"
 
 /// Enumeration for timer, subscription, guard conditions etc to be waited on.
 typedef enum

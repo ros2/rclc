@@ -46,14 +46,7 @@ include_directories(include)
 #################################################
 # create library
 #################################################
-add_library(${PROJECT_NAME} src/init.c
-  src/publisher.c
-  src/subscription.c
-  src/timer.c
-  src/node.c
-  src/executor_handle.c
-# src/let_executor.c
-  )
+add_library(${PROJECT_NAME} src/init.c src/publisher.c src/subscription.c src/timer.c src/node.c src/executor_handle.c src/let_executor.c)
 
 ament_target_dependencies(${PROJECT_NAME}
   rcl
@@ -77,6 +70,7 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
   find_package(std_msgs REQUIRED)
+  find_package(geometry_msgs REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
@@ -86,6 +80,8 @@ if(BUILD_TESTING)
     test/test_publisher.cpp
     test/test_subscription.cpp
     test/test_timer.cpp
+    test/test_executor_handle.cpp
+    test/test_let_executor.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include)
@@ -96,6 +92,7 @@ if(BUILD_TESTING)
     rosidl_generator_c
     osrf_testing_tools_cpp
     std_msgs
+    geometry_msgs
   )
 endif()
 

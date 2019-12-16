@@ -35,6 +35,7 @@ extern "C"
 #include <rcutils/logging_macros.h>
 
 #include "rclc/executor_handle.h"
+#include "rclc/types.h"
 
 /*! \file let_executor.h
     \brief The LET-Executor provides an Executor based on RCL in which all callbacks are
@@ -173,8 +174,8 @@ rclc_let_executor_add_subscription(
   rclc_let_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
-  rcle_callback_t callback,
-  rcle_invocation_t invocation);
+  rclc_callback_t callback,
+  rclc_executor_handle_invocation_t invocation);
 
 /**
  *  Adds a timer to an executor.
