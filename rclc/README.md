@@ -112,17 +112,8 @@ The function `rlce_executor_fini` frees the dynamically allocated memory of the 
 
 ## Example
 
-An example, how to use the RCL Executor with the
-[rclc package](https://github.com/micro-ROS/rcl/tree/feature/rclc_and_executor/rclc)
-(a package to simplify creation of rcl handles) can be found in the repository micro-ROS-demos on
-branch [feature/rcl_executor_examples](https://github.com/micro-ROS/micro-ROS-demos/tree/feature/rcl_executor_examples/C/rcl_executor_examples)
-
-Building and running the example:
-After having built the rcl package with rcl_executor and rclc), do the following:
-``` C
-$>colcon build --packages-select rcl_executor_examples
-$>ros2 run rcl_executor_examples executor_with_rclc
-```
+An example, how to use the LET Executor with RCL objects given in the package:
+[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples). (Branch feature/new_api_and_LET_executor)
 
 ## Limitations: 
 
@@ -138,7 +129,7 @@ $>ros2 run rcl_executor_examples executor_with_rclc
 
 
 
-## Guide to setup the let-executor with rcl API
+## Guide to setup the let-executor with RCL API
 
 You find the complete source code in the package `rclc_examples`, file example_executor.c.
 
@@ -156,7 +147,7 @@ std_msgs__msg__String pub_msg;
 std_msgs__msg__String sub_msg;
 ```
 
-**Step 2:** <a name="Step2"> </a> Define a subscription callback `my_sub_callback`.
+**Step 2:** <a name="Step2"> </a> Define a subscription callback `my_subscriber_callback`.
 
 ```C
 void my_subscriber_callback(const void * msgin)
@@ -225,7 +216,7 @@ int main(int argc, const char * argv[])
     return -1;
   }
 ```
-**Step 5:** <a name="Step5"> </a> Create an rcl_publisher `pub` which publishes messages using the rcl_timer `my_timer`.
+**Step 5:** <a name="Step5"> </a> Create an rcl_publisher `my_pub` which publishes messages using the rcl_timer `my_timer`.
 ```C
   // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
   // my_pub is global, so the timer_callback access this publisher.
@@ -273,7 +264,7 @@ int main(int argc, const char * argv[])
   snprintf(pub_string, 13, "%s", "Hello World!");
   rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
 ```
-**Step 6:** <a name="Step6"> </a> Create an rcl_subscription `my_sub`.
+**Step 6:** <a name="Step6"> </a> Create an rcl_subscription `my_sub` with the topic `topic_name`.
 
 ```C
   // create subscription
@@ -300,12 +291,10 @@ int main(int argc, const char * argv[])
   std_msgs__msg__String__init(&sub_msg);
 ```
 
-**Step 7:** <a name="Step7"> </a> Create an let executor and initialize it with the ROS context
+**Step 7:** <a name="Step7"> </a> Create an LET-executor and initialize it with the ROS context
 (`context`), number of handles (`2`) and use the `allocator` for memory allocation.
 
 The user can configure, when the callback shall be invoked: Options are `ALWAYS` and `ON_NEW_DATA`. If `ALWAYS` is selected, the callback is always called, even if no new data is available. In this case, the callback is given a `NULL`pointer for the argument `msgin` and the callback needs to handle this correctly. If `ON_NEW_DATA` is selected, then the callback is called only if new data from the DDS queue is available. In this case the parameter `msgin` of the callback always points to memory-allocated message.
-
-The blocking time for `rcl_wait()` in order to bound the waiting time for new data from DDS can be configured with `rclc_let_exector_set_timeout`.
 
 ```C
   rclc_let_executor_t executor;
@@ -314,7 +303,7 @@ The blocking time for `rcl_wait()` in order to bound the waiting time for new da
   executor = rclc_let_executor_get_zero_initialized_executor();
   rclc_let_executor_init(&executor, &context, num_handles, &allocator);
 ```
-**Step 8:** <a name="Step8"> </a>(Optionally) Define the blocking time when requesting new data from DDS (timeout for rcl_wait()). Here the timeout is `20ms`.
+**Step 8:** <a name="Step8"> </a>(Optionally) Define the blocking time when requesting new data from DDS (timeout for rcl_wait()). Here the timeout is `1000ms`.
 The default timeout is 100ms.
 
 ```C
@@ -337,7 +326,7 @@ The default timeout is 100ms.
   }
 ```
 
-**Step 10:** <a name="Step10"> </a> Add timer `timer1`, as defined in [Step 5](#Step5) to the `executor`. The period of the timer and the callback to call are already configured in the timer object itself.
+**Step 10:** <a name="Step10"> </a> Add timer `my_timer`, as defined in [Step 5](#Step5) to the `executor`. The period of the timer and the callback to call are already configured in the timer object itself.
 
 ```C
   rclc_let_executor_add_timer(&executor, &my_timer);
@@ -355,7 +344,7 @@ The default timeout is 100ms.
   }
 ```
 
-**Step 12:** <a name="Step12"> </a> Clean up memory for Executor and other other RCL objects
+**Step 12:** <a name="Step12"> </a> Clean up memory for the LET-Executor and other other RCL objects
 
 ```C
   rc = rclc_let_executor_fini(&executor);
@@ -388,6 +377,3 @@ Callback: I heard: Hello World!
 Published message Hello World!
 Callback: I heard: Hello World!
 ```
-
-## Guide to setup the let-executor with rclc convenience functions
-See file TODO.
