@@ -4,15 +4,10 @@ The package rclc is a [ROS 2](http://www.ros2.org/) package, which provides conv
 
 API:
 - rclc_init()
-- rclc_init_fini()
-- rclc_create_node()
-- rclc_node_fini()
-- rclc_create_publisher()
-- rclc_publisher_fini()
-- rclc_create_subscription()
-- rclc_subscription_fini()
-- rclc_create_timer()
-- rclc_timer_fini()
+- rclc_node_init_default()
+- rclc_publisher_init_default()
+- rclc_subscription_init_default()
+- rclc_timer_init_default()
 
 
 A complete code example with the `rclc` convenience functions and the `let-executor` is provided in [test](./test)
@@ -38,7 +33,7 @@ by a subscription callback and the order of these is not given, then the timer c
 sometimes process the old data and sometimes the new. By reading all data first (and locally
 copying it), this dependence is removed.
 The benefit is very low synchronization effort because interference between input data is avoided
-[EK2018] [BP2017]. See also a more detailed motivation of this Real Time Executor on the
+[EK2018] [BP2017]. For more details about this Real Time Executor see
 [micro-ROS website](https://micro-ros.github.io/docs/concepts/client_library/real-time_executor/).
 
 ## LET semantics 
@@ -64,7 +59,7 @@ allocated by the RCL Executor.
 The API of the RCL-Executor provides functions, like `add_subscription` and `add_timer`, to add
 rcl-subscriptions and rcl-timers to the Executor. The order, in which the user adds these handles
 to the Executor, determines later on the execution order when new data is available for these
-handles. The executor is activated by calling the `spin_some`, `spin_period()` or `spin()` method.
+handles. The executor is activated by calling the `spin_some`, `spin_period()`, `spin_one_period` or `spin()` method.
 
 The API of the static LET scheduler provide the following functions for configuration, defining the
 execution order, running the scheduler and cleaning-up:
@@ -91,6 +86,8 @@ execution order, running the scheduler and cleaning-up:
 
 In the function `rclc_let_executor_init`, the user must specify among other things how many handles
 shall be scheduled.
+
+TODO (jan): timeout for spinning / not for rcl_wait()
 
 The function `rclc_let_executor_set_timeout` is an optional configuration function, which defines
 the timeout for calling rcl_wait(), i.e. the time to wait for new data from the DDS queue. The
@@ -139,180 +136,258 @@ $>ros2 run rcl_executor_examples executor_with_rclc
 
 [BP2017] A. Biondi, P. Pazzaglia, A. Balsini, M. D. Natale: Logical Execution Time Implementation and Memory Optimization Issues in AUTOSAR Applications for Multicores, International Worshop on Analysis Tools and Methodologies for Embedded and Real-Time Systems (WATERS2017), Dubrovnik, Croatia.[Paper](https://pdfs.semanticscholar.org/4a9e/b9a616c25fd0b4a4f7810924e73eee0e7515.pdf)
 
-#TODO update with rclc functions
 
-## Step-by-step guide
 
-**Step 1:** <a name="Step1"> </a> Include the `let_executor.h` from the rcl_executor package in your C code.
+## Guide to setup the let-executor with rcl API
+
+You find the complete source code in the package `rclc_examples`, file example_executor.c.
+
+**Step 1:** <a name="Step1"> </a> Include the `let_executor.h` from the rclc package and other headers in your C code.
+As well as some global data structured used by the publisher and subscriber.
 
 ```C
-#include "rcl_executor/let_executor.h"
+#include <stdio.h>
+#include <std_msgs/msg/string.h>
+#include "rclc/let_executor.h"
+// these data structures for the publisher and subscriber are global, so that
+// they can be configured in main() and can be used in the corresponding callback.
+rcl_publisher_t my_pub;
+std_msgs__msg__String pub_msg;
+std_msgs__msg__String sub_msg;
 ```
 
-**Step 2:** <a name="Step2"> </a> Define a subscription callback `cmd_hello_callback`.
+**Step 2:** <a name="Step2"> </a> Define a subscription callback `my_sub_callback`.
 
 ```C
-// callback for topic "cmd_hello"
-#include <std_msgs/msg/string.h>
-void cmd_hello_callback(const void * msgin)
+void my_subscriber_callback(const void * msgin)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
-  printf("Callback 'cmd_hello': I heard: %s\n", msg->data.data);
+  if (msg == NULL) {
+    printf("Callback: msg NULL\n");
+  } else {
+    printf("Callback: I heard: %s\n", msg->data.data);
+  }
 }
 ```
 
 **Step 3:** <a name="Step3"> </a> Define a timer callback `my_timer_callback`.
 
 ```C
-// timer callback
+#define UNUSED(x) (void)x;
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
+  rcl_ret_t rc;
+  UNUSED(last_call_time);
   if (timer != NULL) {
-    printf("Timer: time since last call %d\n", (int) last_call_time);
+    //printf("Timer: time since last call %d\n", (int) last_call_time);
+    rc = rcl_publish(&my_pub, &pub_msg, NULL);
+    if (rc == RCL_RET_OK) {
+      printf("Published message %s\n", pub_msg.data.data);
+    } else {
+      printf("timer_callback: Error publishing message %s\n", pub_msg.data.data);
+    }
+  } else {
+    printf("timer_callback Error: timer parameter is NULL\n");
   }
 }
 ```
 
-
-**Step 4:** <a name="Step4"> </a> Create a ROS node with rcl library in main function.
+**Step 4:** <a name="Step4"> </a> Create a rcl_node in main function.
 
 ```C
 int main(int argc, const char * argv[])
 {
-  // rcl node initialization
-  rcl_context_t context;                // global static var in rcl
-  rcl_init_options_t init_options;      // global static var in rcl
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t rc;
 
   // create init_options
-  init_options = rcl_get_zero_initialized_init_options();
-  rc = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  rc = rcl_init_options_init(&init_options, allocator);
   if (rc != RCL_RET_OK) {
-      printf("Error rcl_init_options_init.\n");
-      return -1;
+    printf("Error rcl_init_options_init.\n");
+    return -1;
   }
 
   // create context
-  context = rcl_get_zero_initialized_context();
   rc = rcl_init(argc, argv, &init_options, &context);
   if (rc != RCL_RET_OK) {
-    printf("Error rcl_init.\n");
+    printf("Error in rcl_init.\n");
     return -1;
   }
 
-  // create ROS node
-  rcl_node_t node = rcl_get_zero_initialized_node();
+  // create rcl_node
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rc = rcl_node_init(&node, "rclc_let_executor_test1_node", "", &context, &node_ops);
+  rc = rcl_node_init(&my_node, "node_0", "let_executor_examples", &context, &node_ops);
   if (rc != RCL_RET_OK) {
-    printf("Error rcl_node_init\n");
+    printf("Error in rcl_node_init\n");
     return -1;
   }
 ```
+**Step 5:** <a name="Step5"> </a> Create an rcl_publisher `pub` which publishes messages using the rcl_timer `my_timer`.
+```C
+  // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
+  // my_pub is global, so the timer_callback access this publisher.
+  const char * topic_name = "topic_0";
+  rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
+  rc = rcl_publisher_init(
+    &my_pub,
+    &my_node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+    topic_name,
+    &pub_options);
+  if (RCL_RET_OK != rc) {
+    printf("Error in rcl_publisher_init %s.\n", topic_name);
+    return -1;
+  }
 
-**Step 5:** <a name="Step5"> </a> Create a subscription `sub_cmd_hello`with rcl library.
+
+  // create a timer, which will call the publisher every 'timer_timeout' ms in the 'my_timer_callback'
+  rcl_clock_t clock;
+  rc = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rcl_clock_init.\n");
+    return -1;
+  }
+  rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
+  const unsigned int timer_timeout = 1000;
+  rc = rcl_timer_init(
+    &my_timer,
+    &clock,
+    &context,
+    RCL_MS_TO_NS(timer_timeout),
+    my_timer_callback,
+    allocator);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rcl_timer_init.\n");
+    return -1;
+  } else {
+    printf("Created timer with timeout %d ms.\n", timer_timeout);
+  }
+
+  // assign message to publisher
+  std_msgs__msg__String__init(&pub_msg);
+  const unsigned int PUB_MSG_SIZE = 20;
+  char pub_string[PUB_MSG_SIZE];
+  snprintf(pub_string, 13, "%s", "Hello World!");
+  rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
+```
+**Step 6:** <a name="Step6"> </a> Create an rcl_subscription `my_sub`.
 
 ```C
   // create subscription
-  const char * cmd_hello_topic_name = "cmd_hello";
-  rcl_subscription_t sub_cmd_hello = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_ops2 = rcl_subscription_get_default_options();
-  const rosidl_message_type_support_t * sub_type_support2 = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs,
-      msg,
-      String);
-  std_msgs__msg__String msg2;
+  rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
+  const rosidl_message_type_support_t * my_type_support =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
 
   rc = rcl_subscription_init(
-    &sub_cmd_hello,
-    &node,
-    sub_type_support2,
-    cmd_hello_topic_name,
-    &subscription_ops2);
+    &my_sub,
+    &my_node,
+    my_type_support,
+    topic_name,
+    &my_subscription_options);
 
   if (rc != RCL_RET_OK) {
-    printf("Failed to create subscriber %s.\n",cmd_hello_topic_name);
+    printf("Failed to create subscriber %s.\n", topic_name);
     return -1;
   } else {
-    printf("Created subscriber %s:\n", cmd_hello_topic_name);
+    printf("Created subscriber %s:\n", topic_name);
   }
+
+  // one string message for subscriber
+  std_msgs__msg__String__init(&sub_msg);
 ```
 
-
-**Step 6:** <a name="Step6"> </a> Create a timer `timer1_timeout` with rcl library with a timeout
-of 100ms with timer callback `timer1_timeout`, as defined in [Step 3](#Step3).
-
-```C
-  // create timer with rcl
-  rcl_clock_t clock;
-  rcl_allocator_t allocator = rcl_get_default_allocator();
-  rc = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  if (rc != RCL_RET_OK) {
-    printf("Error calling rcl_clock_init.\n");
-    return -1;
-  }
-  rcl_timer_t timer1 = rcl_get_zero_initialized_timer();
-  const unsigned int timer1_timeout = 100;
-  rc = rcl_timer_init(&timer1, &clock, &context, RCL_MS_TO_NS(timer1_timeout),
-      my_timer_callback, allocator);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCL_LET_ERROR(create_timer, rcl_timer_init);
-    return -1;
-  } else {
-    printf("Created timer1 with timeout %d ms.\n", timer1_timeout);
-  }
-```
-
-**Step 7:** <a name="Step7"> </a> Create an static-let executor and initialize it with the ROS context
-(`context`), number of handles (`2`) and provide an allocator for memory allocation.
-(See [Step 6](#Step6) for defining the `allocator`).
+**Step 7:** <a name="Step7"> </a> Create an let executor and initialize it with the ROS context
+(`context`), number of handles (`2`) and use the `allocator` for memory allocation.
 
 The user can configure, when the callback shall be invoked: Options are `ALWAYS` and `ON_NEW_DATA`. If `ALWAYS` is selected, the callback is always called, even if no new data is available. In this case, the callback is given a `NULL`pointer for the argument `msgin` and the callback needs to handle this correctly. If `ON_NEW_DATA` is selected, then the callback is called only if new data from the DDS queue is available. In this case the parameter `msgin` of the callback always points to memory-allocated message.
 
+The blocking time for `rcl_wait()` in order to bound the waiting time for new data from DDS can be configured with `rclc_let_exector_set_timeout`.
+
 ```C
-  rclc_let_executor_t exe;
-  rclc_let_executor_init(&exe, &context, 2, &allocator);
+  rclc_let_executor_t executor;
+  // compute total number of subsribers and timers
+  unsigned int num_handles = 1 + 1;
+  executor = rclc_let_executor_get_zero_initialized_executor();
+  rclc_let_executor_init(&executor, &context, num_handles, &allocator);
+```
+**Step 8:** <a name="Step8"> </a>(Optionally) Define the blocking time when requesting new data from DDS (timeout for rcl_wait()). Here the timeout is `20ms`.
+The default timeout is 100ms.
+
+```C
+  // set timeout for rcl_wait()
+  unsigned int rcl_wait_timeout = 1000;   // in ms
+  rc = rclc_let_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
+  if (rc != RCL_RET_OK) {
+    printf("Error in rclc_let_executor_set_timeout.");
+  }
 ```
 
-**Step 8:** <a name="Step8"> </a> Add subscription to the executor using the subscription `sub_cmd_hello`, the message variable `msg2`, in which the new data is stored (See [Step 2](#Step2)), and the callback function `cmd_hello_callback`(See [Step 5](#Step5)).
+**Step 9:** <a name="Step9"> </a> Add the subscription `my_sub` (See [Step 6](#Step6)) to the `executor` with the message variable `my_msg`, in which the new data is stored and the callback function `my_subscriber_callback`(See [Step 2](#Step2)). The callback is invoked if new data is available (`ON_NEW_DATA`). 
 
 ```C
-  rc = rclc_let_executor_add_subscription(&exe, &sub_cmd_hello, &msg2, &cmd_hello_callback,
+  // add subscription to executor
+  rc = rclc_let_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
       ON_NEW_DATA);
-  if (rc != RCL_RET_OK) {printf("Failed to add subscription.\n");}
+  if (rc != RCL_RET_OK) {
+    printf("Error in rclc_let_executor_add_subscription. \n");
+  }
 ```
 
-**Step 9:** <a name="Step9"> </a> Add timer to the executor with the timer `timer1`, as defined in [Step 6](#Step6). The period of the timer is already configured in the timer object.
+**Step 10:** <a name="Step10"> </a> Add timer `timer1`, as defined in [Step 5](#Step5) to the `executor`. The period of the timer and the callback to call are already configured in the timer object itself.
 
 ```C
-  rclc_let_executor_add_timer(&exe, &timer1);
-  if (rc != RCL_RET_OK) {PRINT_RCL_LET_ERROR(rcle_executor, add_timer);}
+  rclc_let_executor_add_timer(&executor, &my_timer);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rclc_let_executor_add_timer.\n");
+  }
 ```
 
-
-**Step 10:** <a name="Step10"> </a>(Optionally) Define the timeout for accessing the wait-set of DDS queue. Here the timeout is `100ms`.
+**Step 11:** <a name="Step11"> </a> Run the executor. As an example, we demonstrate also spin ten times with a rcl_wait-timeout of 1s. 
 
 ```C
-  //set time_out for wait_set in nanoseconds
-  rc = rclc_let_executor_set_timeout(&exe, 100000000);
-  if (rc != RCL_RET_OK) { printf("Setup of timeout failed.\n");}
+  for (unsigned int i = 0; i < 10; i++) {
+    // timeout specified in ns (here 1s)
+    rclc_let_executor_spin_some(&executor, 1000 * (1000 * 1000));
+  }
 ```
-**Step 11:** <a name="Step11"> </a> Run the executor. This example shows the execution of the spin function with a period of 20ms.
+
+**Step 12:** <a name="Step12"> </a> Clean up memory for Executor and other other RCL objects
 
 ```C
-  // spin with 20ms period
-  rclc_let_executor_spin_period(&exe, 20);
+  rc = rclc_let_executor_fini(&executor);
+  rc += rcl_publisher_fini(&my_pub, &my_node);
+  rc += rcl_timer_fini(&my_timer);
+  rc += rcl_subscription_fini(&my_sub, &my_node);
+  rc += rcl_node_fini(&my_node);
+  rc += rcl_init_options_fini(&init_options);
+  if (rc != RCL_RET_OK) {
+    printf("Error while cleaning up!\n");
+    return -1;
+  }
+  return 0;
+}  // main
 ```
 
-**Step 12:** <a name="Step12"> </a> Clean up memory for Executor.
-
+**Output** If you run the example executor, you should see the following output:
 ```C
-  rclc_let_executor_fini(&exe);
+Created timer with timeout 1000 ms.
+Created subscriber topic_0:
+Debug: number of DDS handles: 2
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
 ```
 
-**Step 13:** <a name="Step13"> </a> Clean up memory for other ROS objects.
-
-```C
-  rc = rcl_subscription_fini(&sub_cmd_hello, &node);
-  rc = rcl_timer_fini(&timer1);
-  rc = rcl_node_fini(&node);
-```
+## Guide to setup the let-executor with rclc convenience functions
+See file TODO.

@@ -35,6 +35,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 
 
@@ -53,6 +54,11 @@ ament_target_dependencies(${PROJECT_NAME}
   rcutils
   rosidl_generator_c
 )
+
+
+#################################################
+# install
+#################################################
 
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
