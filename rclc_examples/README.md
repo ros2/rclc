@@ -1,13 +1,12 @@
 General information about this repository, including legal information, build instructions and known issues/limitations, are given in [README.md](../README.md) in the repository root.
 
-# The rcl_executor__examples package
+# The rclc_examples package
 
-The rclc_examples package provides an example for the let_exector.
-- [example_executor.c](example_executor.c) provides the example for the let-executor. It creates one publisher and one subscriber and configures the let-executor accordingly. Then the spin_some() function of the let-executor is demonstrated. 
+The rclc_examples package provides an example for the LET-Exector.
+- [example_executor.c](example_executor.c) provides the example for the LET-Executor. It creates one publisher and one subscriber and configures the let-executor accordingly. Then the spin_some() function is demonstrated. 
 
-## Run the rcl_executor Example
-
-**Step 1** ROS 2 Workspace Setup
+## Example LET-Executor
+**Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/eloquent`, setup
 the ROS2 environment by:
@@ -15,20 +14,19 @@ the ROS2 environment by:
 ~$ source /opt/ros/eloquent/setup.bash
 ```
 
-**Step 2** Build
+**Step 2** Build the package
 Download and build the the packages `rclc` and `rclc_examples` in a workspace (for example `ros2_ws`). Then source the workspace:
 ```C
 ~/ros2_ws/$ colcon build --packages-up-to rclc_examples
 ~/ros2_ws/$ source ./install/local_setup.bash
 ```
-
-It should build the packages: 
+It should build these packages: 
 - rcl_yaml_param_parser
 - rcl
 - rclc
 - rclc_examples
 
-**Step 2** Run the example executor.
+**Step 3** Run the example executor.
 
 The binary of the example is `example_executor`.
 
