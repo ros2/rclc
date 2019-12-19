@@ -41,17 +41,17 @@ include_directories(include)
 # examples
 #################################################
 
-add_executable(example_executor src/example_executor.c)
-ament_target_dependencies(example_executor rcl rclc std_msgs)
-#target_include_directories(example_executor PRIVATE include)
+add_executable(example_let_executor src/example_let_executor.c)
+ament_target_dependencies(example_let_executor rcl rclc std_msgs)
+#target_include_directories(example_let_executor PRIVATE include)
 
-add_executable(example_executor_convenience src/example_executor_convenience.c)
-ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
-#target_include_directories(example_executor_convenience PRIVATE include)
+add_executable(example_let_executor_convenience src/example_let_executor_convenience.c)
+ament_target_dependencies(example_let_executor_convenience rcl rclc std_msgs)
+#target_include_directories(example_let_executor_convenience PRIVATE include)
 
 install(TARGETS
-  example_executor
-  example_executor_convenience
+  example_let_executor
+  example_let_executor_convenience
   DESTINATION lib/${PROJECT_NAME}
 )
 
