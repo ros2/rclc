@@ -125,7 +125,7 @@ typedef struct
 } rclc_support_t;
 ```
 
-In the example provided in [rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples), one
+In the example provided in [rclc_examples](../rclc_examples), one
 node with one publisher, one timer and one subscription is implemented with and without the
 convenience functions. The total number of code lines of the exmaple with the convenience
 functions is reduced by 10% compared to the one with RCL initialization functions.
@@ -133,14 +133,10 @@ functions is reduced by 10% compared to the one with RCL initialization function
 ## Examples
 
 An example, how to use the LET Executor with RCL objects is given in the file `example_executor.c`
-in the package: [rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
-(Branch feature/new_api_and_LET_executor)
+in the package: [rclc_examples](../rclc_examples).
 
 An example, how to use the LET Executor with rclc convenience functions is given in the file
- `example_executor_convenience.c` the package:
-[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
-(Branch feature/new_api_and_LET_executor)
-
+ `example_executor_convenience.c` the package: [rclc_examples](../rclc_examples).
 ## Limitations: 
 
 - support for subscriptions and timers (services, clients, guard conditions are not supported yet)
@@ -408,5 +404,4 @@ Callback: I heard: Hello World!
 
 An example, how to use the LET Executor with rclc convenience functions is given in the file
 `example_executor_convenience.c` in the package:
-[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
-(Branch feature/new_api_and_LET_executor)
+[rclc_examples](../rclc_examples).
