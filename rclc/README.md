@@ -127,8 +127,9 @@ typedef struct
 
 In the example provided in [rclc_examples](../rclc_examples), one
 node with one publisher, one timer and one subscription is implemented with and without the
-convenience functions. The total number of code lines of the exmaple with the convenience
-functions is reduced by 10% compared to the one with RCL initialization functions.
+convenience functions. The number of code lines of the exmaple to setup the RCL objects 
+with the convenience functions is reduced by 24% compared to the initialization using the RCL API
+(from 97 LoC to 74 LoC).
 
 ## Examples
 
