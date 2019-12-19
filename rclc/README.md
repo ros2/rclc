@@ -2,17 +2,6 @@
 
 The package rclc is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create rcl data types and an Executor. As a thin API layer on top of RCL you can create publishers, subscribers, timers and nodes with a one-liner like in rclcpp. The Executor provides an API to add subscriptions and timers as well as some spin() functions similar to the ones in rclcpp.
 
-API:
-- rclc_init()
-- rclc_node_init_default()
-- rclc_publisher_init_default()
-- rclc_subscription_init_default()
-- rclc_timer_init_default()
-
-
-A complete code example with the `rclc` convenience functions and the `let-executor` is provided in [test](./test)
-
-
 # The LET Executor
 
 This real-time executor is targeted as C API  based on the RCL layer for ROS2 applications running
@@ -110,10 +99,47 @@ as the ROS system is alive. This might create a high performance load on your pr
 
 The function `rlce_executor_fini` frees the dynamically allocated memory of the executor.
 
-## Example
 
-An example, how to use the LET Executor with RCL objects given in the package:
-[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples). (Branch feature/new_api_and_LET_executor)
+## API of RCL convenience functions:
+The rclc package also provides a number of convenience functions, which make it easier to
+ create the RCL-objects `rcl_node_t`, `rcl_subscription_t`, `rcl_timer_t` and `rcl_publisher_t`.
+
+Convenience functions:
+- rclc_support_init()
+- rclc_support_fini()
+- rclc_node_init_default()
+- rclc_publisher_init_default()
+- rclc_subscription_init_default()
+- rclc_timer_init_default()
+
+The setup of RCL objects is simplified, by defining a new type `rclc_support_t`, which contains
+the paramaters used in multiple RCL initialization functions:
+
+```C
+typedef struct
+{
+  rcl_init_options_t init_options;
+  rcl_context_t context;
+  rcl_allocator_t * allocator;
+  rcl_clock_t clock;
+} rclc_support_t;
+```
+
+In the example provided in [rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples), one
+node with one publisher, one timer and one subscription is implemented with and without the
+convenience functions. The total number of code lines of the exmaple with the convenience
+functions is reduced by 10% compared to the one with RCL initialization functions.
+
+## Examples
+
+An example, how to use the LET Executor with RCL objects is given in the file `example_executor.c`
+in the package: [rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
+(Branch feature/new_api_and_LET_executor)
+
+An example, how to use the LET Executor with rclc convenience functions is given in the file
+ `example_executor_convenience.c` the package:
+[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
+(Branch feature/new_api_and_LET_executor)
 
 ## Limitations: 
 
@@ -377,3 +403,10 @@ Callback: I heard: Hello World!
 Published message Hello World!
 Callback: I heard: Hello World!
 ```
+
+## Example LET-Executor with convenience functions
+
+An example, how to use the LET Executor with rclc convenience functions is given in the file
+`example_executor_convenience.c` in the package:
+[rclc_examples](https://github.com/micro-ROS/rclc/rclc_examples).
+(Branch feature/new_api_and_LET_executor)
