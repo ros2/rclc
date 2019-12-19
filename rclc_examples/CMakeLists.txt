@@ -41,11 +41,11 @@ include_directories(include)
 # examples
 #################################################
 
-add_executable(example_executor example_executor.c)
+add_executable(example_executor src/example_executor.c)
 ament_target_dependencies(example_executor rcl rclc std_msgs)
 #target_include_directories(example_executor PRIVATE include)
 
-add_executable(example_executor_convenience example_executor_convenience.c)
+add_executable(example_executor_convenience src/example_executor_convenience.c)
 ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
 #target_include_directories(example_executor_convenience PRIVATE include)
 
