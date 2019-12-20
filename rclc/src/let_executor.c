@@ -15,10 +15,7 @@
 // limitations under the License.
 
 #include "rclc/let_executor.h"
-
-
-#include <sys/time.h>  // for gettimeofday()
-#include <unistd.h>  // for usleep()
+#include <unistd.h>
 #include "rcutils/time.h"
 
 // default timeout for rcl_wait() is 100ms
@@ -71,7 +68,9 @@ rclc_let_executor_get_zero_initialized_executor()
     .index = 0,
     .allocator = NULL,
     .timeout_ns = 0,
-    .invocation_time = 0
+    .invocation_time = 0,
+    .trigger_function = NULL,
+    .trigger_object = NULL
   };
   return null_executor;
 }
@@ -396,11 +395,15 @@ _rclc_let_scheduling(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set)
 
   // step 2/ step 3
   // execute the callbacks in the order of the elements in the array 'executor->handles'
+  // if the trigger condition is fullfilled.
   // complexity: O(n) where n denotes the number of handles
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    rc = _rclc_execute(executor, wait_set, i);
-    if (rc != RCL_RET_OK) {
-      return rc;
+  if (executor->trigger_function(executor->handles, executor->max_handles, executor->trigger_object)) {
+
+    for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+      rc = _rclc_execute(executor, wait_set, i);
+      if (rc != RCL_RET_OK) {
+        return rc;
+      }
     }
   }
   return rc;
@@ -551,9 +554,21 @@ rclc_let_executor_spin_one_period(rclc_let_executor_t * executor, const uint64_t
 rcl_ret_t
 rclc_let_executor_spin_period(rclc_let_executor_t * executor, const uint64_t period)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   while (rcl_context_is_valid(executor->context) ) {
     rclc_let_executor_spin_one_period(executor, period);
   }
   // never get here
   return RCL_RET_OK;
+}
+
+rcl_ret_t
+rclc_let_executor_set_trigger(
+  rclc_let_executor_t * executor,
+  rclc_let_executor_trigger_t trigger_function,
+  void * trigger_object) {
+   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+   executor->trigger_function = trigger_function;
+   executor->trigger_object = trigger_object;
+   return RCL_RET_OK;
 }

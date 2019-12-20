@@ -19,10 +19,11 @@
 /* TODO(jan):
 + update test cases
 + rclc base line
++ rclc_examples package with RCL API and with rclc API
++ update README.md
 - timeout for spinning - no timeout for waiting at rcl_wait()
 - trigger condition
-- example with convenience functions
-- update README.md
+
 
 trigger:
 - API:
@@ -122,7 +123,13 @@ extern "C"
     processed in a user-defined order.
 */
 
-/// Container for executor
+/// Type defintion for trigger function. With the parameters:
+/// - array of executor_handles
+/// - size of array
+/// - application specific struct used in the trigger function
+typedef bool (* rclc_let_executor_trigger_t)(rclc_executor_handle_t *, unsigned int, void *);
+
+/// Container for LET-Executor
 typedef struct
 {
   /// Context (to get information if ROS is up-and-running)
@@ -143,8 +150,11 @@ typedef struct
   uint64_t timeout_ns;
   /// timepoint used for spin_period()
   rcutils_time_point_value_t invocation_time;
+  /// trigger function, when to process new data
+  rclc_let_executor_trigger_t trigger_function;
+  /// application specific data structure for trigger function
+  void * trigger_object;
 } rclc_let_executor_t;
-
 
 /**
  *  Return a rclc_let_executor_t struct with pointer members initialized to `NULL`
@@ -381,6 +391,13 @@ rcl_ret_t
 rclc_let_executor_spin_one_period(
   rclc_let_executor_t * executor,
   const uint64_t period);
+
+
+rcl_ret_t
+rclc_let_executor_set_trigger(
+  rclc_let_executor_t * executor,
+  rclc_let_executor_trigger_t trigger_function,
+  void * trigger_object);
 
 #if __cplusplus
 }

@@ -27,16 +27,6 @@ extern "C"
 #include <rcl/allocator.h>
 #include <rcl/time.h>
 
-/*
-typedef rcl_ret_t rclc_ret_t;
-
-typedef rcl_node_t rclc_node_t;
-
-typedef rcl_publisher_t rclc_publisher_t;
-
-typedef rcl_subscription_t rclc_subscription_t;
-*/
-
 typedef struct
 {
   rcl_init_options_t init_options;

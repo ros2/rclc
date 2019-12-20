@@ -23,6 +23,46 @@ std_msgs__msg__String sub_msg;
 
 /***************************** CALLBACKS ***********************************/
 
+typedef struct {
+  rcl_timer_t * timer1;
+  rcl_subscription_t * sub1;
+} example_trigger_object_t;
+
+bool example_trigger_function(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+  if (handles == NULL) {
+    printf("Error in example_trigger: handles is NULL pointer\n");
+    return false;
+  }
+  if (obj == NULL) {
+    printf("Error in example_trigger: trigger_obj is NULL pointer\n");
+    return false;
+  }
+  example_trigger_object_t * comm_obj = (example_trigger_object_t *) obj;
+  bool timer1 = false;
+  bool sub1 = false;
+  printf("trigger function: ");
+  for(unsigned int i=0; i<size; i++) {
+    if (handles[i].data_available == true) {
+      void * handle_ptr = rclc_executor_handle_get_ptr(&handles[i]);
+      if ( handle_ptr == comm_obj->timer1) {
+        timer1 = true;
+        printf("timer ready ");
+      }
+      if ( handle_ptr == comm_obj->sub1) {
+        sub1 = true;
+        printf("subscription ready ");
+      }
+    }
+  }
+  printf("\n");
+  if ( timer1 ) {
+    return true;
+  } else {
+    return false;
+  }
+
+}
+
 void my_subscriber_callback(const void * msgin)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
@@ -176,10 +216,16 @@ int main(int argc, const char * argv[])
     printf("Error in rclc_let_executor_add_subscription. \n");
   }
 
-  rclc_let_executor_add_timer(&executor, &my_timer);
+  rc = rclc_let_executor_add_timer(&executor, &my_timer);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_let_executor_add_timer.\n");
   }
+
+  example_trigger_object_t comm_obj;
+  comm_obj.sub1 = &my_sub;
+  comm_obj.timer1 = &my_timer;
+
+  rc = rclc_let_executor_set_trigger( &executor, example_trigger_function, &comm_obj);
 
   for (unsigned int i = 0; i < 10; i++) {
     // timeout specified in ns (here 1s)

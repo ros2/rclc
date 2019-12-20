@@ -83,3 +83,21 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "  %s\n", typeName);
   return RCL_RET_OK;
 }
+
+void * 
+rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
+  void * ptr; 
+  switch (handle->type) {
+    case SUBSCRIPTION:
+      ptr = handle->subscription;
+      break;
+    case TIMER:
+      ptr = handle->timer;
+      break;
+    default:
+      ptr = NULL;
+  }
+
+  return ptr;
+}
