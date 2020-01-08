@@ -86,7 +86,13 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
 
 void * 
 rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle) {
-  RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
+  //RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
+  // cannot be used because it creates a "return" statement and
+  // here the return type is (void *)
+  if (handle == NULL) {
+    return NULL;
+  }
+
   void * ptr; 
   switch (handle->type) {
     case SUBSCRIPTION:
