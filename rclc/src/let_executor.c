@@ -26,7 +26,13 @@
 /// get new data from DDS queue for handle i
 static
 rcl_ret_t
-_rclc_read_input_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+_rclc_check_for_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+
+/// get new data from DDS queue for handle i
+static
+rcl_ret_t
+_rclc_take_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+
 
 /// execute callback of handle i
 static
@@ -250,74 +256,94 @@ rclc_let_executor_add_timer(
 
 /***
  * operates on handle executor->handles[i]
- * - evaluates the status bit in the wait_set for this handles
- * - if new data is available, rcl_take fetches this data from DDS and copies message to
- *   executor->handles[i].data
- * - and sets executor->handles[i].data_available = true
+ * - evaluates the status bit in the wait_set for this handle
+ * - if new message is available or timer is ready, assigns executor->handles[i].data_available = true
  */
+
+
+// todo refactor parameters: (rclc_executor_handle_t *, rcl_wait_set_t * wait_set)
+
 static
 rcl_ret_t
-_rclc_read_input_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i)
+_rclc_check_for_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
 
-  // initialize status
-  //executor->handles[i].data_available = false;  //change this => reset when data is read
-  // data_available is set to false       to true
-  // (1) initially                        (1) if wait() returns that new data is available
-  // (2) when handle is executed
-  // 
-  if (executor->handles[i].data_available == false) {
+  switch (executor->handles[i].type) {
+    case SUBSCRIPTION:
+      if (wait_set->subscriptions[executor->handles[i].index]) {
+        executor->handles[i].data_available = true;
+      }
+      break;
 
-    switch (executor->handles[i].type) {
-      case SUBSCRIPTION:
-        // if handle is available, call rcl_take, which copies the message to 'msg'
-        if (wait_set->subscriptions[executor->handles[i].index]) {
-          rmw_message_info_t messageInfo;
-          rc = rcl_take(executor->handles[i].subscription, executor->handles[i].data, &messageInfo,
-              NULL);
-          if (rc != RCL_RET_OK) {
-            // it is documented, that rcl_take might return this error with successfull rcl_wait
-            if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
-              PRINT_RCLC_ERROR(rclc_read_input_data, rcl_take);
-              RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
-            }
-
-            return rc;
-          }
+    case TIMER:
+      if (wait_set->timers[executor->handles[i].index]) {
+        bool timer_is_ready = false;
+        rc = rcl_timer_is_ready(executor->handles[i].timer, &timer_is_ready);
+        if (rc != RCL_RET_OK) {
+          PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_is_ready);
+          return rc;
+        }
+        // actually this is a unnecessary check: if wait_set.timers[i] is true, then also
+        // rcl_timer_is_ready() should return true.
+        if (timer_is_ready) {
           executor->handles[i].data_available = true;
+        } else {
+          // this should never happen
+          PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_should_be_ready);
+          return RCL_RET_ERROR;
         }
-        break;
+      }
+      break;
 
-      case TIMER:
-        if (wait_set->timers[executor->handles[i].index]) {
-          // get timer
-          bool timer_is_ready = false;
-          rc = rcl_timer_is_ready(executor->handles[i].timer, &timer_is_ready);
-          if (rc != RCL_RET_OK) {
-            PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_is_ready);
-            return rc;
-          }
+    default:
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+        executor->handles[i].type);
+      return RCL_RET_ERROR;
+  }    // switch-case
+  return rc;
+}
 
-          // actually this is a double check: if wait_set.timers[i] is true, then also the function
-          // rcl_timer_is_ready should return true.
-          if (timer_is_ready) {
-            executor->handles[i].data_available = true;
-          } else {
-            PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_should_be_ready);
-            return RCL_RET_ERROR;
+// call rcl_take for subscription
+// todo change function signature (rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
+
+static
+rcl_ret_t
+_rclc_take_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t rc = RCL_RET_OK;
+
+  switch (executor->handles[i].type) {
+    case SUBSCRIPTION:
+      if (wait_set->subscriptions[executor->handles[i].index]) {
+        rmw_message_info_t messageInfo;
+        rc = rcl_take(executor->handles[i].subscription, executor->handles[i].data, &messageInfo,
+            NULL);
+        if (rc != RCL_RET_OK) {
+          // it is documented, that rcl_take might return this error with successfull rcl_wait
+          if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+            PRINT_RCLC_ERROR(rclc_read_input_data, rcl_take);
+            RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
+          return rc;
         }
-        break;
+      }
+      break;
 
-      default:
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
-          executor->handles[i].type);
-        return RCL_RET_ERROR;
-    }    // switch-case
-  }
+    case TIMER:
+      // nothing to do
+      // notification, that timer is ready already done in _rclc_evaluate_data_availability()
+      break;
+
+    default:
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+        executor->handles[i].type);
+      return RCL_RET_ERROR;
+  }    // switch-case
   return rc;
 }
 
@@ -325,6 +351,9 @@ _rclc_read_input_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set,
  * operates on executor->handles[i] object
  * - calls every callback of each object depending on its type
  */
+
+// todo change parametes (rclc_executor_handle_t * handle)
+
 static
 rcl_ret_t
 _rclc_execute(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i)
@@ -374,7 +403,6 @@ _rclc_execute(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t 
   if (executor->handles[i].data_available == true) {
     executor->handles[i].data_available = false;
   }
-
   return rc;
 }
 
@@ -394,23 +422,28 @@ _rclc_let_scheduling(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set)
   //    processed by the callbacks 'in this round' because all input data is read in the
   //    beginning and the incoming messages were copied.
 
-  // step 1:
-  // take available input data from DDS queue by calling rcl_take()
+  // step 0: check for available input data from DDS queue
   // complexity: O(n) where n denotes the number of handles
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    rc = _rclc_read_input_data(executor, wait_set, i);
+    rc = _rclc_check_for_new_data(executor, wait_set, i);
     if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
       return rc;
     }
-  }  // for-loop
+  } 
 
-
-  // step 2/ step 3
-  // execute the callbacks in the order of the elements in the array 'executor->handles'
-  // if the trigger condition is fullfilled.
+  // if the trigger condition is fullfilled, fetch data and execute
   // complexity: O(n) where n denotes the number of handles
   if (executor->trigger_function(executor->handles, executor->max_handles, executor->trigger_object)) {
 
+    // step 1: read input data
+    for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+      rc = _rclc_take_new_data(executor, wait_set, i);
+      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+        return rc;
+      }
+    }
+
+    // step 2:  process (execute)
     for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
       rc = _rclc_execute(executor, wait_set, i);
       if (rc != RCL_RET_OK) {

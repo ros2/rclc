@@ -16,6 +16,8 @@
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
 #include "rclc/let_executor.h"
+#include <unistd.h>
+
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
@@ -107,7 +109,7 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  if ( sub1 || sub2 )
+  if ( sub1 && sub2 )
    {
     return true;
   } else {
@@ -244,7 +246,7 @@ int main(int argc, const char * argv[])
     return -1;
   }
   rcl_timer_t my_string_timer = rcl_get_zero_initialized_timer();
-  const unsigned int timer_timeout = 1000;
+  const unsigned int timer_timeout = 100;
   rc = rcl_timer_init(
     &my_string_timer,
     &clock,
@@ -278,7 +280,7 @@ int main(int argc, const char * argv[])
 
   // create a timer, which will call my_int_pub every 'period' ms in the 'my_timer_string_callback'
   rcl_timer_t my_int_timer = rcl_get_zero_initialized_timer();
-  const unsigned int timer_int_timeout = 2 * timer_timeout;
+  const unsigned int timer_int_timeout = 10 * timer_timeout;
   rc = rcl_timer_init(
     &my_int_timer,
     &clock,
@@ -399,9 +401,10 @@ int main(int argc, const char * argv[])
   rc = rclc_let_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
   rc = rclc_let_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
 
-  for (unsigned int i = 0; i < 10; i++) {
+  for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
     rclc_let_executor_spin_some(&executor_pub, 1000 * (1000 * 1000));
+    usleep(1000); // 1ms
     rclc_let_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
   }
 
