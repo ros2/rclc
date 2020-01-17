@@ -399,6 +399,26 @@ rclc_let_executor_set_trigger(
   rclc_let_executor_trigger_t trigger_function,
   void * trigger_object);
 
+/* returns true, if all handles have new input data 
+   (new message for subscription, timer_ready for timer)
+   obj can be NULL
+*/
+bool 
+rclc_let_executor_trigger_all(
+  rclc_executor_handle_t * handles,
+  unsigned int size,
+  void * obj);
+
+/* returns true, if at least one handle has new input data 
+   (new message for subscription, timer_ready for timer)
+   obj can be NULL
+*/
+bool 
+rclc_let_executor_trigger_any(
+  rclc_executor_handle_t * handles,
+  unsigned int size,
+  void * obj);
+
 #if __cplusplus
 }
 #endif

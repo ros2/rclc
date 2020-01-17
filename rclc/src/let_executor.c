@@ -614,3 +614,51 @@ rclc_let_executor_set_trigger(
    executor->trigger_object = trigger_object;
    return RCL_RET_OK;
 }
+
+bool rclc_let_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+  RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
+  // did not use (i<size && handles[i].initialized) as loop-condition
+  // because for last index i==size this would result in out-of-bound access
+  for(unsigned int i=0; i<size; i++) {
+    if (handles[i].initialized) {
+      if (handles[i].data_available == false) {
+        return false;
+      }
+    } else {
+      break;
+    }
+  }
+  return true;
+}
+
+bool rclc_let_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+  RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
+  // did not use (i<size && handles[i].initialized) as loop-condition
+  // because for last index i==size this would result in out-of-bound access
+  for(unsigned int i=0; i<size; i++) {
+    if (handles[i].initialized) {
+      if (handles[i].data_available == true) {
+        return true;
+      }
+    } else {
+      break;
+    }
+  }
+  return false;
+}
+
+bool rclc_let_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+  RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
+  // did not use (i<size && handles[i].initialized) as loop-condition
+  // because for last index i==size this would result in out-of-bound access
+  for(unsigned int i=0; i<size; i++) {
+    if (handles[i].initialized) {
+      if (handles[i].data_available == true) {
+        return true;
+      }
+    } else {
+      break;
+    }
+  }
+  return false;
+}

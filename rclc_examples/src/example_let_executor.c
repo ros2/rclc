@@ -398,8 +398,10 @@ int main(int argc, const char * argv[])
   comm_obj_sub.sub1 = &my_string_sub;
   comm_obj_sub.sub2 = &my_int_sub;
 
-  rc = rclc_let_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
-  rc = rclc_let_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
+  //rc = rclc_let_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
+  //rc = rclc_let_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
+  rc = rclc_let_executor_set_trigger(&executor_pub, rclc_let_executor_trigger_any, NULL);
+  rc = rclc_let_executor_set_trigger(&executor_sub, rclc_let_executor_trigger_all,NULL);
 
   for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
