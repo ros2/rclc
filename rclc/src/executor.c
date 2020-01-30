@@ -122,6 +122,10 @@ rclc_executor_init(
   // initialize #counts for handle types
   rclc_executor_handle_counters_zero_init(&executor->info);
 
+  // default: trigger_any which corresponds to the ROS2 rclcpp Executor semantics
+  //          start processing if any handle has new data/or is ready
+  rclc_executor_set_trigger(executor, rclc_executor_trigger_any, NULL);
+
   return ret;
 }
 
@@ -670,4 +674,12 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
     }
   }
   return false;
+}
+
+bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int size, void * obj)
+{
+  UNUSED(handles)
+  UNUSED(size)
+  UNUSED(obj)
+  return true;
 }

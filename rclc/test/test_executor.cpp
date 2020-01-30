@@ -1032,6 +1032,8 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // initialize executor with 2 handles
   ret = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // define subscription messages
   std_msgs__msg__Int32 sub_msg1;
@@ -1076,12 +1078,10 @@ TEST_F(TestDefaultExecutor, invocation_type) {
 
   ret = rcl_publish(&publisher1, &pub_msg1, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
-
   ret = rcl_publish(&publisher2, &pub_msg2, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher2 did not publish!";
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
+  // give DDS some time to publish the message (without the test fails)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // initialize result variables
   _cb1_cnt = 0;
   _cb2_cnt = 0;
@@ -1264,6 +1264,8 @@ TEST_F(TestDefaultExecutor, spin_period) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
+  rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
+
   // measure the timepoint, when spin_period_callback() is called
   uint64_t spin_period = 20000000;  // 20 ms
   for (unsigned int i = 0; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
@@ -1271,8 +1273,8 @@ TEST_F(TestDefaultExecutor, spin_period) {
   }
   // compute avarage time duration between calls to spin_period_callback
   uint64_t duration = test_case_evaluate_spin_period();
-  printf("period  : %ld\n", spin_period);
-  printf("duration: %ld\n", duration);
+  printf("expected 'spin_period' : %ld\n", spin_period);
+  printf("actual      'duration' : %ld\n", duration);
 
   uint64_t delta = 10000;  // 10 micro-seconds bound
   EXPECT_LE(duration, spin_period + delta);
