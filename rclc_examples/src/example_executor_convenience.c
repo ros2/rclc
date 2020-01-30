@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <rclc/rclc.h>
-#include "rclc/let_executor.h"
+#include "rclc/executor.h"
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
@@ -68,7 +68,7 @@ int main(int argc, const char * argv[])
 
   // create rcl_node
   rcl_node_t my_node = rcl_get_zero_initialized_node();
-  rc = rclc_node_init_default(&my_node, "node_0", "let_executor_examples", &support);
+  rc = rclc_node_init_default(&my_node, "node_0", "executor_examples", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
     return -1;
@@ -132,40 +132,40 @@ int main(int argc, const char * argv[])
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
-  rclc_let_executor_t executor;
+  rclc_executor_t executor;
 
   // compute total number of subsribers and timers
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
-  executor = rclc_let_executor_get_zero_initialized_executor();
-  rclc_let_executor_init(&executor, &support.context, num_handles, &allocator);
+  executor = rclc_executor_get_zero_initialized_executor();
+  rclc_executor_init(&executor, &support.context, num_handles, &allocator);
 
   // set timeout for rcl_wait()
   unsigned int rcl_wait_timeout = 1000;   // in ms
-  rc = rclc_let_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
+  rc = rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_set_timeout.");
+    printf("Error in rclc_executor_set_timeout.");
   }
 
   // add subscription to executor
-  rc = rclc_let_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_subscription. \n");
+    printf("Error in rclc_executor_add_subscription. \n");
   }
 
-  rclc_let_executor_add_timer(&executor, &my_timer);
+  rclc_executor_add_timer(&executor, &my_timer);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_timer.\n");
+    printf("Error in rclc_executor_add_timer.\n");
   }
 
   for (unsigned int i = 0; i < 10; i++) {
     // timeout specified in ns (here 1s)
-    rclc_let_executor_spin_some(&executor, 1000 * (1000 * 1000));
+    rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
   }
 
   // clean up
-  rc = rclc_let_executor_fini(&executor);
+  rc = rclc_executor_fini(&executor);
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_timer);
   rc += rcl_subscription_fini(&my_sub, &my_node);

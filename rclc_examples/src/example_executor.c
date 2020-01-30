@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
-#include "rclc/let_executor.h"
+#include "rclc/executor.h"
 #include <unistd.h>
 
 // these data structures for the publisher and subscriber are global, so that
@@ -215,7 +215,7 @@ int main(int argc, const char * argv[])
   // create rcl_node
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rc = rcl_node_init(&my_node, "node_0", "let_executor_examples", &context, &node_ops);
+  rc = rcl_node_init(&my_node, "node_0", "executor_examples", &context, &node_ops);
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_node_init\n");
     return -1;
@@ -345,49 +345,49 @@ int main(int argc, const char * argv[])
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
-  rclc_let_executor_t executor_pub;
-  rclc_let_executor_t executor_sub;
+  rclc_executor_t executor_pub;
+  rclc_executor_t executor_sub;
 
 
   // Executor for publishing messages
   unsigned int num_handles_pub = 2;
   printf("Executor_pub: number of DDS handles: %u\n", num_handles_pub);
-  executor_pub = rclc_let_executor_get_zero_initialized_executor();
-  rclc_let_executor_init(&executor_pub, &context, num_handles_pub, &allocator);
+  executor_pub = rclc_executor_get_zero_initialized_executor();
+  rclc_executor_init(&executor_pub, &context, num_handles_pub, &allocator);
   unsigned int rcl_wait_timeout = 1000;   // rcl_wait timeout in ms
-  rc = rclc_let_executor_set_timeout(&executor_pub, RCL_MS_TO_NS(rcl_wait_timeout));
+  rc = rclc_executor_set_timeout(&executor_pub, RCL_MS_TO_NS(rcl_wait_timeout));
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_set_timeout.");
+    printf("Error in rclc_executor_set_timeout.");
   }
-  rc = rclc_let_executor_add_timer(&executor_pub, &my_string_timer);
+  rc = rclc_executor_add_timer(&executor_pub, &my_string_timer);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_timer 'my_string_timer'.\n");
+    printf("Error in rclc_executor_add_timer 'my_string_timer'.\n");
   }
 
-  rc = rclc_let_executor_add_timer(&executor_pub, &my_int_timer);
+  rc = rclc_executor_add_timer(&executor_pub, &my_int_timer);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_timer 'my_int_timer'.\n");
+    printf("Error in rclc_executor_add_timer 'my_int_timer'.\n");
   }
 
   // Executor for subscribing messages
   unsigned int num_handles_sub = 2;
   printf("Executor_sub: number of DDS handles: %u\n", num_handles_sub);
-  executor_sub = rclc_let_executor_get_zero_initialized_executor();
-  rclc_let_executor_init(&executor_sub, &context, num_handles_sub, &allocator);
-  rc = rclc_let_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
+  executor_sub = rclc_executor_get_zero_initialized_executor();
+  rclc_executor_init(&executor_sub, &context, num_handles_sub, &allocator);
+  rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
-  rc = rclc_let_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg, &my_string_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg, &my_string_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_subscription 'my_string_sub'. \n");
+    printf("Error in rclc_executor_add_subscription 'my_string_sub'. \n");
   }
 
   // add int subscription to executor
-  rc = rclc_let_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg, &my_int_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg, &my_int_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_subscription 'my_int_sub'. \n");
+    printf("Error in rclc_executor_add_subscription 'my_int_sub'. \n");
   }
 
   pub_trigger_object_t comm_obj_pub;
@@ -398,16 +398,16 @@ int main(int argc, const char * argv[])
   comm_obj_sub.sub1 = &my_string_sub;
   comm_obj_sub.sub2 = &my_int_sub;
 
-  //rc = rclc_let_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
-  //rc = rclc_let_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
-  rc = rclc_let_executor_set_trigger(&executor_pub, rclc_let_executor_trigger_any, NULL);
-  rc = rclc_let_executor_set_trigger(&executor_sub, rclc_let_executor_trigger_all,NULL);
+  //rc = rclc_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
+  //rc = rclc_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
+  rc = rclc_executor_set_trigger(&executor_pub, rclc_executor_trigger_any, NULL);
+  rc = rclc_executor_set_trigger(&executor_sub, rclc_executor_trigger_all,NULL);
 
   for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
-    rclc_let_executor_spin_some(&executor_pub, 1000 * (1000 * 1000));
+    rclc_executor_spin_some(&executor_pub, 1000 * (1000 * 1000));
     usleep(1000); // 1ms
-    rclc_let_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
+    rclc_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
   }
 
 
@@ -431,8 +431,8 @@ int main(int argc, const char * argv[])
 //       messages
 
   // clean up
-  rc = rclc_let_executor_fini(&executor_pub);
-  rc = rclc_let_executor_fini(&executor_sub);
+  rc = rclc_executor_fini(&executor_pub);
+  rc = rclc_executor_fini(&executor_sub);
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_string_timer);
   rc += rcl_publisher_fini(&my_int_pub, &my_node);

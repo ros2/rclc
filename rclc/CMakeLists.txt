@@ -47,7 +47,7 @@ include_directories(include)
 #################################################
 # create library
 #################################################
-add_library(${PROJECT_NAME} src/init.c src/publisher.c src/subscription.c src/timer.c src/node.c src/executor_handle.c src/let_executor.c)
+add_library(${PROJECT_NAME} src/init.c src/publisher.c src/subscription.c src/timer.c src/node.c src/executor_handle.c src/executor.c)
 
 ament_target_dependencies(${PROJECT_NAME}
   rcl
@@ -87,7 +87,7 @@ if(BUILD_TESTING)
     test/test_subscription.cpp
     test/test_timer.cpp
     test/test_executor_handle.cpp
-    test/test_let_executor.cpp
+    test/test_executor.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include)

@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rclc/let_executor.h"
+#include "rclc/executor.h"
 #include <unistd.h>
 #include "rcutils/time.h"
 
@@ -26,30 +26,30 @@
 /// get new data from DDS queue for handle i
 static
 rcl_ret_t
-_rclc_check_for_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+_rclc_check_for_new_data(rclc_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
 
 /// get new data from DDS queue for handle i
 static
 rcl_ret_t
-_rclc_take_new_data(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+_rclc_take_new_data(rclc_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
 
 
 /// execute callback of handle i
 static
 rcl_ret_t
-_rclc_execute(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
+_rclc_execute(rclc_executor_t * executor, rcl_wait_set_t * wait_set, size_t i);
 
 static
 rcl_ret_t
-_rclc_let_scheduling(rclc_let_executor_t * executor, rcl_wait_set_t * wait_set);
+_rclc_let_scheduling(rclc_executor_t * executor, rcl_wait_set_t * wait_set);
 */
 
 // rationale: user must create an executor with:
-// executor = rclc_let_executor_get_zero_initialized_executor();
+// executor = rclc_executor_get_zero_initialized_executor();
 // then handles==NULL or not (e.g. properly initialized)
 static
 bool
-_rclc_let_executor_is_valid(rclc_let_executor_t * executor)
+_rclc_executor_is_valid(rclc_executor_t * executor)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(executor, "executor pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -65,10 +65,10 @@ _rclc_let_executor_is_valid(rclc_let_executor_t * executor)
 
 // wait_set and rclc_executor_handle_size_t are structs and cannot be statically
 // initialized here.
-rclc_let_executor_t
-rclc_let_executor_get_zero_initialized_executor()
+rclc_executor_t
+rclc_executor_get_zero_initialized_executor()
 {
-  static rclc_let_executor_t null_executor = {
+  static rclc_executor_t null_executor = {
     .context = NULL,
     .handles = NULL,
     .max_handles = 0,
@@ -83,8 +83,8 @@ rclc_let_executor_get_zero_initialized_executor()
 }
 
 rcl_ret_t
-rclc_let_executor_init(
-  rclc_let_executor_t * executor,
+rclc_executor_init(
+  rclc_executor_t * executor,
   rcl_context_t * context,
   const size_t number_of_handles,
   const rcl_allocator_t * allocator)
@@ -126,12 +126,12 @@ rclc_let_executor_init(
 }
 
 rcl_ret_t
-rclc_let_executor_set_timeout(rclc_let_executor_t * executor, const uint64_t timeout_ns)
+rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     executor, "executor is null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
-  if (_rclc_let_executor_is_valid(executor)) {
+  if (_rclc_executor_is_valid(executor)) {
     executor->timeout_ns = timeout_ns;
   } else {
     RCL_SET_ERROR_MSG("executor not initialized.");
@@ -141,9 +141,9 @@ rclc_let_executor_set_timeout(rclc_let_executor_t * executor, const uint64_t tim
 }
 
 rcl_ret_t
-rclc_let_executor_fini(rclc_let_executor_t * executor)
+rclc_executor_fini(rclc_executor_t * executor)
 {
-  if (_rclc_let_executor_is_valid(executor)) {
+  if (_rclc_executor_is_valid(executor)) {
     executor->allocator->deallocate(executor->handles, executor->allocator->state);
     executor->handles = NULL;
     executor->max_handles = 0;
@@ -155,7 +155,7 @@ rclc_let_executor_fini(rclc_let_executor_t * executor)
     if (rcl_wait_set_is_valid(&executor->wait_set)) {
       rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
       if (rc != RCL_RET_OK) {
-        PRINT_RCLC_ERROR(rclc_let_executor_fini, rcl_wait_set_fini);
+        PRINT_RCLC_ERROR(rclc_executor_fini, rcl_wait_set_fini);
       }
     }
     executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
@@ -167,8 +167,8 @@ rclc_let_executor_fini(rclc_let_executor_t * executor)
 
 
 rcl_ret_t
-rclc_let_executor_add_subscription(
-  rclc_let_executor_t * executor,
+rclc_executor_add_subscription(
+  rclc_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
   rclc_callback_t callback,
@@ -201,7 +201,7 @@ rclc_let_executor_add_subscription(
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_let_executor_add_subscription.");
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription.");
       return ret;
     }
   }
@@ -214,8 +214,8 @@ rclc_let_executor_add_subscription(
 
 
 rcl_ret_t
-rclc_let_executor_add_timer(
-  rclc_let_executor_t * executor,
+rclc_executor_add_timer(
+  rclc_executor_t * executor,
   rcl_timer_t * timer)
 {
   rcl_ret_t ret = RCL_RET_OK;
@@ -244,7 +244,7 @@ rclc_let_executor_add_timer(
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_let_executor_add_timer function.");
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_timer function.");
       return ret;
     }
   }
@@ -407,7 +407,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
 
 static
 rcl_ret_t
-_rclc_let_scheduling(rclc_let_executor_t * executor)
+_rclc_let_scheduling(rclc_executor_t * executor)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
@@ -452,21 +452,21 @@ _rclc_let_scheduling(rclc_let_executor_t * executor)
 }
 
 rcl_ret_t
-rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeout_ns)
+rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
 {
   rcl_ret_t rc = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
 
   // initialize wait_set if
-  // (1) this is the first invocation of let_executor_spin_some()
-  // (2) let_executor_add_timer() or let_executor_add_subscription() has been called.
+  // (1) this is the first invocation of executor_spin_some()
+  // (2) executor_add_timer() or executor_add_subscription() has been called.
   //     i.e. a new timer or subscription has been added to the Executor.
   if (!rcl_wait_set_is_valid(&executor->wait_set)) {
     // calling wait_set on zero_initialized wait_set multiple times is ok.
     rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
     if (rc != RCL_RET_OK) {
-      PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_fini);
+      PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_fini);
     }
     // initialize wait_set
     executor->wait_set = rcl_get_zero_initialized_wait_set();
@@ -477,7 +477,7 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
         executor->info.number_of_events,
         executor->context, rcl_get_default_allocator());
     if (rc != RCL_RET_OK) {
-      PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_init);
+      PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_init);
       return rc;
     }
   }
@@ -485,7 +485,7 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
   // set rmw fields to NULL
   rc = rcl_wait_set_clear(&executor->wait_set);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_clear);
+    PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_clear);
     return rc;
   }
 
@@ -499,7 +499,7 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
         rc = rcl_wait_set_add_subscription(&executor->wait_set, executor->handles[i].subscription,
             &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_add_subscription);
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
           return rc;
         } else {
           RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -513,7 +513,7 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
         rc = rcl_wait_set_add_timer(&executor->wait_set, executor->handles[i].timer,
             &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_add_timer);
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_timer);
           return rc;
         } else {
           RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
@@ -524,7 +524,7 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
       default:
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
           executor->handles[i].type);
-        PRINT_RCLC_ERROR(rclc_let_executor_spin_some, rcl_wait_set_unknown_handle);
+        PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_unknown_handle);
         return RCL_RET_ERROR;
     }
   }
@@ -544,15 +544,15 @@ rclc_let_executor_spin_some(rclc_let_executor_t * executor, const uint64_t timeo
 }
 
 rcl_ret_t
-rclc_let_executor_spin(rclc_let_executor_t * executor)
+rclc_executor_spin(rclc_executor_t * executor)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
   printf("INFO: rcl_wait timeout %ld ms\n", ((executor->timeout_ns / 1000) / 1000));
   while (rcl_context_is_valid(executor->context) ) {
-    ret = rclc_let_executor_spin_some(executor, executor->timeout_ns);
+    ret = rclc_executor_spin_some(executor, executor->timeout_ns);
     if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
-      RCL_SET_ERROR_MSG("rclc_let_executor_spin_some error");
+      RCL_SET_ERROR_MSG("rclc_executor_spin_some error");
       return ret;
     }
   }
@@ -563,12 +563,12 @@ rclc_let_executor_spin(rclc_let_executor_t * executor)
 /*
  The reason for splitting this function up, is to be able to write a unit test.
  The spin_period is an endless loop, therefore it is not possible to stop after x iterations.
- rclc_let_executor_spin_period_ implements one iteration and the function
- rclc_let_executor_spin_period implements the endless while-loop. The unit test covers only
- rclc_let_executor_spin_period_.
+ rclc_executor_spin_period_ implements one iteration and the function
+ rclc_executor_spin_period implements the endless while-loop. The unit test covers only
+ rclc_executor_spin_period_.
 */
 rcl_ret_t
-rclc_let_executor_spin_one_period(rclc_let_executor_t * executor, const uint64_t period)
+rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
@@ -578,9 +578,9 @@ rclc_let_executor_spin_one_period(rclc_let_executor_t * executor, const uint64_t
   if (executor->invocation_time == 0) {
     ret = rcutils_system_time_now(&executor->invocation_time);
   }
-  ret = rclc_let_executor_spin_some(executor, executor->timeout_ns);
+  ret = rclc_executor_spin_some(executor, executor->timeout_ns);
   if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
-    RCL_SET_ERROR_MSG("rclc_let_executor_spin_some error");
+    RCL_SET_ERROR_MSG("rclc_executor_spin_some error");
     return ret;
   }
   // sleep until invocation_time plus period
@@ -594,20 +594,20 @@ rclc_let_executor_spin_one_period(rclc_let_executor_t * executor, const uint64_t
 }
 
 rcl_ret_t
-rclc_let_executor_spin_period(rclc_let_executor_t * executor, const uint64_t period)
+rclc_executor_spin_period(rclc_executor_t * executor, const uint64_t period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   while (rcl_context_is_valid(executor->context) ) {
-    rclc_let_executor_spin_one_period(executor, period);
+    rclc_executor_spin_one_period(executor, period);
   }
   // never get here
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rclc_let_executor_set_trigger(
-  rclc_let_executor_t * executor,
-  rclc_let_executor_trigger_t trigger_function,
+rclc_executor_set_trigger(
+  rclc_executor_t * executor,
+  rclc_executor_trigger_t trigger_function,
   void * trigger_object) {
    RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
    executor->trigger_function = trigger_function;
@@ -615,7 +615,7 @@ rclc_let_executor_set_trigger(
    return RCL_RET_OK;
 }
 
-bool rclc_let_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+bool rclc_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
@@ -631,7 +631,7 @@ bool rclc_let_executor_trigger_all(rclc_executor_handle_t * handles, unsigned in
   return true;
 }
 
-bool rclc_let_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
@@ -647,7 +647,7 @@ bool rclc_let_executor_trigger_any(rclc_executor_handle_t * handles, unsigned in
   return false;
 }
 
-bool rclc_let_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access

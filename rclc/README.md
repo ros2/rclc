@@ -55,46 +55,46 @@ execution order, running the scheduler and cleaning-up:
 
 ### API Function Overview
 **Initialization**
-- rclc_let_executor_init()
-- rclc_let_executor_set_timeout()
+- rclc_executor_init()
+- rclc_executor_set_timeout()
 
 **Configuration**
-- rclc_let_executor_add_subscription()
-- rclc_let_executor_add_timer()
+- rclc_executor_add_subscription()
+- rclc_executor_add_timer()
 
 **Running the Executor**
-- rclc_let_executor_spin_some()
-- rclc_let_executor_spin_one_period()
-- rclc_let_executor_spin_period()
-- rclc_let_executor_spin()
+- rclc_executor_spin_some()
+- rclc_executor_spin_one_period()
+- rclc_executor_spin_period()
+- rclc_executor_spin()
 
 **Clean-up memory**
-- rclc_let_executor_fini()
+- rclc_executor_fini()
 
 ### API Description
 
-In the function `rclc_let_executor_init`, the user must specify among other things how many handles
+In the function `rclc_executor_init`, the user must specify among other things how many handles
 shall be scheduled.
 
 TODO (jan): timeout for spinning / not for rcl_wait()
 
-The function `rclc_let_executor_set_timeout` is an optional configuration function, which defines
+The function `rclc_executor_set_timeout` is an optional configuration function, which defines
 the timeout for calling rcl_wait(), i.e. the time to wait for new data from the DDS queue. The
 default timeout is 100ms.
 
-The functions `rclc_let_executor_add_subscription` and `rclc_let_executor_add_timer` add the
+The functions `rclc_executor_add_subscription` and `rclc_executor_add_timer` add the
 corresponding handle to the executor. The maximum number of handles is defined in
-`rclc_let_executor_init`. The sequential order of these function calls defines the static
+`rclc_executor_init`. The sequential order of these function calls defines the static
 execution order in the spin-functions.
 
-The function `rclc_let_executor_spin_some` checks for new data from the DDS queue once. It first
+The function `rclc_executor_spin_some` checks for new data from the DDS queue once. It first
 copies all data into local data structures and then executes all handles according the specified
 order. This implements the LET semantics.
 
-The function `rclc_let_executor_spin_period` calls `rclc_let_executor_spin_some` periodically
+The function `rclc_executor_spin_period` calls `rclc_executor_spin_some` periodically
 (as defined with the argument period) as long as the ROS system is alive.
 
-The function `rclc_let_executor_spin` calls `rclc_let_executor_spin_some` indefinitely as long
+The function `rclc_executor_spin` calls `rclc_executor_spin_some` indefinitely as long
 as the ROS system is alive. This might create a high performance load on your processor.
 
 The function `rlce_executor_fini` frees the dynamically allocated memory of the executor.
@@ -152,17 +152,17 @@ An example, how to use the LET Executor with rclc convenience functions is given
 
 
 
-## Guide to setup the let-executor with RCL API
+## Guide to setup the RCLC-Executor with RCL API
 
 You find the complete source code in the package `rclc_examples`, file example_executor.c.
 
-**Step 1:** <a name="Step1"> </a> Include the `let_executor.h` from the rclc package and other headers in your C code.
+**Step 1:** <a name="Step1"> </a> Include the `executor.h` from the rclc package and other headers in your C code.
 As well as some global data structured used by the publisher and subscriber.
 
 ```C
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
-#include "rclc/let_executor.h"
+#include "rclc/executor.h"
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
@@ -233,7 +233,7 @@ int main(int argc, const char * argv[])
   // create rcl_node
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rc = rcl_node_init(&my_node, "node_0", "let_executor_examples", &context, &node_ops);
+  rc = rcl_node_init(&my_node, "node_0", "executor_examples", &context, &node_ops);
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_node_init\n");
     return -1;
@@ -314,17 +314,17 @@ int main(int argc, const char * argv[])
   std_msgs__msg__String__init(&sub_msg);
 ```
 
-**Step 7:** <a name="Step7"> </a> Create an LET-executor and initialize it with the ROS context
+**Step 7:** <a name="Step7"> </a> Create an RCLC-Executor and initialize it with the ROS context
 (`context`), number of handles (`2`) and use the `allocator` for memory allocation.
 
 The user can configure, when the callback shall be invoked: Options are `ALWAYS` and `ON_NEW_DATA`. If `ALWAYS` is selected, the callback is always called, even if no new data is available. In this case, the callback is given a `NULL`pointer for the argument `msgin` and the callback needs to handle this correctly. If `ON_NEW_DATA` is selected, then the callback is called only if new data from the DDS queue is available. In this case the parameter `msgin` of the callback always points to memory-allocated message.
 
 ```C
-  rclc_let_executor_t executor;
+  rclc_executor_t executor;
   // compute total number of subsribers and timers
   unsigned int num_handles = 1 + 1;
-  executor = rclc_let_executor_get_zero_initialized_executor();
-  rclc_let_executor_init(&executor, &context, num_handles, &allocator);
+  executor = rclc_executor_get_zero_initialized_executor();
+  rclc_executor_init(&executor, &context, num_handles, &allocator);
 ```
 **Step 8:** <a name="Step8"> </a>(Optionally) Define the blocking time when requesting new data from DDS (timeout for rcl_wait()). Here the timeout is `1000ms`.
 The default timeout is 100ms.
@@ -332,9 +332,9 @@ The default timeout is 100ms.
 ```C
   // set timeout for rcl_wait()
   unsigned int rcl_wait_timeout = 1000;   // in ms
-  rc = rclc_let_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
+  rc = rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_set_timeout.");
+    printf("Error in rclc_executor_set_timeout.");
   }
 ```
 
@@ -342,19 +342,19 @@ The default timeout is 100ms.
 
 ```C
   // add subscription to executor
-  rc = rclc_let_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_subscription. \n");
+    printf("Error in rclc_executor_add_subscription. \n");
   }
 ```
 
 **Step 10:** <a name="Step10"> </a> Add timer `my_timer`, as defined in [Step 5](#Step5) to the `executor`. The period of the timer and the callback to call are already configured in the timer object itself.
 
 ```C
-  rclc_let_executor_add_timer(&executor, &my_timer);
+  rclc_executor_add_timer(&executor, &my_timer);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_let_executor_add_timer.\n");
+    printf("Error in rclc_executor_add_timer.\n");
   }
 ```
 
@@ -363,14 +363,14 @@ The default timeout is 100ms.
 ```C
   for (unsigned int i = 0; i < 10; i++) {
     // timeout specified in ns (here 1s)
-    rclc_let_executor_spin_some(&executor, 1000 * (1000 * 1000));
+    rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
   }
 ```
 
-**Step 12:** <a name="Step12"> </a> Clean up memory for the LET-Executor and other other RCL objects
+**Step 12:** <a name="Step12"> </a> Clean up memory for the RCLC-Executor and other other RCL objects
 
 ```C
-  rc = rclc_let_executor_fini(&executor);
+  rc = rclc_executor_fini(&executor);
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_timer);
   rc += rcl_subscription_fini(&my_sub, &my_node);
@@ -401,7 +401,7 @@ Published message Hello World!
 Callback: I heard: Hello World!
 ```
 
-## Example LET-Executor with convenience functions
+## Example RCLC-Executor with convenience functions
 
 An example, how to use the LET Executor with rclc convenience functions is given in the file
 `example_executor_convenience.c` in the package:

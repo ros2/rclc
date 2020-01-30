@@ -3,12 +3,12 @@ General information about this repository, including legal information, build in
 # The rclc_examples package
 
 The rclc_examples package provides an example for the LET-Exector.
-- [example_executor.c](example_executor.c) provides the example for the LET-Executor. It creates one publisher and one subscriber and configures the LET-Executor accordingly. Then the spin_some() function is demonstrated.
-- [example_executor_convenience.c](example_executor_convenience.c) provides the example for the LET-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the LET-Executor accordingly. Then the spin_some() function is demonstrated.
+- [example_executor.c](example_executor.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
+- [example_executor_convenience.c](example_executor_convenience.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
 
 In this example, the reduction of code lines for configuring the RCL objects if using the rclc convenience functions is about 24% (from 97 LoC to 74 LoC).
 
-## Example LET-Executor
+## Example RCLC-Executor
 **Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/eloquent`, setup
@@ -54,7 +54,7 @@ Published message Hello World!
 Callback: I heard: Hello World!
 ```
 
-## Example LET-Executor with convenience functions
+## Example RCLC-Executor with convenience functions
 **Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/eloquent`, setup

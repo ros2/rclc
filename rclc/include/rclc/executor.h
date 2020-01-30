@@ -13,8 +13,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef RCLC__LET_EXECUTOR_H_
-#define RCLC__LET_EXECUTOR_H_
+#ifndef RCLC__executor_H_
+#define RCLC__executor_H_
 
 /* TODO(jan):
 + update test cases
@@ -50,8 +50,8 @@ rcl_subscription_t sub2;
 rcl_timer_t        tim1;
 rcl_timer_t        tim2;
 
-rclc_let_executor_t exe;
-exe = get_zero_initialized_let_executor();
+rclc_executor_t exe;
+exe = get_zero_initialized_executor();
 exe.add_subscription(&sub1, 3);
 exe.add_subscription(&sub2, 7 );
 exe.add_timer(&tim1, 1);
@@ -118,8 +118,8 @@ extern "C"
 #include "rclc/executor_handle.h"
 #include "rclc/types.h"
 
-/*! \file let_executor.h
-    \brief The LET-Executor provides an Executor based on RCL in which all callbacks are
+/*! \file executor.h
+    \brief The RCLC-Executor provides an Executor based on RCL in which all callbacks are
     processed in a user-defined order.
 */
 
@@ -127,9 +127,9 @@ extern "C"
 /// - array of executor_handles
 /// - size of array
 /// - application specific struct used in the trigger function
-typedef bool (* rclc_let_executor_trigger_t)(rclc_executor_handle_t *, unsigned int, void *);
+typedef bool (* rclc_executor_trigger_t)(rclc_executor_handle_t *, unsigned int, void *);
 
-/// Container for LET-Executor
+/// Container for RCLC-Executor
 typedef struct
 {
   /// Context (to get information if ROS is up-and-running)
@@ -142,26 +142,26 @@ typedef struct
   size_t index;
   /// Container to memory allocator for array handles
   const rcl_allocator_t * allocator;
-  /// Wait set (is initialized only in the first call of the rclc_let_executor_spin_some function)
+  /// Wait set (is initialized only in the first call of the rclc_executor_spin_some function)
   rcl_wait_set_t wait_set;
   /// Statistics objects about total number of subscriptions, timers, clients, services, etc.
   rclc_executor_handle_counters_t info;
-  /// timeout in nanoseconds for rcl_wait() used in rclc_let_executor_spin_once(). Default 100ms
+  /// timeout in nanoseconds for rcl_wait() used in rclc_executor_spin_once(). Default 100ms
   uint64_t timeout_ns;
   /// timepoint used for spin_period()
   rcutils_time_point_value_t invocation_time;
   /// trigger function, when to process new data
-  rclc_let_executor_trigger_t trigger_function;
+  rclc_executor_trigger_t trigger_function;
   /// application specific data structure for trigger function
   void * trigger_object;
-} rclc_let_executor_t;
+} rclc_executor_t;
 
 /**
- *  Return a rclc_let_executor_t struct with pointer members initialized to `NULL`
+ *  Return a rclc_executor_t struct with pointer members initialized to `NULL`
  *  and member variables to 0.
  */
-rclc_let_executor_t
-rclc_let_executor_get_zero_initialized_executor(void);
+rclc_executor_t
+rclc_executor_get_zero_initialized_executor(void);
 /**
  *  Initializes an executor.
  *  It creates a dynamic array with size \p number_of_handles using the
@@ -176,7 +176,7 @@ rclc_let_executor_get_zero_initialized_executor(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] e preallocated rclc_let_executor_t
+ * \param[inout] e preallocated rclc_executor_t
  * \param[in] context RCL context
  * \param[in] number_of_handles size of the handle array
  * \param[in] allocator allocator for allocating memory
@@ -185,14 +185,14 @@ rclc_let_executor_get_zero_initialized_executor(void);
  * \return `RCL_RET_ERROR` in case of failure
  */
 rcl_ret_t
-rclc_let_executor_init(
-  rclc_let_executor_t * executor,
+rclc_executor_init(
+  rclc_executor_t * executor,
   rcl_context_t * context,
   const size_t number_of_handles,
   const rcl_allocator_t * allocator);
 
 /**
- *  Set timeout in nanoseconds for rcl_wait (called during {@link rclc_let_executor_spin_once()}).
+ *  Set timeout in nanoseconds for rcl_wait (called during {@link rclc_executor_spin_once()}).
  *
  * <hr>
  * Attribute          | Adherence
@@ -209,15 +209,15 @@ rclc_let_executor_init(
  * \return `RCL_RET_ERROR` in an error occured
  */
 rcl_ret_t
-rclc_let_executor_set_timeout(
-  rclc_let_executor_t * executor,
+rclc_executor_set_timeout(
+  rclc_executor_t * executor,
   const uint64_t timeout_ns);
 
 
 /**
  *  Cleans up executor.
- *  Deallocates dynamic memory of {@link rclc_let_executor_t.handles} and
- *  resets all other values of {@link rclc_let_executor_t}.
+ *  Deallocates dynamic memory of {@link rclc_executor_t.handles} and
+ *  resets all other values of {@link rclc_executor_t}.
  *
  * <hr>
  * Attribute          | Adherence
@@ -234,12 +234,12 @@ rclc_let_executor_set_timeout(
  * \return `RCL_RET_ERROR` in an error occured (aka executor was not initialized)
  */
 rcl_ret_t
-rclc_let_executor_fini(rclc_let_executor_t * executor);
+rclc_executor_fini(rclc_executor_t * executor);
 
 /**
  *  Adds a subscription to an executor.
- * * An error is returned, if {@link rclc_let_executor_t.handles} array is full.
- * * The total number_of_subscriptions field of {@link rclc_let_executor_t.info}
+ * * An error is returned, if {@link rclc_executor_t.handles} array is full.
+ * * The total number_of_subscriptions field of {@link rclc_executor_t.info}
  *   is incremented by one.
  *
  * <hr>
@@ -260,8 +260,8 @@ rclc_let_executor_fini(rclc_let_executor_t * executor);
  * \return `RCL_RET_ERROR` if any other error occured
  */
 rcl_ret_t
-rclc_let_executor_add_subscription(
-  rclc_let_executor_t * executor,
+rclc_executor_add_subscription(
+  rclc_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
   rclc_callback_t callback,
@@ -269,8 +269,8 @@ rclc_let_executor_add_subscription(
 
 /**
  *  Adds a timer to an executor.
- * * An error is returned, if {@link rclc_let_executor_t.handles} array is full.
- * * The total number_of_timers field of {@link rclc_let_executor_t.info} is
+ * * An error is returned, if {@link rclc_executor_t.handles} array is full.
+ * * The total number_of_timers field of {@link rclc_executor_t.info} is
  *   incremented by one.
  *
  * <hr>
@@ -288,14 +288,14 @@ rclc_let_executor_add_subscription(
  * \return `RCL_RET_ERROR` if any other error occured
  */
 rcl_ret_t
-rclc_let_executor_add_timer(
-  rclc_let_executor_t * executor,
+rclc_executor_add_timer(
+  rclc_executor_t * executor,
   rcl_timer_t * timer);
 
 /**
  *  The spin-some function checks one-time for new data from the DDS-queue.
- * * the timeout is defined in {@link rclc_let_executor_t.timeout_ns} and can
- *   be set by calling {@link rclc_let_executor_set_timeout()} function (default value is 100ms)
+ * * the timeout is defined in {@link rclc_executor_t.timeout_ns} and can
+ *   be set by calling {@link rclc_executor_set_timeout()} function (default value is 100ms)
  *
  * The static-LET executor performs the following actions:
  * * initializes the wait_set with all handle of the array executor->handles
@@ -323,13 +323,13 @@ rclc_let_executor_add_timer(
  * \return `RCL_RET_ERROR` if any other error occured
  */
 rcl_ret_t
-rclc_let_executor_spin_some(
-  rclc_let_executor_t * executor,
+rclc_executor_spin_some(
+  rclc_executor_t * executor,
   const uint64_t timeout_ns);
 
 /**
  *  The spin function checks for new data at DDS queue as long as ros context is available.
- *  It calls {@link rclc_let_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
+ *  It calls {@link rclc_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
  *
  *  Memory is dynamically allocated within rcl-layer, when DDS queue is accessed with rcl_wait_set_init()
  *  (in spin_some function)
@@ -349,13 +349,13 @@ rclc_let_executor_spin_some(
  * \return `RCL_RET_ERROR` if any other error occured
  */
 rcl_ret_t
-rclc_let_executor_spin(rclc_let_executor_t * executor);
+rclc_executor_spin(rclc_executor_t * executor);
 
 
 /**
  *  The spin_period function checks for new data at DDS queue as long as ros context is available.
  *  It is called every period nanoseconds.
- *  It calls {@link rclc_let_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
+ *  It calls {@link rclc_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
  *
  *  Memory is dynamically allocated within rcl-layer, when DDS queue is accessed with rcl_wait_set_init()
  *  (in spin_some function)
@@ -375,28 +375,28 @@ rclc_let_executor_spin(rclc_let_executor_t * executor);
  * \return `RCL_RET_ERROR` if any other error occured
  */
 rcl_ret_t
-rclc_let_executor_spin_period(
-  rclc_let_executor_t * executor,
+rclc_executor_spin_period(
+  rclc_executor_t * executor,
   const uint64_t period);
 
 
 /*
  The reason for splitting this function up, is to be able to write a unit test.
  The spin_period is an endless loop, therefore it is not possible to stop after x iterations. The function
- rclc_let_executor_spin_period_ implements one iteration and the function
- rclc_let_executor_spin_period implements the endless while-loop. The unit test covers only
- rclc_let_executor_spin_period_.
+ rclc_executor_spin_period_ implements one iteration and the function
+ rclc_executor_spin_period implements the endless while-loop. The unit test covers only
+ rclc_executor_spin_period_.
 */
 rcl_ret_t
-rclc_let_executor_spin_one_period(
-  rclc_let_executor_t * executor,
+rclc_executor_spin_one_period(
+  rclc_executor_t * executor,
   const uint64_t period);
 
 
 rcl_ret_t
-rclc_let_executor_set_trigger(
-  rclc_let_executor_t * executor,
-  rclc_let_executor_trigger_t trigger_function,
+rclc_executor_set_trigger(
+  rclc_executor_t * executor,
+  rclc_executor_trigger_t trigger_function,
   void * trigger_object);
 
 /* returns true, if all handles have new input data 
@@ -404,7 +404,7 @@ rclc_let_executor_set_trigger(
    obj can be NULL
 */
 bool 
-rclc_let_executor_trigger_all(
+rclc_executor_trigger_all(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
@@ -414,7 +414,7 @@ rclc_let_executor_trigger_all(
    obj can be NULL
 */
 bool 
-rclc_let_executor_trigger_any(
+rclc_executor_trigger_any(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
@@ -423,4 +423,4 @@ rclc_let_executor_trigger_any(
 }
 #endif
 
-#endif  // RCLC__LET_EXECUTOR_H_
+#endif  // RCLC__executor_H_
