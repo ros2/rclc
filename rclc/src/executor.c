@@ -126,6 +126,9 @@ rclc_executor_init(
   //          start processing if any handle has new data/or is ready
   rclc_executor_set_trigger(executor, rclc_executor_trigger_any, NULL);
 
+  //default semantics
+  rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
+
   return ret;
 }
 
@@ -143,6 +146,22 @@ rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)
   }
   return ret;
 }
+
+rcl_ret_t
+rclc_executor_set_semantics(rclc_executor_t * executor, rclc_executor_semantics_t semantics)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor, "executor is null pointer", return RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  if (_rclc_executor_is_valid(executor)) {
+    executor->data_comm_semantics = semantics;
+  } else {
+    RCL_SET_ERROR_MSG("executor not initialized.");
+    return RCL_RET_ERROR;
+  }
+  return ret;
+}
+
 
 rcl_ret_t
 rclc_executor_fini(rclc_executor_t * executor)
@@ -409,6 +428,39 @@ _rclc_execute(rclc_executor_handle_t * handle)
   return rc;
 }
 
+
+static
+rcl_ret_t
+_rclc_default_scheduling(rclc_executor_t * executor)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t rc = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    rc = _rclc_check_for_new_data(&executor->handles[i], &executor->wait_set);
+    if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+      return rc;
+    }
+  }
+  // if the trigger condition is fullfilled, fetch data and execute
+  if (executor->trigger_function(executor->handles, executor->max_handles,
+    executor->trigger_object))
+  {
+    // take new input data from DDS-queue and execute the corresponding callback of the handle
+    for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+      rc = _rclc_take_new_data(&executor->handles[i], &executor->wait_set);
+      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+        return rc;
+      }
+      rc = _rclc_execute(&executor->handles[i]);
+      if (rc != RCL_RET_OK) {
+        return rc;
+      }
+    }
+  }
+  return rc;
+}
+
 static
 rcl_ret_t
 _rclc_let_scheduling(rclc_executor_t * executor)
@@ -538,10 +590,21 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
   // new data from DDS queue.
   rc = rcl_wait(&executor->wait_set, timeout_ns);
 
-  rc = _rclc_let_scheduling(executor);
+  // based on semantics process input data
+  switch (executor->data_comm_semantics) {
+    case LET:
+      rc = _rclc_let_scheduling(executor);
+      break;
+    case RCLCPP_EXECUTOR:
+      rc = _rclc_default_scheduling(executor);
+      break;
+    default:
+      PRINT_RCLC_ERROR(rclc_executor_spin_some, unknown_semantics);
+      return RCL_RET_ERROR;
+  }
 
   if (rc != RCL_RET_OK) {
-    // PRINT_RCLC_ERROR has already been called in _rclc_let_scheduling()
+    // PRINT_RCLC_ERROR has been called in _rclc_*_scheduling()
     return rc;
   }
 

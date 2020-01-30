@@ -1280,3 +1280,47 @@ TEST_F(TestDefaultExecutor, spin_period) {
   EXPECT_LE(duration, spin_period + delta);
   EXPECT_LE(spin_period - delta, duration);
 }
+
+TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+
+  // initialize executor with 1 handle
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // set timeout to zero - so that rcl_wait() comes back immediately
+  rc = rclc_executor_set_timeout(&executor, 0);
+
+  // add dummy subscription (with string msg), which is always executed
+  rc = rclc_executor_add_subscription(&executor, this->sub2_ptr, &this->sub2_msg,
+      &spin_period_callback, ALWAYS);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
+  unsigned int i = 0;
+  const unsigned int max = 10;
+  const uint64_t timeout_ns = 1000000; // 1ms
+  while (i<max) {
+    rclc_executor_spin_some(&executor, timeout_ns);
+    i++;
+  }
+// need int publisher
+// int subscriber
+// callback that writes value of message in global variable
+// test code here => result == 1 or 0 => done.
+  // test setup
+  // setup one publisher (publishes on integer topic A)
+  // subscriber A (publishes on integer topic A)
+  // subscriber B (evaluates data of topic A)
+  // test setup 
+  // publisher publishes A=0
+  // spin_some()
+  //   subscriber A : publishes A=1
+  //   subscriber B 
+  // expected test result for semantics RCLCPP:
+  //   => subscriber B sees A=1
+  // expected test result for semantics LET:
+  //   => subscriber B sees A=0
+}

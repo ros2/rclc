@@ -35,6 +35,16 @@ extern "C"
     processed in a user-defined order.
 */
 
+/* defines the semantics of data communication
+   RCLCPP_EXECUTOR - same semantics as in the rclcpp Executor ROS2(Eloquent)
+   LET             - logical execution time
+*/
+typedef enum
+{
+  RCLCPP_EXECUTOR,
+  LET
+} rclc_executor_semantics_t;
+
 /// Type defintion for trigger function. With the parameters:
 /// - array of executor_handles
 /// - size of array
@@ -66,6 +76,8 @@ typedef struct
   rclc_executor_trigger_t trigger_function;
   /// application specific data structure for trigger function
   void * trigger_object;
+  /// data communication semantics
+  rclc_executor_semantics_t data_comm_semantics;
 } rclc_executor_t;
 
 /**
@@ -125,6 +137,27 @@ rclc_executor_set_timeout(
   rclc_executor_t * executor,
   const uint64_t timeout_ns);
 
+/**
+ *  Set data communication semantics
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to an initialized executor
+ * \param [in] valid semantics value as defined in enum type {@link rclc_executor_semantics_t}
+ * \return `RCL_RET_OK` if semantics was set successfully
+ * \return `RCL_RET_INVALID_ARGUMENT` if \p executor is a null pointer
+ */
+
+rcl_ret_t
+rclc_executor_set_semantics(
+  rclc_executor_t * executor,
+  rclc_executor_semantics_t semantics);
 
 /**
  *  Cleans up executor.
