@@ -184,7 +184,7 @@ rcl_ret_t
 rclc_executor_handle_print(rclc_executor_handle_t * handle);
 
 
-void * 
+void *
 rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle);
 
 #if __cplusplus

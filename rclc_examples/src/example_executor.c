@@ -33,17 +33,20 @@ int pub_string_value;
 
 /***************************** CALLBACKS ***********************************/
 
-typedef struct {
+typedef struct
+{
   rcl_timer_t * timer1;
   rcl_timer_t * timer2;
 } pub_trigger_object_t;
 
-typedef struct {
+typedef struct
+{
   rcl_subscription_t * sub1;
   rcl_subscription_t * sub2;
 } sub_trigger_object_t;
 
-bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj)
+{
   if (handles == NULL) {
     printf("Error in pub_trigger: 'handles' is a NULL pointer\n");
     return false;
@@ -56,14 +59,14 @@ bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
   bool timer1 = false;
   bool timer2 = false;
   //printf("pub_trigger ready set: ");
-  for(unsigned int i=0; i<size; i++) {
+  for (unsigned int i = 0; i < size; i++) {
     if (handles[i].data_available == true) {
       void * handle_ptr = rclc_executor_handle_get_ptr(&handles[i]);
-      if ( handle_ptr == comm_obj->timer1) {
+      if (handle_ptr == comm_obj->timer1) {
         timer1 = true;
         //printf("timer1 ");
       }
-      if ( handle_ptr == comm_obj->timer2) {
+      if (handle_ptr == comm_obj->timer2) {
         timer2 = true;
         //printf("timer2 ");
       }
@@ -71,8 +74,7 @@ bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  if ( timer1 || timer2 )
-   {
+  if (timer1 || timer2) {
     return true;
   } else {
     return false;
@@ -80,7 +82,8 @@ bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
 }
 
 
-bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj) {
+bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj)
+{
   if (handles == NULL) {
     printf("Error in sub_trigger: 'handles' is a NULL pointer\n");
     return false;
@@ -93,24 +96,23 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
   bool sub1 = false;
   bool sub2 = false;
   //printf("sub_trigger ready set: ");
-  for(unsigned int i=0; i<size; i++) {
+  for (unsigned int i = 0; i < size; i++) {
     if (handles[i].data_available == true) {
       void * handle_ptr = rclc_executor_handle_get_ptr(&handles[i]);
 
-      if ( handle_ptr == comm_obj->sub1) {
+      if (handle_ptr == comm_obj->sub1) {
         sub1 = true;
         //printf("sub1 ");
       }
 
-      if ( handle_ptr == comm_obj->sub2) {
+      if (handle_ptr == comm_obj->sub2) {
         sub2 = true;
         //printf("sub2 ");
       }
     }
   }
   //printf("\n");
-  if ( sub1 && sub2 )
-   {
+  if (sub1 && sub2) {
     return true;
   } else {
     return false;
@@ -120,7 +122,7 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
 
 // continue here: new test case where two input data is available
 // but not in single spin_some call.
-// if timer is not executed  - no data is received 
+// if timer is not executed  - no data is received
 
 void my_string_subscriber_callback(const void * msgin)
 {
@@ -157,7 +159,7 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
     char pub_string[PUB_MSG_SIZE];
     char num_string[10];
     snprintf(pub_string, 14, "%s", "Hello World! ");
-    sprintf(num_string, "%d",pub_string_value++);
+    sprintf(num_string, "%d", pub_string_value++);
     strcat(pub_string, num_string);
     rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
 
@@ -377,14 +379,16 @@ int main(int argc, const char * argv[])
   rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg, &my_string_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg,
+      &my_string_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_string_sub'. \n");
   }
 
   // add int subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg, &my_int_subscriber_callback,
+  rc = rclc_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg,
+      &my_int_subscriber_callback,
       ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_int_sub'. \n");
@@ -401,7 +405,7 @@ int main(int argc, const char * argv[])
   //rc = rclc_executor_set_trigger(&executor_pub, pub_trigger, &comm_obj_pub);
   //rc = rclc_executor_set_trigger(&executor_sub, sub_trigger, &comm_obj_sub);
   rc = rclc_executor_set_trigger(&executor_pub, rclc_executor_trigger_any, NULL);
-  rc = rclc_executor_set_trigger(&executor_sub, rclc_executor_trigger_all,NULL);
+  rc = rclc_executor_set_trigger(&executor_sub, rclc_executor_trigger_all, NULL);
 
   for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
@@ -412,18 +416,18 @@ int main(int argc, const char * argv[])
 
 
 // example with two executors
-// with one - publishing and subscribing i cannot 
-// differentiate the case in which 
+// with one - publishing and subscribing i cannot
+// differentiate the case in which
 // two topics are received and I wait for the next round of spin_some
 // because the publisher is always ready
 
-// setup executor_1 
+// setup executor_1
 // publishes my_pub (1s rate) and my_int_pub (2s rate)
 // trigger function ANY
 
 // setup executor_2
 // subscribes to my_string_sub and my_int_sub
-// (1) trigger function AND 
+// (1) trigger function AND
 // (2) trigger function OR
 // expected output:
 //   (1) see output at 2s rate and same number of callback calls

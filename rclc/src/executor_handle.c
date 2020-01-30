@@ -84,16 +84,17 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
   return RCL_RET_OK;
 }
 
-void * 
-rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle) {
-  //RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
+void *
+rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle)
+{
+  // RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
   // cannot be used because it creates a "return" statement and
   // here the return type is (void *)
   if (handle == NULL) {
     return NULL;
   }
 
-  void * ptr; 
+  void * ptr;
   switch (handle->type) {
     case SUBSCRIPTION:
       ptr = handle->subscription;

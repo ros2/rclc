@@ -13,8 +13,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef RCLC__executor_H_
-#define RCLC__executor_H_
+#ifndef RCLC__EXECUTOR_H_
+#define RCLC__EXECUTOR_H_
 
 /* TODO(jan):
 + update test cases
@@ -399,22 +399,30 @@ rclc_executor_set_trigger(
   rclc_executor_trigger_t trigger_function,
   void * trigger_object);
 
-/* returns true, if all handles have new input data 
+/* returns true, if all handles have new input data
    (new message for subscription, timer_ready for timer)
    obj can be NULL
 */
-bool 
+bool
 rclc_executor_trigger_all(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
 
-/* returns true, if at least one handle has new input data 
+/* returns true, if at least one handle has new input data
    (new message for subscription, timer_ready for timer)
    obj can be NULL
 */
-bool 
+bool
 rclc_executor_trigger_any(
+  rclc_executor_handle_t * handles,
+  unsigned int size,
+  void * obj);
+
+/* returns always true
+*/
+bool
+rclc_executor_trigger_always(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
@@ -423,4 +431,4 @@ rclc_executor_trigger_any(
 }
 #endif
 
-#endif  // RCLC__executor_H_
+#endif  // RCLC__EXECUTOR_H_
