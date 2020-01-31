@@ -402,7 +402,11 @@ _rclc_execute(rclc_executor_handle_t * handle)
   if (invoke_callback) {
     switch (handle->type) {
       case SUBSCRIPTION:
-        handle->callback(handle->data);
+        if (handle->data_available) {
+          handle->callback(handle->data);
+        } else {
+          handle->callback(NULL);
+        }
         break;
 
       case TIMER:
@@ -723,14 +727,26 @@ bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int si
 bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
-
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
       if (handles[i].data_available == true) {
-        // TODO(Jan) compare with obj
-        return true;
+        switch (handles[i].type) {
+          case SUBSCRIPTION:
+            if (handles[i].subscription == obj) {
+              return true;
+            }
+            break;
+          case TIMER:
+            if (handles[i].timer == obj) {
+              return true;
+            }
+            break;
+          default:
+            // non-supported type
+            return false;
+        }
       }
     } else {
       break;

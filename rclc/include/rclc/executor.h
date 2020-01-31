@@ -372,6 +372,14 @@ rclc_executor_trigger_always(
   unsigned int size,
   void * obj);
 
+/* triggeres when object obj received
+*/
+bool
+rclc_executor_trigger_one(
+  rclc_executor_handle_t * handles,
+  unsigned int size,
+  void * obj);
+
 #if __cplusplus
 }
 #endif

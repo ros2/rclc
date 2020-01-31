@@ -52,6 +52,13 @@ static unsigned int _cb3_cnt = 0;
 static unsigned int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
+// test data for trigger conditions
+static unsigned int _cb6_int_value = 0;
+static unsigned int _cb7_int_value = 0;
+static unsigned int _cb8_int_value = 0;
+static unsigned int _cb6_cnt = 0;
+static unsigned int _cb7_cnt = 0;
+static unsigned int _cb8_cnt = 0;
 
 static
 void
@@ -60,6 +67,19 @@ _results_callback_counters_init()
   _cb1_cnt = 0;
   _cb2_cnt = 0;
   _cb3_cnt = 0;
+}
+
+
+static
+void
+_reset_result_values_for_trigger_test_case()
+{
+  _cb6_int_value = 0;
+  _cb7_int_value = 0;
+  _cb8_int_value = 0;
+  _cb6_cnt = 0;
+  _cb7_cnt = 0;
+  _cb8_cnt = 0;
 }
 
 static
@@ -209,8 +229,45 @@ void int32_callback5(const void * msgin)
   }
 }
 
-// result vector
-// old stuff
+
+// test case: trigger conditions
+void int32_callback6(const void * msgin)
+{
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  if (msg == NULL) {
+    printf("(int32_callback6): msg is NULL\n");
+  } else {
+    // printf("cb6 msg: %d\n", msg->data);
+    _cb6_int_value = msg->data;
+  }
+  _cb6_cnt++;
+}
+
+// test case: trigger conditions
+void int32_callback7(const void * msgin)
+{
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  if (msg == NULL) {
+    printf("(int32_callback7): msg is NULL\n");
+  } else {
+    // printf("cb7 msg: %d\n", msg->data);
+    _cb7_int_value = msg->data;
+  }
+  _cb7_cnt++;
+}
+
+// test case: trigger conditions
+void int32_callback8(const void * msgin)
+{
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  if (msg == NULL) {
+    printf("(int32_callback8): msg is NULL\n");
+  } else {
+    // printf("cb8 msg: %d\n", msg->data);
+    _cb8_int_value = msg->data;
+  }
+  _cb8_cnt++;
+}
 
 // callback for topic "cmd_hello"
 void cmd_hello_callback(const void * msgin)
@@ -305,12 +362,17 @@ public:
   geometry_msgs__msg__Twist pub1_msg;
 
   // integer publisher
-  rcl_publisher_t pub_int;
-  const char * pub_int_topic_name;
-  const rosidl_message_type_support_t * pub_int_type_support;
-  rcl_publisher_options_t pub_int_options;
-  std_msgs__msg__Int32 pub_int_msg;
+  rcl_publisher_t pub1_int;
+  const char * pub1_int_topic_name;
+  const rosidl_message_type_support_t * pub1_int_type_support;
+  rcl_publisher_options_t pub1_int_options;
+  std_msgs__msg__Int32 pub1_int_msg;
 
+  rcl_publisher_t pub2_int;
+  const char * pub2_int_topic_name;
+  const rosidl_message_type_support_t * pub2_int_type_support;
+  rcl_publisher_options_t pub2_int_options;
+  std_msgs__msg__Int32 pub2_int_msg;
 
   // subscription 1
   // TODO(Jan) remove pointer to avoid dynamic memory allocation
@@ -328,7 +390,7 @@ public:
   rcl_subscription_options_t sub2_options;
   std_msgs__msg__String sub2_msg;
 
-  // integer subscriptions (to be used with integer publisher 'pub_int')
+  // integer subscriptions (to be used with integer publisher 'pub1_int')
   rcl_subscription_t sub1_int;
   rcl_subscription_options_t sub1_int_options;
   std_msgs__msg__Int32 sub1_int_msg;
@@ -381,38 +443,43 @@ public:
     ret = rcl_publisher_init(this->pub1_ptr, this->node_ptr, this->pub1_type_support,
         this->pub1_topic_name, &this->pub1_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      rcl_ret_t ret = rcl_publisher_fini(this->pub1_ptr, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    });
     EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(this->pub1_ptr), expected_topic_name), 0);
 
     // create integer publisher
-    this->pub_int_topic_name = "data_int";
-    this->pub_int = rcl_get_zero_initialized_publisher();
-    this->pub_int_type_support =
+    this->pub1_int_topic_name = "data1_int";
+    this->pub1_int = rcl_get_zero_initialized_publisher();
+    this->pub1_int_type_support =
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-    this->pub_int_options = rcl_publisher_get_default_options();
-    ret = rcl_publisher_init(&this->pub_int, this->node_ptr, this->pub_int_type_support,
-        this->pub_int_topic_name, &this->pub_int_options);
+    this->pub1_int_options = rcl_publisher_get_default_options();
+    ret = rcl_publisher_init(&this->pub1_int, this->node_ptr, this->pub1_int_type_support,
+        this->pub1_int_topic_name, &this->pub1_int_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->pub2_int_topic_name = "data2_int";
+    this->pub2_int = rcl_get_zero_initialized_publisher();
+    this->pub2_int_type_support =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
+    this->pub2_int_options = rcl_publisher_get_default_options();
+    ret = rcl_publisher_init(&this->pub2_int, this->node_ptr, this->pub2_int_type_support,
+        this->pub2_int_topic_name, &this->pub2_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
 
-    // create integer subscription
+    // create integer subscription 1 - listens to publisher pub1_int
     this->sub1_int = rcl_get_zero_initialized_subscription();
     this->sub1_int_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(&this->sub1_int, this->node_ptr, this->pub_int_type_support,
-        this->pub_int_topic_name, &this->sub1_int_options);
+    ret = rcl_subscription_init(&this->sub1_int, this->node_ptr, this->pub1_int_type_support,
+        this->pub1_int_topic_name, &this->sub1_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_subscription_is_valid(&this->sub1_int));
     rcl_reset_error();
 
 
-    // create integer subscription 2
+    // create integer subscription 2 - listens to publisher pub2_int
     this->sub2_int = rcl_get_zero_initialized_subscription();
     this->sub2_int_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(&this->sub2_int, this->node_ptr, this->pub_int_type_support,
-        this->pub_int_topic_name, &this->sub2_int_options);
+    ret = rcl_subscription_init(&this->sub2_int, this->node_ptr, this->pub2_int_type_support,
+        this->pub2_int_topic_name, &this->sub2_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2_int));
     rcl_reset_error();
@@ -1393,15 +1460,15 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   //   => subscriber B receives X=1 (because data is taken from DDS at the start of spin_some() )
 
   // implementation
-  // use member variable this->pub_int as publisher
+  // use member variable this->pub1_int as publisher
   // use member variable this->sub1_int as subscription 1
   // create subscription 2 with last-is-best semantics
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
   subscription_options2.qos.depth = 0;  // qos: last is best
-  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub_int_type_support,
-      this->pub_int_topic_name, &subscription_options2);
+  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub1_int_type_support,
+      this->pub1_int_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
   rcl_reset_error();
@@ -1423,15 +1490,15 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
 
   // create global pointer to this publisher to access it from callback 'int32_callback4'
   // of the subscriber 'this->sub_int'
-  _pub_int_ptr = &this->pub_int;
-  _pub_int_msg_ptr = &this->pub_int_msg;
+  _pub_int_ptr = &this->pub1_int;
+  _pub_int_msg_ptr = &this->pub1_int_msg;
 
   // ------------------------- test case setup ------------------------
   rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
-  this->pub_int_msg.data = 1;
+  this->pub1_int_msg.data = 1;
   _cb5_int_value = 0;  // received value in subscription2
-  rc = rcl_publish(&this->pub_int, &this->pub_int_msg, nullptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << " pub_int(tc) did not publish!";
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int(tc) did not publish!";
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   const uint64_t timeout_ns = 10000000;  // 10ms
@@ -1478,15 +1545,15 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   //   => subscriber B receives X=1 (because data is taken from DDS at the start of spin_some() )
 
   // implementation
-  // use member variable this->pub_int as publisher
+  // use member variable this->pub1_int as publisher
   // use member variable this->sub1_int as subscription 1
   // create subscription 2 with last-is-best semantics
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
   subscription_options2.qos.depth = 0;  // qos: last is best
-  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub_int_type_support,
-      this->pub_int_topic_name, &subscription_options2);
+  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub1_int_type_support,
+      this->pub1_int_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
   rcl_reset_error();
@@ -1508,15 +1575,15 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
 
   // create global pointer to this publisher to access it from callback 'int32_callback4'
   // of the subscriber 'this->sub_int'
-  _pub_int_ptr = &this->pub_int;
-  _pub_int_msg_ptr = &this->pub_int_msg;
+  _pub_int_ptr = &this->pub1_int;
+  _pub_int_msg_ptr = &this->pub1_int_msg;
 
   // ------------------------- test case setup ------------------------
   rclc_executor_set_semantics(&executor, LET);
-  this->pub_int_msg.data = 1;
+  this->pub1_int_msg.data = 1;
   _cb5_int_value = 0;  // received value in subscription2
-  rc = rcl_publish(&this->pub_int, &this->pub_int_msg, nullptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << " pub_int(tc) did not publish!";
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int(tc) did not publish!";
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   const uint64_t timeout_ns = 10000000;  // 10ms
@@ -1524,8 +1591,315 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   // test result
   EXPECT_EQ(_cb5_int_value,
     (unsigned int) 1) <<
-    " expect value 1: first value of 'pub_int' publisher should have been received.";
+    " expect value 1: first value of 'pub1_int' publisher should have been received.";
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, this->node_ptr);
+}
+
+
+TEST_F(TestDefaultExecutor, trigger_one) {
+  // test specification
+  // multiple subscriptions
+  //  - two publishers for topic a and topic b
+  //  - two subscriptions A, B
+  //     - subscriber A subscribes to topic a
+  //     - subscriber B subscribes to topic b
+  //     - subscriber B sets result variable.
+  // set trigger: trigger_one(A) => execute when A receives new data
+  // setup:
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A called
+  //   - subscriber B not called
+  // - publish topic B
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A not called
+  //   - subscriber B not called
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A called
+  //   - subscriber B called
+  // -------------- rcl objects ---------------------------------------------------------
+
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  // initialize executor with 2 handles
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
+  rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_one, &this->sub1_int);
+
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback6, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &this->sub2_int, &this->sub2_int_msg,
+      &int32_callback7, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  // ------------------------- test case setup ---------------------------------------------
+
+  // first round
+  _reset_result_values_for_trigger_test_case();
+  this->pub1_int_msg.data = 3;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  // second round
+  this->pub2_int_msg.data = 7;
+  rc = rcl_publish(&this->pub2_int, &this->pub2_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub2_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A not called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+
+  // third round
+  this->pub1_int_msg.data = 11;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 11) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 2);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+}
+
+
+TEST_F(TestDefaultExecutor, trigger_any) {
+  // test specification
+  // set trigger: trigger_any => execute when A or B received new data
+  // setup:
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A called
+  //   - subscriber B not called
+  // - publish topic B
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A not called
+  //   - subscriber B called
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A called
+  //   - subscriber B not called
+
+  // -------------- rcl objects ---------------------------------------------------------
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  // initialize executor with 2 handles
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
+  rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_any, NULL);
+
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback6, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &this->sub2_int, &this->sub2_int_msg,
+      &int32_callback7, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  // ------------------------- test case setup --------------------------------------------
+
+  // first round
+  _reset_result_values_for_trigger_test_case();
+  this->pub1_int_msg.data = 3;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  // second round
+  this->pub2_int_msg.data = 7;
+  rc = rcl_publish(&this->pub2_int, &this->pub2_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub2_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A not called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+
+  // third round
+  this->pub1_int_msg.data = 11;
+  _cb6_int_value = 0;
+  _cb7_int_value = 0;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 11) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 2);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+}
+
+
+TEST_F(TestDefaultExecutor, trigger_all) {
+  // test specification
+  // set trigger: trigger_all => execute when A and B received new data
+  // setup:
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A not called
+  //   - subscriber B not called
+  // - publish topic B
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A called
+  //   - subscriber B called
+  // - publish topic A
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A not called
+  //   - subscriber B not called
+
+  // -------------- rcl objects ---------------------------------------------------------
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  // initialize executor with 2 handles
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
+  rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_all, NULL);
+
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback6, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &this->sub2_int, &this->sub2_int_msg,
+      &int32_callback7, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  // ------------------------- test case setup --------------------------------------------
+
+  // first round
+  _reset_result_values_for_trigger_test_case();
+  this->pub1_int_msg.data = 3;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  // second round
+  this->pub2_int_msg.data = 7;
+  rc = rcl_publish(&this->pub2_int, &this->pub2_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub2_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+
+  // third round
+  this->pub1_int_msg.data = 11;
+  _cb6_int_value = 0;
+  _cb7_int_value = 0;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+}
+
+TEST_F(TestDefaultExecutor, trigger_always) {
+  // test specification
+  // set trigger: trigger_always => execute always
+  // additional subscriber with ALWAYS
+  // test setup:
+  // - subscriber A - ON_NEW_DATA
+  // - subscriber B - ALWAYS
+
+  // - spin_some()
+  // - expected result:
+  //   - subscriber A not called
+  //   - subscriber B called
+  // - publish topic A
+  // - spin_some()
+  //   - subscriber A called
+  //   - subscriber B called
+
+  // -------------- rcl objects ---------------------------------------------------------
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  // initialize executor with 2 handles
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
+  rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
+
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback6, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &this->sub2_int, &this->sub2_int_msg,
+      &int32_callback7, ALWAYS);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  // ------------------------- test case setup --------------------------------------------
+
+  // first round
+  _reset_result_values_for_trigger_test_case();
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 0);
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0);
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 1) << " expected: B called";
+  // second round
+  this->pub1_int_msg.data = 3;
+  rc = rcl_publish(&this->pub1_int, &this->pub1_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub1_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1) << " expected: A called";
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 2) << " expected: B called";
+  // third round
+  this->pub2_int_msg.data = 7;
+  _cb6_int_value = 0;
+  _cb7_int_value = 0;
+  rc = rcl_publish(&this->pub2_int, &this->pub2_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub2_int did not publish!";
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclc_executor_spin_some(&executor, timeout_ns);
+  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb7_cnt, (unsigned int) 3);
 }
