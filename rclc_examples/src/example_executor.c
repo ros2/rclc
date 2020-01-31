@@ -305,7 +305,7 @@ int main(int argc, const char * argv[])
   // create subscription
   rcl_subscription_t my_string_sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
-  my_subscription_options.qos.depth = 0;
+  my_subscription_options.qos.depth = 0; // qos: last is best = register semantics
   rc = rcl_subscription_init(
     &my_string_sub,
     &my_node,

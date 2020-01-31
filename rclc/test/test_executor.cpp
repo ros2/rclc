@@ -48,6 +48,10 @@ static unsigned int _cb1_cnt = 0;
 static unsigned int _cb2_cnt = 0;
 // callback for topic "chatter3"
 static unsigned int _cb3_cnt = 0;
+// callback for testing data communication semantics
+static unsigned int _cb5_int_value = 0;
+rcl_publisher_t * _pub_int_ptr;
+std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
 static
 void
@@ -176,6 +180,34 @@ void int32_callback3(const void * msgin)
   _executor_results_add(3);
 }
 
+// for test case semantics
+void int32_callback4(const void * msgin)
+{
+  rcl_ret_t rc;
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  if (msg == NULL) {
+    printf("Test CB: msg NULL\n");
+  } else {
+    _pub_int_msg_ptr->data = 2;
+    rc = rcl_publish(_pub_int_ptr, _pub_int_msg_ptr, NULL);
+    if (rc != RCL_RET_OK) {
+      printf("Error in int32_callback4: could not publish!\n");
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+// for test case semantics
+void int32_callback5(const void * msgin)
+{
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  if (msg == NULL) {
+    printf("(int32_callback5): msg is NULL\n");
+  } else {
+    // printf("cb5 msg: %d\n", msg->data);
+    _cb5_int_value = msg->data;
+  }
+}
 
 // result vector
 // old stuff
@@ -264,16 +296,24 @@ public:
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
 
-
   // publisher 1
+  // TODO(Jan) remove pointer to avoid dynamic memory allocation
   rcl_publisher_t * pub1_ptr;
   const char * pub1_topic_name;
   const rosidl_message_type_support_t * pub1_type_support;
   rcl_publisher_options_t pub1_options;
   geometry_msgs__msg__Twist pub1_msg;
-  // publisher 2
+
+  // integer publisher
+  rcl_publisher_t pub_int;
+  const char * pub_int_topic_name;
+  const rosidl_message_type_support_t * pub_int_type_support;
+  rcl_publisher_options_t pub_int_options;
+  std_msgs__msg__Int32 pub_int_msg;
+
 
   // subscription 1
+  // TODO(Jan) remove pointer to avoid dynamic memory allocation
   rcl_subscription_t * sub1_ptr;
   const char * sub1_topic_name;
   const rosidl_message_type_support_t * sub1_type_support;
@@ -281,14 +321,24 @@ public:
   geometry_msgs__msg__Twist sub1_msg;
 
   // subscription 2
+  // TODO(Jan) remove pointer to avoid dynamic memory allocation
   rcl_subscription_t * sub2_ptr;
   const char * sub2_topic_name;
   const rosidl_message_type_support_t * sub2_type_support;
   rcl_subscription_options_t sub2_options;
   std_msgs__msg__String sub2_msg;
 
+  // integer subscriptions (to be used with integer publisher 'pub_int')
+  rcl_subscription_t sub1_int;
+  rcl_subscription_options_t sub1_int_options;
+  std_msgs__msg__Int32 sub1_int_msg;
+
+  rcl_subscription_t sub2_int;
+  rcl_subscription_options_t sub2_int_options;
+  std_msgs__msg__Int32 sub2_int_msg;
 
   // timer 1
+  // TODO(Jan) remove pointer to avoid dynamic memory allocation
   rcl_timer_t * timer1_ptr;
   const unsigned int timer1_timeout = 100;
   rcl_clock_t * clock_ptr;
@@ -337,7 +387,36 @@ public:
     });
     EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(this->pub1_ptr), expected_topic_name), 0);
 
-    // create publisher 2
+    // create integer publisher
+    this->pub_int_topic_name = "data_int";
+    this->pub_int = rcl_get_zero_initialized_publisher();
+    this->pub_int_type_support =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
+    this->pub_int_options = rcl_publisher_get_default_options();
+    ret = rcl_publisher_init(&this->pub_int, this->node_ptr, this->pub_int_type_support,
+        this->pub_int_topic_name, &this->pub_int_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+
+    // create integer subscription
+    this->sub1_int = rcl_get_zero_initialized_subscription();
+    this->sub1_int_options = rcl_subscription_get_default_options();
+    ret = rcl_subscription_init(&this->sub1_int, this->node_ptr, this->pub_int_type_support,
+        this->pub_int_topic_name, &this->sub1_int_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_TRUE(rcl_subscription_is_valid(&this->sub1_int));
+    rcl_reset_error();
+
+
+    // create integer subscription 2
+    this->sub2_int = rcl_get_zero_initialized_subscription();
+    this->sub2_int_options = rcl_subscription_get_default_options();
+    ret = rcl_subscription_init(&this->sub2_int, this->node_ptr, this->pub_int_type_support,
+        this->pub_int_topic_name, &this->sub2_int_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2_int));
+    rcl_reset_error();
+
 
     // create subscription for 'cmd_vel'
     this->sub1_topic_name = "cmd_vel";
@@ -386,6 +465,11 @@ public:
     ret = rcl_subscription_fini(this->sub2_ptr, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     delete this->sub2_ptr;
+
+    ret = rcl_subscription_fini(&this->sub1_int, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_subscription_fini(&this->sub2_int, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_timer_fini(this->timer1_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1285,42 +1369,163 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_ret_t rc;
   rclc_executor_t executor;
 
-  // initialize executor with 1 handle
+  // configuration
+  // - one publisher
+  //    - publishes integer topic X
+  // - subscriber A
+  //    - subscribes to X
+  //    - publishes also on topic X
+  // - subscriber B
+  //     - subscribes to X with DDS quality of service option: last-is-best
+  //     - evaluates data of topic X and copies it to global variable result_X
+  // - evaluation in test case, what the value of result_X is.
+  //
+  // test setup
+  //  - publisher: publishes X=1
+  //  - sleep(100ms)
+  //  - spin_some()
+  //  - subscriber A : publishes X=2
+  //  - sleep(100ms)
+  //  - subscriber B :
+  // expected test result for semantics RCLCPP:
+  //   => subscriber B receives X=2 (because it takes most rececent data)
+  // expected test result for semantics LET:
+  //   => subscriber B receives X=1 (because data is taken from DDS at the start of spin_some() )
+
+  // implementation
+  // use member variable this->pub_int as publisher
+  // use member variable this->sub1_int as subscription 1
+  // create subscription 2 with last-is-best semantics
+  rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
+  std_msgs__msg__Int32 subscription2_int_msg;
+  subscription_options2.qos.depth = 0;  // qos: last is best
+  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub_int_type_support,
+      this->pub_int_topic_name, &subscription_options2);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  rcl_reset_error();
+
+  // initialize executor with 2 handles
   rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
 
-  // set timeout to zero - so that rcl_wait() comes back immediately
-  rc = rclc_executor_set_timeout(&executor, 0);
-
-  // add dummy subscription (with string msg), which is always executed
-  rc = rclc_executor_add_subscription(&executor, this->sub2_ptr, &this->sub2_msg,
-      &spin_period_callback, ALWAYS);
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback4, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &subscription2, &subscription2_int_msg,
+      &int32_callback5, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
+  // create global pointer to this publisher to access it from callback 'int32_callback4'
+  // of the subscriber 'this->sub_int'
+  _pub_int_ptr = &this->pub_int;
+  _pub_int_msg_ptr = &this->pub_int_msg;
+
+  // ------------------------- test case setup ------------------------
   rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
-  unsigned int i = 0;
-  const unsigned int max = 10;
-  const uint64_t timeout_ns = 1000000; // 1ms
-  while (i<max) {
-    rclc_executor_spin_some(&executor, timeout_ns);
-    i++;
-  }
-// need int publisher
-// int subscriber
-// callback that writes value of message in global variable
-// test code here => result == 1 or 0 => done.
+  this->pub_int_msg.data = 1;
+  _cb5_int_value = 0;  // received value in subscription2
+  rc = rcl_publish(&this->pub_int, &this->pub_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub_int(tc) did not publish!";
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  rclc_executor_spin_some(&executor, timeout_ns);
+  // test result
+  EXPECT_EQ(_cb5_int_value,
+    (unsigned int) 2) <<
+    " expect value 2: Value from callback of int32_callback4 should be received.";
+
+  // clean-up
+  rc = rcl_subscription_fini(&subscription2, this->node_ptr);
+}
+
+
+TEST_F(TestDefaultExecutor, semantics_LET) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+
+  // copy-ans-paste  from semantics_RCLCPP except:
+  // - semantics = LET
+  // - expected result = 1 (original value of publisher)
+
+  // configuration
+  // - one publisher
+  //    - publishes integer topic X
+  // - subscriber A
+  //    - subscribes to X
+  //    - publishes also on topic X
+  // - subscriber B
+  //     - subscribes to X with DDS quality of service option: last-is-best
+  //     - evaluates data of topic X and copies it to global variable result_X
+  // - evaluation in test case, what the value of result_X is.
+  //
   // test setup
-  // setup one publisher (publishes on integer topic A)
-  // subscriber A (publishes on integer topic A)
-  // subscriber B (evaluates data of topic A)
-  // test setup 
-  // publisher publishes A=0
-  // spin_some()
-  //   subscriber A : publishes A=1
-  //   subscriber B 
+  //  - publisher: publishes X=1
+  //  - sleep(100ms)
+  //  - spin_some()
+  //  - subscriber A : publishes X=2
+  //  - sleep(100ms)
+  //  - subscriber B :
   // expected test result for semantics RCLCPP:
-  //   => subscriber B sees A=1
+  //   => subscriber B receives X=2 (because it takes most rececent data)
   // expected test result for semantics LET:
-  //   => subscriber B sees A=0
+  //   => subscriber B receives X=1 (because data is taken from DDS at the start of spin_some() )
+
+  // implementation
+  // use member variable this->pub_int as publisher
+  // use member variable this->sub1_int as subscription 1
+  // create subscription 2 with last-is-best semantics
+  rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
+  std_msgs__msg__Int32 subscription2_int_msg;
+  subscription_options2.qos.depth = 0;  // qos: last is best
+  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub_int_type_support,
+      this->pub_int_topic_name, &subscription_options2);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  rcl_reset_error();
+
+  // initialize executor with 2 handles
+  rc = rclc_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // add subscriptions to executor
+  rc = rclc_executor_add_subscription(&executor, &this->sub1_int, &this->sub1_int_msg,
+      &int32_callback4, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  rc = rclc_executor_add_subscription(&executor, &subscription2, &subscription2_int_msg,
+      &int32_callback5, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // create global pointer to this publisher to access it from callback 'int32_callback4'
+  // of the subscriber 'this->sub_int'
+  _pub_int_ptr = &this->pub_int;
+  _pub_int_msg_ptr = &this->pub_int_msg;
+
+  // ------------------------- test case setup ------------------------
+  rclc_executor_set_semantics(&executor, LET);
+  this->pub_int_msg.data = 1;
+  _cb5_int_value = 0;  // received value in subscription2
+  rc = rcl_publish(&this->pub_int, &this->pub_int_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub_int(tc) did not publish!";
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  const uint64_t timeout_ns = 10000000;  // 10ms
+  rclc_executor_spin_some(&executor, timeout_ns);
+  // test result
+  EXPECT_EQ(_cb5_int_value,
+    (unsigned int) 1) <<
+    " expect value 1: first value of 'pub_int' publisher should have been received.";
+
+  // clean-up
+  rc = rcl_subscription_fini(&subscription2, this->node_ptr);
 }

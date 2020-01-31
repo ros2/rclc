@@ -126,7 +126,7 @@ rclc_executor_init(
   //          start processing if any handle has new data/or is ready
   rclc_executor_set_trigger(executor, rclc_executor_trigger_any, NULL);
 
-  //default semantics
+  // default semantics
   rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
 
   return ret;
