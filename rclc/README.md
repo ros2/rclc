@@ -1,6 +1,7 @@
 # The rclc package
 
 ##Table of Contents
+
 [Overview](#overview)
 
 [RCLC-Executor](#rclc-executor)
@@ -210,6 +211,7 @@ During the configuration phase, the user shall define:
 The following functions are supported for this configuration:
 
 **rclc_executor_t * rclc_get_zero_initialized_executor()**
+
 Returns a zero initialized executor object.
 
 **rclc_executor_init(rclc_executor_t * executor, rcl_context_t * context, const size_t number_of_handles, const rcl_allocator_t * allocator)**
@@ -217,6 +219,7 @@ Returns a zero initialized executor object.
 As the Executor is intended for embedded controllers, dynamic memory management is crucial. Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. This makes this Executor static in the sense, that during runtime no additional callbacks can be added. The `context` is the RCL context, and `allocator` points to a memory allocator.
 
 **rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)**
+
 The timeout in nano-seconds `timeout_ns`for waiting for new data from the DDS-queue is specified in `rclc_executor_set_timeout()` (this is the timeout parameter for `rcl_wait()`)
 
 **rclc_executor_set_semantics(rclc_executor_t * executor, rclc_executor_semantics_t semantics)**
@@ -253,29 +256,36 @@ For a timer, only the rcl timer object `timer` is needed.
 #### Running phase
 
 **rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)**
+
 The function `rclc_executor_spin_some` checks for new data from the DDS queue once. It first
 copies all data into local data structures and then executes all handles according the specified
 order. This implements the LET semantics.
 
 **rclc_executor_spin(rclc_executor_t * executor)**
+
 The function `rclc_executor_spin` calls `rclc_executor_spin_some` indefinitely as long
 as the ROS system is alive. This might create a high performance load on your processor.
 
 **rclc_executor_spin_period(rclc_executor_t * executor, const uint64_t period)**
+
 The function `rclc_executor_spin_period` calls `rclc_executor_spin_some` periodically
 (as defined with the argument period) as long as the ROS system is alive.
 
-**rclc_executor_spin_one_period(rclc_executor_t * executor,
-  const uint64_t period)**
+**rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)**
+
 This is a function used by `rclc_executor_spin_period` to spin one time. The purpose is
 to test the accurary of the spin_period function in the unit tests.
 
 ####Clean-Up
+
 **rclc_executor_fini()**
+
 The function `rlce_executor_fini` frees the dynamically allocated memory of the executor.
 
 ### Examples RCLC Executor
+
 We provide the relevant code snippets how to setup the RCLC-Executor for the embedded use case and for the software design patterns in mobile robotics applications as described above.
+
 #### Example embedded use-case
 
 With seqential execution the co-operative scheduling of tasks within a process can be modeled. The trigger condition is used to periodically activate the process which will then execute all callbacks in a pre-defined order. Data will be communicated using the LET-semantics. Every Executor is executed in its own tread, to which an appropriate priority can be assigned.
@@ -439,6 +449,7 @@ rclc_executor_spin(&exe);
 ```
 
 ## RCL convenience functions
+
 The rclc package also provides a number of convenience functions, which make it easier to
  create the RCL-objects `rcl_node_t`, `rcl_subscription_t`, `rcl_timer_t` and `rcl_publisher_t`.
 
@@ -485,7 +496,6 @@ An example, how to use the RCLC-Executor with the rclc convenience functions is 
 
 ## References
 
-
 * [CB2019]<a name="CB2019"> </a> D. Casini, T. Blaß, I. Lütkebohle, B. Brandenburg: Response-Time Analysis of ROS 2 Processing Chains under Reservation-Based Scheduling, in Euromicro-Conference on Real-Time Systems 2019. [[Paper](http://drops.dagstuhl.de/opus/volltexte/2019/10743/)].[[slides]](https://t-blass.de/talks/ECRTS2019.pdf)
 
 * [EK2018]<a name="EK2018"></a> R. Ernst, S. Kuntz, S. Quinton, M. Simons: The Logical Execution Time Paradigm: New Perspectives for Multicore Systems, February 25-28 2018 (Dagstuhl Seminar 18092). [[Paper]](http://drops.dagstuhl.de/opus/volltexte/2018/9293/pdf/dagrep_v008_i002_p122_18092.pdf)
@@ -500,8 +510,6 @@ An example, how to use the RCLC-Executor with the rclc convenience functions is 
 Proceedings of The Logical Execution Time Paradigm: New Perspectives for Multicore Systems (Dagstuhl Seminar 18092), Wadern, Germany, February 2018.
 
 * [KZH2015]<a name="KZH2015"></a> S. Kramer, D. Ziegenbein, and A. Hamann: Real World Automotive Benchmarks For Free, International Workshop on Analysis Tools and Methodologies for Embedded adn Real-Time Sysems (WATERS), 2015.[[Paper]](https://www.ecrts.org/forum/download/file.php?id=9&sid=efda71c95b6afdd240d72cc1e491bb8b)
-
-
 * [micro-ROS] [micro-ROS project](https://micro-ros.github.io/)
 
 <!--

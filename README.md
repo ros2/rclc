@@ -33,10 +33,8 @@ For a list of other open source components included in rclc, see the file [3rd-p
 *   Unit tests:
     *   Unit tests based on [gtest](https://github.com/google/googletest) are located in the [rclc/test](rclc/test) folder.
 
+## Known issues/limitations
 
+Please notice the following issues/limitations:
 
-    ## Known issues/limitations
-
-    Please notice the following issues/limitations:
-
-    *   rclc package support the communication types subscriptions and timers (services, clients and guard conditions are not supported yet)
+*   rclc package support the communication types subscriptions and timers (services, clients and guard conditions are not supported yet)
