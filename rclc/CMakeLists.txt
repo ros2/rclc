@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+set(CMAKE_C_CLANG_TIDY clang-tidy -checks=*)
 
 project(rclc)
 
@@ -47,6 +48,12 @@ include_directories(include)
 # create library
 #################################################
 add_library(${PROJECT_NAME} src/init.c src/publisher.c src/subscription.c src/timer.c src/node.c src/executor_handle.c src/executor.c)
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
 
 ament_target_dependencies(${PROJECT_NAME}
   rcl
