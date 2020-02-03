@@ -31,28 +31,70 @@ It should build these packages:
 
 **Step 3** Run the example executor.
 
-The binary of the example is `example_executor`.
+This example implements two RCLC Executors, one for publishing `executor_pub`and one for subscribing messages `executor_sub`.
 
+The Executor `executor_pub` publishes string `topic_0` every 100ms (using a timer with 100ms) and an integer `topic_1` every 1000ms (using a timer with 1000ms).
+
+With the trigger condition `rclc_executor_trigger_any` this executor publishes whenenver any timer is ready.
+
+Executor `executor_sub` has two subscriptions, `my_string_sub` and `my_int_sub` subscribing to `topic_0` and `topic_1`, respectivly.
+
+With the trigger condition `rclc_executor_trigger_all` this executor starts evaluating the callbacks only when both messages have arrived. To make this clearly visible, we set the quality of service parameter of the length of the DDS-queue to 0 for subscription `my_string_sub`, which subscribes to `topic_0` with the higher rate.
+
+```C
+my_subscription_options.qos.depth = 0
+rc = rcl_subscription_init(
+  &my_string_sub,
+  &my_node,
+  my_type_support,
+  topic_name,
+  &my_subscription_options);
+```
+
+Consequently, the messages "in between" are lost.
+
+The binary of the example is `example_executor`. You run the example with:
 ```C
 ~/ros2_ws/$ ros2 run rclc_examples  example_executor
 ```
  Then you should see the following output:
 
 ```C
-Created timer with timeout 1000 ms.
+Created timer 'my_string_timer' with timeout 100 ms.
+Created 'my_int_timer' with timeout 1000 ms.
 Created subscriber topic_0:
-Debug: number of DDS handles: 2
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
+Created subscriber topic_1:
+Executor_pub: number of DDS handles: 2
+Executor_sub: number of DDS handles: 2
+Published: Hello World! 0
+Published: Hello World! 1
+Published: Hello World! 2
+Published: Hello World! 3
+Published: Hello World! 4
+Published: Hello World! 5
+Published: Hello World! 6
+Published: Hello World! 7
+Published: Hello World! 8
+Published: Hello World! 9
+Published: 0
+Callback 1: Hello World! 9  <---
+Callback 2: 0               <---
+Published: Hello World! 10
+Published: Hello World! 11
+Published: Hello World! 12
+Published: Hello World! 13
+Published: Hello World! 14
+Published: Hello World! 15
+Published: Hello World! 16
+Published: Hello World! 17
+Published: Hello World! 18
+Published: Hello World! 19
+Published: 1
+Callback 1: Hello World! 19 <---
+Callback 2: 1               <---
 ```
+The results show, that the callbacks are triggered together, only when the integer message `topic_1` was published and received. At that moment the current string message of the `topic_0` is processed as well.
+
 
 ## Example RCLC-Executor with convenience functions
 **Step 1** Setup ROS 2 Workspace
