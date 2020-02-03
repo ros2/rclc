@@ -1,106 +1,444 @@
 # The rclc package
 
-The package rclc is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create rcl data types and an Executor. As a thin API layer on top of RCL you can create publishers, subscribers, timers and nodes with a one-liner like in rclcpp. The Executor provides an API to add subscriptions and timers as well as some spin() functions similar to the ones in rclcpp.
+##Table of Contents
+[Overview](#overview)
 
-# The LET Executor
+[RCLC-Executor](#rclc-executor)
+  * [Requirement Analysis](#requirement-analysis)
+    * [Real-time embedded application use-case](#real-time-embedded-application-use-case)
+    * [Software design patterns in mobile robotics](#software-design-patterns-in-mobile-robotics)
+      * [Sense-plan-act pipeline](#sense-plan-act-pipeline)
+      * [Synchronization of multiple rates](#synchronization-of-multiple-rates)
+      * [High priority path](#high-priority-path)
+  * [Features](#features)
+    * [Sequential execution](#sequential-execution)
+    * [Trigger condition](#trigger-condition)
+    * [LET-Semantics](#let-semantics)
+  * [Executor API](#executor-api)
+    * [Configuration](#configuration-phase)
+    * [Running](#running-phase)
+    * [Clean-Up](#clean-up)
+  * [Examples RCLC-Executor](#examples-rclc-executor)
+    * [Example Embedded use-case](#example-embedded-use-case)
+    * [Example Sense-plan-act pipeline](#example-sense-plan-act-pipeline)
+    * [Example sensor fusion](#example-sensor-fusion)
+    * [Example high priority path](#example-high-priority-path)
 
-This real-time executor is targeted as C API  based on the RCL layer for ROS2 applications running
-on a micro-controller[micro-ROS]. The rcl_executor is a small [ROS 2](http://www.ros2.org/) package
-for providing real-time scheduling. Currently the package supports a static order scheduler with
-logical-execution-time (LET) semantics.
+[RCL Convenience Functions](#rcl-convenience-functions)
 
-Static order scheduling refers to the fact, that during configuration the order of DDS handles,
-e.g. subscriptions and timers, is specfied. If at runtime multiple handles are ready, e.g.
-subscriptions received new messages or timers are ready, then these handles are always processed
-in the order as specified during configuration.
+[RCLC-Example Package](#rclc-example-package)
 
-LET refers to a semantic, where input data is first read for all handles, then all handels are
-processed. The benefit for static order scheduling, is that provides a deterministic execution in
-the case when multiple data is available. The benefit of LET is that there is no interference of
-input data for all handles processed. For example, if a timer callback evaluates the data processed
-by a subscription callback and the order of these is not given, then the timer callback could
-sometimes process the old data and sometimes the new. By reading all data first (and locally
-copying it), this dependence is removed.
-The benefit is very low synchronization effort because interference between input data is avoided
-[EK2018] [BP2017]. For more details about this Real Time Executor see
-[micro-ROS website](https://micro-ros.github.io/docs/concepts/client_library/real-time_executor/).
+[Limitations](#limitations)
 
-## LET semantics 
+[References](#references)
 
-The LET-semantic is implemented by, 
-  1) waiting for new data from DDS (rcl_wait()), then 
-  2) requesting all new data for all ready handles from DDS (rcl_take()) and then
-  3) executing all ready handles in the order specified by the user. 
+## Overview
+The rclc-package is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create ROS Client Library(RCL) data types and an RCLC-Executor in the C programming language. The convenience functions are a thin API layer on top of RCL-layer to create publishers, subscribers, timers and nodes with a one-liner like in rclcpp. The RCLC-Executor provides an API register subscriptions and timers as well as reqesting data from DDS and executing the corresponding callbacks, like the rclcpp Executor for C++. As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor. Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
- Waiting until all callbacks are processed and then publishing them, has been omitted in this
- implementation of the LET semantics, because this would require potentially unbounded buffers
- for publishing messages. However, this sequence already guarantees no interference between input
-data for the handles.
+## RCLC-Executor
+Here we introduce an RCLC-Executor, which is a ROS2-Executor based on RCL-layer for applications written in the C language. Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly re-play test data. However, this is difficult with the default ROS2 Executor because of its complex semantics, as discussed in the previous section.
 
-## Memory allocation
+First, we will analyse the requirements for such applications and, secondly, derive simple features for an Executor to enable deterministic and real-time behavior. Then we will present the API of the RCLC-Executor and provide example usages of the RCLC-Executor to address these requirements.
 
-Special care has been taken about memory allocation. Memory is only allocated in the configuration
-phase, i.e. by specifying how many handles shall be executed, while at running phase, no memory is
-allocated by the RCL Executor.
+### Requirement Analysis
+First we discuss a use-case in the embedded domain, in which the time-triggered paradigm is often used to guarantee deterministic and real-time behavior. Then we analyse software design patterns in mobile robotics which enable deterministic behavior.
 
-## User Interface
+#### Real-time embedded application use-case
+In embedded systems, real-time behavior is approached by using the time-triggered paradigm, which means that the processes are periodically activated. Processes can be assigned priorities to allow pre-emptions. Figure 1 shows an example, in which three processes with fixed periods are shown. The middle and lower process are pre-empted multiple times depicted with empty dashed boxes.
 
-The API of the RCL-Executor provides functions, like `add_subscription` and `add_timer`, to add
-rcl-subscriptions and rcl-timers to the Executor. The order, in which the user adds these handles
-to the Executor, determines later on the execution order when new data is available for these
-handles. The executor is activated by calling the `spin_some`, `spin_period()`, `spin_one_period` or `spin()` method.
+<img src="doc/scheduling_01.png" alt="Schedule with fixed periods" width="350"/>
 
-The API of the static LET scheduler provide the following functions for configuration, defining the
-execution order, running the scheduler and cleaning-up:
+Figure 1: Fixed periodic preemptive scheduling
 
-### API Function Overview
-**Initialization**
-- rclc_executor_init()
-- rclc_executor_set_timeout()
+To each process one or multiple tasks can be assigned, as shown in Figure 2. These tasks are executed sequentially, which is often called co-operativ scheduling.
 
-**Configuration**
-- rclc_executor_add_subscription()
-- rclc_executor_add_timer()
+<img src="doc/scheduling_02.png" alt="Schedule with fixed periods" width="250"/>
 
-**Running the Executor**
-- rclc_executor_spin_some()
-- rclc_executor_spin_one_period()
-- rclc_executor_spin_period()
-- rclc_executor_spin()
+Figure 2: Processes with sequentially executed tasks.
 
-**Clean-up memory**
-- rclc_executor_fini()
+While there are different ways to assign priorities to a given number of processes,
+the rate-monotonic scheduling assignment, in which processes with a shorter period have a higher priority, has been shown optimal if the processor utilization is less than 69% [LL1973](#LL1973).
 
-### API Description
+ In the last decades many different scheduling approaches have been presented, however fixed-periodic pre-emptive scheduling is still widely used in embedded real-time systems [KZH2015](#KZH2015]). This becomes also obvious, when looking at the features of current operating systems. Like Linux, real-time operating systems, such as NuttX, Zephyr, FreeRTOS, QNX etc., support fixed-periodic preemptive scheduling and the assignment of priorities, which makes the time-triggered paradigm the dominant design principle in this domain.
 
-In the function `rclc_executor_init`, the user must specify among other things how many handles
-shall be scheduled.
+However, data consistency is often an issue when preemptive scheduling is used and if data is being shared across multiple processes via global variables. Due to scheduling effects and varying execution times of processes, writing and reading these variables could occur sometimes sooner or later. This results in an latency jitter of update times (the timepoint at which a variable change becomes visible to other processes). Race conditions can occur when multiple processes access a variable at the same time. So solve this problem, the concept of logical-execution time (LET) was introduced in [HHK2001](#HHK2001), in which communication of data occurs only at pre-defined periodic time instances: Reading data only at the beginning of the period and writing data only at the end of the period. The cost of an additional latency delay is traded for data consistency and reduced jitter. This concept has also recently been applied to automotive applications  [NSP2018](#NSP2018).
 
-TODO (jan): timeout for spinning / not for rcl_wait()
+<img src="doc/scheduling_LET.png" alt="Schedule with fixed periods" />
 
-The function `rclc_executor_set_timeout` is an optional configuration function, which defines
-the timeout for calling rcl_wait(), i.e. the time to wait for new data from the DDS queue. The
-default timeout is 100ms.
+Figure 3: Data communication without and with Logical Execution Time paradigm.
 
-The functions `rclc_executor_add_subscription` and `rclc_executor_add_timer` add the
-corresponding handle to the executor. The maximum number of handles is defined in
-`rclc_executor_init`. The sequential order of these function calls defines the static
-execution order in the spin-functions.
+An Example of the LET-concept is shown in Figure 2. Assume that two processes are communicating data via one global variable. The timepoint when this data is written is at the end of the processing time. In the default case (left side), the process p<sub>3</sub> and p<sub>4</sub> receive the update. At the right side of the figure, the same scenario is shown with LET-semantics. Here, the data is communicated only at period boundaries. In this case, the lower process communicates at the end of the period, so that always process p<sub>3</sub> and p<sub>5</sub> receive the new data.
 
+The described embedded use case relies on the following concepts:
+- periodic execution of processes
+- assignment of fixed priorities to processes
+- preemptive scheduling of processes
+- co-operative scheduling of tasks within a process (sequential execution)
+- data synchronization with LET-semantics
+
+While periodic activation is possible in ROS2 by using timers, preemptive scheduling is supported by the operating system and assigning priorities on the granularity of threads/processes that correspond to the ROS nodes; it is not possible to sequentially execute callbacks, which have no data-dependency. Furthermore data is read from the DDS queue just before the callback is executed and data is written sometime during the time the application is executed. While the `spin_period` function of the rclcpp-Executor allows to check for data at a fixed period and executing those callbacks for which data is available, however, with this spin-function does not execute all callbacks irrespective wheter data is available or not. So `spin_period` is not helpful to periodically execute a number of callbacks (aka tasks within a process). So we need a mechanism that triggers the execution of multiple callbacks (aka tasks) based on a timer. Data transmission is achieved via DDS which does not allow to implement a LET-semantics. To summarize, we derive the following requirements:
+
+Derived Requirements:
+- trigger the execution of multiple callbacks
+- sequential processing of callbacks
+- data synchronization with LET semantics
+
+#### Software design patterns in mobile robotics
+
+In this section we describe common software design patterns which are used in mobile robotics to achieve deterministic behavior. For each design pattern we describe the concept and the derived requirements for a deterministic Executor.
+
+##### Sense-plan-act pipeline
+
+Concept:
+
+A common design paradigm in mobile robotics is a control loop, consisting of several phases: A sensing phase to aquire sensor data, a plan phase for localization and path planning and an actuation-phase to steer the mobile robot. Of course, more phases are possible, here these three phases shall serve as an example. Such a processing pipeline is shown in Figure 4.
+
+<img src="doc/sensePlanActScheme.png" alt="Sense Plan Act Pipeline" width="700"/>
+
+Figure 4: Multiple sensors driving a Sense-Plan-Act pipeline.
+
+Typically multiple sensors are used to perceive the environment. For example an IMU and a laser scanner. The quality of localization algorithms highly depend on how old such sensor data is when it is processed. Ideally the latest data of all sensors should be processed. One way to achive this is to execute first all sensor drivers in the sense-phase and then process all algorithms in the plan-phase.
+
+Currently, such a processing order cannot be defined with the default ROS2-Executor. One could in principle design a data-driven pipeline, however if e.g. the Laser scan is needed by some other callback in the sense-phase as well as in the plan-phase, the processing order of these subscribers is arbitrary.
+
+For this sense-plan-act pattern, we could define one executor for each phase. The plan-phase would be triggered only when all callbacks in the sense-phase have finished.
+
+Derived Requirements:
+- triggered execution of callbacks
+
+##### Synchronization of multiple rates
+
+Concept:
+
+Often multiple sensors are being used to sense the invironment for mobile robotics. While an IMU sensor provides data samples at a very high rate (e.g 500Hz), laser scans are availabe at a much slower frequency (e.g. 10Hz) determined by the revolution time. Then the challenge is, how to deterministically fuse sensor data with different frequencies. This problem is depicted in Figure 5.
+
+<img src="doc/sensorFusion_01.png" alt="Sychronization of multiple rates" width="300" />
+
+Figure 5: How to deterministically process multi-frequent sensor data.
+
+Due to scheduling effects, the callback for evaluating the laser scan might be called just before or just after an IMU data is received. One way to tackle this is to write additional synchronization code inside the application. Obviously, this is a cumbersome and not-portable solution.
+
+An Alternative would be to evalute the IMU sample and the laser scan by synchronizing their frequency. For example by processing always 50 IMU samples with one laser scan. This approach is shown in Figure 6. A pre-processing callback aggregates the IMU samples and sends an aggregated message with 50 samples at 10Hz rate. Now both messages have the same frequency. With a trigger condition, which fires when both messages are available, the sensor fusion algorithm can expect always synchronized input data.
+
+<img src="doc/sensorFusion_02.png" alt="Sychnronization with a trigger" width="400" />
+
+Figure 6: Synchronization of multiple input data with a trigger.
+
+In ROS2 this is currently not possible to model because of the lack of a trigger concept in the ROS2 Executor. Message filters could be used to synchronize input data based on the timestamp in the header, but this is only available in rclcpp (and not in rcl). Further more, it would be more efficient to have such a trigger concept directly in the Executor.
+<!--
+TODO
+- Bilder erweitern mit drei boxen: request IMU, process laser, fusion
+  dann wird klarer was mit den Daten wird
+- Aus dem Bild die Beschreibung löschen
+-->
+Another idea would be to activly request for IMU data only when a laser scan is received. This concept is shown in Figure 7. Upon arrival of a laser scan mesage, first, a message with aggregated IMU samples is requested. Then, the laser scan is processed and later the sensor fusion algorithm. An Executor, which would support sequential execution of callbacks, could realize this idea.
+
+<img src="doc/sensorFusion_03.png" alt="Sychronization with sequence" width="350" />
+
+Figure 7: Synchronization with sequential processing.
+
+
+Derived Requirements from both concepts:
+- triggered execution
+- sequential procesing of callbacks
+
+##### High priority path
+Motivation:
+
+Often a robot has to fullfill several activities at the same time. For example following a path and avoiding obstacles. While path following is a permanent activity, obstacle avoidance is trigged by the environment and should be immediately reacted upon. Therefore one would like to specify priorities to activities. This is depicted in Figure 8:
+
+<img src="doc/highPriorityPath.png" alt="HighPriorityPath" width="500" />
+
+Figure 8: Managing high priority path with sequential order.
+
+Assuming a simplified control loop with the activities sense-plan-act, the obstacle avoidance, which might temporarily stop the robot, should be processed before the planning phase. In this example we assume that these activites are processed in one thread.
+
+Derived requirements:
+- sequential processing of callbacks
+
+### Features
+
+Based on the real-time embedded use-case as well as the software architecture patterns in mobile robotics we propose an Executor with the following main features:
+- user-defined sequential execution of callbacks
+- trigger condition to activate processing
+- data synchronization: LET-semantics or rclcpp Executor semantics
+
+As stated before, this Executor is based on the RCL library and is written in C to nativly support micro-controller applications written in C. These features are now described in more detail.
+
+#### Sequential execution
+
+- At configuration, the user defines the order of handles
+- At configuration, the defines, if the handle shall only called when new data is available (ON_NEW_DATA) or if the callback shall always be called (ALWAYS).
+- At runtime, all handles are processed in the user-defined order
+  - if the configuration of handle is ON_NEW_DATA, then the corresponding callback is only called if new data is available
+  - if the configuration of the handle is ALWAYS, then the corresponding callback is always executed
+
+#### Trigger condition
+
+- Given a set of handles, a trigger condition based on the input data of these handles shall decide when the processing is started.
+
+- Avaiable options:
+  - ALL operation: fires when input data is available for all handles
+  - ANY operation: fires when input data is available for at least one handle
+  - ONE: fires when input data for a user-specified handle is available
+  - User-defined function: user can implement more sophisticated logic
+
+#### LET-Semantics
+- Assumption: time-triggered system, the executor is activated periodically
+- When the trigger fires, reads all input data and makes a local copy
+- Processes all callbacks in sequential order
+- Write output data at the end of the executor's period (Note: this is not implemented yet)
+
+Additionally we have implemented the current rclcpp Executor semantics:
+- waiting for new data for all handles (rcl_wait)
+- using trigger condition ANY
+- if trigger fires, start processing handles in pre-defined sequential order
+- request from DDS-queue the new data just before the handle is executed (rcl_take)
+
+### Executor API
+
+The API of the RCLC-Executor can be divided in several phases: Configuration, Running and Clean-Up.
+
+#### Configuration phase
+
+During the configuration phase, the user shall define:
+- the total number of callbacks
+- trigger contition (optional, default: ANY)
+- data communcation semantics (optional, default RCLCPP)
+- the processing sequence of the callbacks
+
+The following functions are supported for this configuration:
+
+**rclc_executor_t * rclc_get_zero_initialized_executor()**
+Returns a zero initialized executor object.
+
+**rclc_executor_init(rclc_executor_t * executor, rcl_context_t * context, const size_t number_of_handles, const rcl_allocator_t * allocator)**
+
+As the Executor is intended for embedded controllers, dynamic memory management is crucial. Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. This makes this Executor static in the sense, that during runtime no additional callbacks can be added. The `context` is the RCL context, and `allocator` points to a memory allocator.
+
+**rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)**
+The timeout in nano-seconds `timeout_ns`for waiting for new data from the DDS-queue is specified in `rclc_executor_set_timeout()` (this is the timeout parameter for `rcl_wait()`)
+
+**rclc_executor_set_semantics(rclc_executor_t * executor, rclc_executor_semantics_t semantics)**
+
+The data communication `semantics` can either be `RCLCPP`(default) or `LET`.
+
+To be compatible with ROS2 rclcpp Executor, the existing rclcpp semantics is implemented with the option `RCLCPP`. That is, with the spin-function the DDS-queue is constantly monitored for new data (rcl_wait). If new data becomes available, then it is fetched from DDS (rcl_take) immediately before the callback is executed. All callbacks are processed in the user-defined order, this is the only difference to the rclcpp Executor, in which the order can not be defined by the user.
+
+The `LET` semantics is implemented such that at the beginning of processing all available data is fetched (rcl_take) and buffered and then the callbacks are processed in the pre-defined operating on the buffered copy.
+
+**rclc_executor_set_trigger(rclc_executor_t * executor, rclc_executor_trigger_t trigger_function, void * trigger_object)**
+
+The trigger condition `rclc_executor_set_trigger` defines when the processing of the callbacks shall start. For convenience some trigger conditions have been defined:
+- `rclc_executor_trigger_any`(default) : start executing if any callback has new data
+- `rclc_executor_trigger_all` : start executing if all callbacks have new data
+- `rclc_executor_trigger_one(&data)` : start executing if `data` has been received
+- `rclc_executor_trigger_always`: returns always true, that is every time the Executor spins, the processing of the callbacks is invocated. For example with `spin_period` and this trigger condition as well as specifiying all callbacks of subscriptions being called as `ALWAYS`, a fixed period execution of all callbacks can be implemented, irrespective whether new data is available or not.
+- user_defined_function: the user can also define its own function with more complex logic
+
+With `rclc_executor_trigger_any` being the default trigger condition, the current semantics of the rclcpp Executor is selected.
+
+With the `rclc_executor_trigger_one` trigger, the handle to trigger is specified with `trigger_object`. In the other cases of the trigger conditions this parameter shall be `NULL`.
+
+**rclc_executor_add_subscription(rclc_executor_t * executor, rcl_subscription_t * subscription, void * msg, rclc_callback_t callback, rclc_executor_handle_invocation_t invocation)**
+
+**rclc_executor_add_timer(  rclc_executor_t * executor, rcl_timer_t * timer)**
+
+The user adds handles to the Executor the functions `rclc_executor_add_subscription()` for subscriptions and `rclc_executor_add_timer()` for timers. The order in which these functions are called, defines later the sequential processing order during runtime.
+
+For adding a subscription, the rcl subscription handle `subscription`, a pointer an allocated message `msg`, the message callback `callback` and an invocation option `invocation` need to be specified. The invocation option specifies, whether the callback shall be executed only if new data is available (`ON_NEW_DATA`) or if the callback shall always be executed (`ALWAYS`). The second option is useful for example when the callback is expected to be called at a fixed rate.
+
+For a timer, only the rcl timer object `timer` is needed.
+
+#### Running phase
+
+**rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)**
 The function `rclc_executor_spin_some` checks for new data from the DDS queue once. It first
 copies all data into local data structures and then executes all handles according the specified
 order. This implements the LET semantics.
 
-The function `rclc_executor_spin_period` calls `rclc_executor_spin_some` periodically
-(as defined with the argument period) as long as the ROS system is alive.
-
+**rclc_executor_spin(rclc_executor_t * executor)**
 The function `rclc_executor_spin` calls `rclc_executor_spin_some` indefinitely as long
 as the ROS system is alive. This might create a high performance load on your processor.
 
+**rclc_executor_spin_period(rclc_executor_t * executor, const uint64_t period)**
+The function `rclc_executor_spin_period` calls `rclc_executor_spin_some` periodically
+(as defined with the argument period) as long as the ROS system is alive.
+
+**rclc_executor_spin_one_period(rclc_executor_t * executor,
+  const uint64_t period)**
+This is a function used by `rclc_executor_spin_period` to spin one time. The purpose is
+to test the accurary of the spin_period function in the unit tests.
+
+####Clean-Up
+**rclc_executor_fini()**
 The function `rlce_executor_fini` frees the dynamically allocated memory of the executor.
 
+### Examples RCLC Executor
+We provide the relevant code snippets how to setup the RCLC-Executor for the embedded use case and for the software design patterns in mobile robotics applications as described above.
+#### Example embedded use-case
 
-## API of RCL convenience functions:
+With seqential execution the co-operative scheduling of tasks within a process can be modeled. The trigger condition is used to periodically activate the process which will then execute all callbacks in a pre-defined order. Data will be communicated using the LET-semantics. Every Executor is executed in its own tread, to which an appropriate priority can be assigned.
+
+In the following example, the Executor is setup with 4 handles. We assume a process has three subscriptions `sub1`, `sub2`, `sub3`. The sequential processing order is given by the order as they are added to the Executor. A timer `timer` defines the period.  The `trigger_one` with the paramter `timer` is used, so that whenever the timer is ready, all callbacks are processed. Finally the data communication semantics LET is defined.
+```C
+#include "rcl_executor/let_executor.h"
+
+// define subscription callback
+void my_sub_cb1(const void * msgin)
+{
+  // ...
+}
+// define subscription callback
+void my_sub_cb2(const void * msgin)
+{
+  // ...
+}
+// define subscription callback
+void my_sub_cb3(const void * msgin)
+{
+  // ...
+}
+
+// define timer callback
+void my_timer_cb(rcl_timer_t * timer, int64_t last_call_time)
+{
+  // ...
+}
+
+// necessary ROS 2 objects
+rcl_context_t context;   
+rcl_node_t node;
+rcl_subscription_t sub1, sub2, sub3;
+rcl_timer_t timer;
+rcle_let_executor_t exe;
+
+// define ROS context
+context = rcl_get_zero_initialized_context();
+// initialize ROS node
+rcl_node_init(&node, &context,...);
+// create subscriptions
+rcl_subscription_init(&sub1, &node, ...);
+rcl_subscription_init(&sub2, &node, ...);
+rcl_subscription_init(&sub3, &node, ...);
+// create a timer
+rcl_timer_init(&timer, &my_timer_cb, ... );
+// initialize executor with four handles
+rclc_executor_init(&exe, &context, 4, ...);
+// define static execution order of handles
+rclc_executor_add_subscription(&exe, &sub1, &my_sub_cb1, ALWAYS);
+rclc_executor_add_subscription(&exe, &sub2, &my_sub_cb2, ALWAYS);
+rclc_executor_add_subscription(&exe, &sub3, &my_sub_cb3, ALWAYS);
+rclc_executor_add_timer(&exe, &timer);
+// trigger when handle 'timer' is ready
+rclc_executor_set_trigger(&exe, rclc_executor_trigger_one, &timer);
+// select LET-semantics
+rclc_executor_data_comm_semantics(&exe, LET);
+// spin forever
+rclc_executor_spin(&exe);
+```
+
+#### Example sense-plan-act pipeline
+
+In this example we want to realise a sense-plan-act pipeline in a single thread. The trigger condition is demonstrated by activating
+the sense-phase when both data for the Laser and IMU are available. Three executors are necessary `exe_sense`, `exe_plan` and `exe_act`. The two sensor acquisition callbacks `sense_Laser` and `sense_IMU` are registered in the Executor `exe_sense`.
+The trigger condition ALL is responsible to activate the sense-phase only when all data for these two callbacks are available. Finally all three Executors are spinning using a `while`-loop and the `spin_some` function.
+
+The definitions of callbacks are omitted.
+
+```C
+...
+rcl_subscription_t sense_Laser, sense_IMU, plan, act;
+rcle_let_executor_t exe_sense, exe_plan, exe_act;
+// initialize executors
+rclc_executor_init(&exe_sense, &context, 2, ...);
+rclc_executor_init(&exe_plan, &context, 1, ...);
+rclc_executor_init(&exe_act, &context, 1, ...);
+// executor for sense-phase
+rclc_executor_add_subscription(&exe_sense, &sense_Laser, &my_sub_cb1, ON_NEW_DATA);
+rclc_executor_add_subscription(&exe_sense, &sense_IMU, &my_sub_cb2, ON_NEW_DATA);
+rclc_let_executor_set_trigger(&exe_sense, rclc_executor_trigger_all, NULL);
+// executor for plan-phase
+rclc_executor_add_subscription(&exe_plan, &plan, &my_sub_cb3, ON_NEW_DATA);
+// executor for act-phase
+rclc_executor_add_subscription(&exe_act, &act, &my_sub_cb4, ON_NEW_DATA);
+
+// spin all executors
+while (true) {
+  rclc_executor_spin_some(&exe_sense);
+  rclc_executor_spin_some(&exe_plan);
+  rclc_executor_spin_some(&exe_act);
+}
+```
+#### Example sensor fusion
+
+The sensor fusion synchronizing the multiple rates with a trigger is shown below.
+
+```C
+...
+rcl_subscription_t aggr_IMU, sense_Laser, sense_IMU;
+rcle_let_executor_t exe_aggr, exe_sense;
+// initialize executors
+rclc_executor_init(&exe_aggr, &context, 1, ...);
+rclc_executor_init(&exe_sense, &context, 2, ...);
+// executor for aggregate IMU data
+rclc_executor_add_subscription(&exe_aggr, &aggr_IMU, &my_sub_cb1, ON_NEW_DATA);
+// executor for sense-phase
+rclc_executor_add_subscription(&exe_sense, &sense_Laser, &my_sub_cb2, ON_NEW_DATA);
+rclc_executor_add_subscription(&exe_sense, &sense_IMU, &my_sub_cb3, ON_NEW_DATA);
+rclc_executor_set_trigger(&exe_sense, rclc_executor_trigger_all, NULL);
+
+// spin all executors
+while (true) {
+  rclc_executor_spin_some(&exe_aggr);
+  rclc_executor_spin_some(&exe_sense);
+}
+```
+
+The setup for the sensor fusion using sequential execution is shown below.
+Note that the sequetial order is `sense_IMU`, which will request the aggregated IMU message, and then `sense_Laser`
+while the trigger will fire, when a laser message is received.
+
+```C
+...
+rcl_subscription_t sense_Laser, sense_IMU;
+rcle_let_executor_t exe_sense;
+// initialize executor
+rclc_executor_init(&exe_sense, &context, 2, ...);
+// executor for sense-phase
+rclc_executor_add_subscription(&exe_sense, &sense_IMU, &my_sub_cb1, ALWAYS);
+rclc_executor_add_subscription(&exe_sense, &sense_Laser, &my_sub_cb2, ON_NEW_DATA);
+rclc_executor_set_trigger(&exe_sense, rclc_executor_trigger_one, &sense_Laser);
+// spin
+rclc_executor_spin(&exe_sense);
+```
+#### Example high priorty path
+
+This example shows the sequential processing order to execute the obstacle avoidance `obst_avoid`
+after the callbacks of the sense-phase and before the callback of the planning phase `plan`.
+The control loop is started when a laser message is received. Then an aggregated IMU message is requested,
+like in the example above. Then all the other callbacks are always executed. This assumes that these callbacks
+communicate via a global data structure. Race conditions cannot occur, because the callbacks
+run all in one thread.
+
+```C
+...
+rcl_subscription_t sense_Laser, sense_IMU, plan, act, obst_avoid;
+rcle_let_executor_t exe;
+// initialize executors
+rclc_executor_init(&exe, &context, 5, ...);
+// define processing order
+rclc_executor_add_subscription(&exe, &sense_IMU, &my_sub_cb1, ALWAYS);
+rclc_executor_add_subscription(&exe, &sense_Laser, &my_sub_cb2, ON_NEW_DATA);
+rclc_executor_add_subscription(&exe, &obst_avoid, &my_sub_cb3, ALWAYS);
+rclc_executor_add_subscription(&exe, &plan, &my_sub_cb4, ALWAYS);
+rclc_executor_add_subscription(&exe, &act, &my_sub_cb5, ALWAYS);
+rclc_executor_set_trigger(&exe, rclc_executor_trigger_one, &sense_Laser);
+// spin
+rclc_executor_spin(&exe);
+```
+
+## RCL convenience functions
 The rclc package also provides a number of convenience functions, which make it easier to
  create the RCL-objects `rcl_node_t`, `rcl_subscription_t`, `rcl_timer_t` and `rcl_publisher_t`.
 
@@ -127,31 +465,46 @@ typedef struct
 
 In the example provided in [rclc_examples](../rclc_examples), one
 node with one publisher, one timer and one subscription is implemented with and without the
-convenience functions. The number of code lines of the exmaple to setup the RCL objects 
+convenience functions. The number of code lines of the exmaple to setup the RCL objects
 with the convenience functions is reduced by 24% compared to the initialization using the RCL API
 (from 97 LoC to 74 LoC).
 
-## Examples
+## RCLC-Example Package
 
-An example, how to use the LET Executor with RCL objects is given in the file `example_executor.c`
+An example, how to use the RCLC-Executor with RCL objects is given in the file `example_executor.c`
 in the package: [rclc_examples](../rclc_examples).
 
-An example, how to use the LET Executor with rclc convenience functions is given in the file
+An example, how to use the RCLC-Executor with the rclc convenience functions is given in the file
  `example_executor_convenience.c` the package: [rclc_examples](../rclc_examples).
-## Limitations: 
+
+## Limitations:
 
 - support for subscriptions and timers (services, clients, guard conditions are not supported yet)
+- LET semantics: writing at the end of period not implemented
+
 
 ## References
 
-[micro-ROS] [micro-ROS project](https://micro-ros.github.io/) 
 
-[EK2018] R. Ernst, S. Kuntz, S. Quinton, M. Simons: The Logical Execution Time Paradigm: New Perspectives for Multicore Systems, February 25-28 2018 (Dagstuhl Seminar 18092). [Paper](http://drops.dagstuhl.de/opus/volltexte/2018/9293/pdf/dagrep_v008_i002_p122_18092.pdf)
+* [CB2019]<a name="CB2019"> </a> D. Casini, T. Blaß, I. Lütkebohle, B. Brandenburg: Response-Time Analysis of ROS 2 Processing Chains under Reservation-Based Scheduling, in Euromicro-Conference on Real-Time Systems 2019. [[Paper](http://drops.dagstuhl.de/opus/volltexte/2019/10743/)].[[slides]](https://t-blass.de/talks/ECRTS2019.pdf)
 
-[BP2017] A. Biondi, P. Pazzaglia, A. Balsini, M. D. Natale: Logical Execution Time Implementation and Memory Optimization Issues in AUTOSAR Applications for Multicores, International Worshop on Analysis Tools and Methodologies for Embedded and Real-Time Systems (WATERS2017), Dubrovnik, Croatia.[Paper](https://pdfs.semanticscholar.org/4a9e/b9a616c25fd0b4a4f7810924e73eee0e7515.pdf)
+* [EK2018]<a name="EK2018"></a> R. Ernst, S. Kuntz, S. Quinton, M. Simons: The Logical Execution Time Paradigm: New Perspectives for Multicore Systems, February 25-28 2018 (Dagstuhl Seminar 18092). [[Paper]](http://drops.dagstuhl.de/opus/volltexte/2018/9293/pdf/dagrep_v008_i002_p122_18092.pdf)
+
+* [BP2017]<a name="BP2017"></a> A. Biondi, P. Pazzaglia, A. Balsini,  M. D. Natale: Logical Execution Time Implementation and Memory Optimization Issues in AUTOSAR Applications for Multicores, International Worshop on Analysis Tools and Methodologies for Embedded and Real-Time Systems (WATERS2017), Dubrovnik, Croatia.[[Paper]](https://pdfs.semanticscholar.org/4a9e/b9a616c25fd0b4a4f7810924e73eee0e7515.pdf)
+
+* [LL1973]<a name="LL1973"></a> Liu, C. L.; Layland, J.:Scheduling algorithms for multiprogramming in a hard real-time environment, Journal of the ACM, 20 (1): 46–61, 1973.
+
+* [HHK2001]<a name="HHK2001"></a> Henzinger T.A., Horowitz B., Kirsch C.M. (2001) Giotto: A Time-Triggered Language for Embedded Programming. In: Henzinger T.A., Kirsch C.M. (eds) Embedded Software. EMSOFT 2001. Lecture Notes in Computer Science, vol 2211. Springer, Berlin, Heidelberg
+
+* [NSP2018]<a name="NSP2018"></a> A. Naderlinger, S. Resmerita, and W. Pree: LET for Legacy and Model-based Applications,
+Proceedings of The Logical Execution Time Paradigm: New Perspectives for Multicore Systems (Dagstuhl Seminar 18092), Wadern, Germany, February 2018.
+
+* [KZH2015]<a name="KZH2015"></a> S. Kramer, D. Ziegenbein, and A. Hamann: Real World Automotive Benchmarks For Free, International Workshop on Analysis Tools and Methodologies for Embedded adn Real-Time Sysems (WATERS), 2015.[[Paper]](https://www.ecrts.org/forum/download/file.php?id=9&sid=efda71c95b6afdd240d72cc1e491bb8b)
 
 
+* [micro-ROS] [micro-ROS project](https://micro-ros.github.io/)
 
+<!--
 ## Guide to setup the RCLC-Executor with RCL API
 
 You find the complete source code in the package `rclc_examples`, file example_executor.c.
@@ -338,7 +691,7 @@ The default timeout is 100ms.
   }
 ```
 
-**Step 9:** <a name="Step9"> </a> Add the subscription `my_sub` (See [Step 6](#Step6)) to the `executor` with the message variable `my_msg`, in which the new data is stored and the callback function `my_subscriber_callback`(See [Step 2](#Step2)). The callback is invoked if new data is available (`ON_NEW_DATA`). 
+**Step 9:** <a name="Step9"> </a> Add the subscription `my_sub` (See [Step 6](#Step6)) to the `executor` with the message variable `my_msg`, in which the new data is stored and the callback function `my_subscriber_callback`(See [Step 2](#Step2)). The callback is invoked if new data is available (`ON_NEW_DATA`).
 
 ```C
   // add subscription to executor
@@ -358,7 +711,7 @@ The default timeout is 100ms.
   }
 ```
 
-**Step 11:** <a name="Step11"> </a> Run the executor. As an example, we demonstrate also spin ten times with a rcl_wait-timeout of 1s. 
+**Step 11:** <a name="Step11"> </a> Run the executor. As an example, we demonstrate also spin ten times with a rcl_wait-timeout of 1s.
 
 ```C
   for (unsigned int i = 0; i < 10; i++) {
@@ -406,3 +759,4 @@ Callback: I heard: Hello World!
 An example, how to use the LET Executor with rclc convenience functions is given in the file
 `example_executor_convenience.c` in the package:
 [rclc_examples](../rclc_examples).
+-->
