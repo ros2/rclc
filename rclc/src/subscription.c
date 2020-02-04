@@ -14,7 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rclc/subscription.h>
+#include "rclc/subscription.h"
+
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
 

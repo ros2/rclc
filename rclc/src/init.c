@@ -14,11 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rclc/init.h>
-#include <rcl/init.h>
-#include <rcl/init_options.h>
+#include "rclc/init.h"
+
 #include <rcl/context.h>
 #include <rcl/error_handling.h>
+#include <rcl/init.h>
+#include <rcl/init_options.h>
 #include <rcutils/logging_macros.h>
 
 rcl_ret_t
