@@ -13,11 +13,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <std_msgs/msg/int32.h>
 #include <gtest/gtest.h>
 #include <rclc/rclc.h>
 
-TEST(Test, rclc_subscription_init_default) {
+void my_callback(rcl_timer_t * timer, int64_t last_call)
+{
+  RCL_UNUSED(timer);
+  RCL_UNUSED(last_call);
+}
+
+TEST(Test, rclc_timer_init_default) {
   rclc_support_t support;
   rcl_ret_t rc;
 
@@ -31,27 +36,20 @@ TEST(Test, rclc_subscription_init_default) {
 
   // test with valid arguments
 
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  const rosidl_message_type_support_t * type_support =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  rc = rclc_subscription_init_default(&subscription, &node, type_support, "topic1");
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  rc = rclc_timer_init_default(&timer, &support, 10000000, my_callback);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // tests with invalid arguments
-  rc = rclc_subscription_init_default(nullptr, &node, type_support, "topic1");
+  rc = rclc_timer_init_default(nullptr, &support, 10000000, my_callback);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, nullptr, type_support, "topic1");
+  rc = rclc_timer_init_default(&timer, nullptr, 10000000, my_callback);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, &node, nullptr, "topic1");
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, &node, type_support, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
+
   // clean up
-  rc = rcl_subscription_fini(&subscription, &node);
+  rc = rcl_timer_fini(&timer);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
