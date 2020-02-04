@@ -34,7 +34,6 @@ void my_subscriber_callback(const void * msgin)
   }
 }
 
-#define UNUSED(x) (void)x;
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;

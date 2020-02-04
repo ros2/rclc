@@ -30,12 +30,10 @@ find_package(rcl REQUIRED)
 find_package(rclc REQUIRED)
 find_package(std_msgs REQUIRED)
 
-
 #################################################
 # include directories
 #################################################
 include_directories(include)
-
 
 #################################################
 # examples
@@ -43,15 +41,18 @@ include_directories(include)
 
 add_executable(example_executor src/example_executor.c)
 ament_target_dependencies(example_executor rcl rclc std_msgs)
-#target_include_directories(example_executor PRIVATE include)
 
 add_executable(example_executor_convenience src/example_executor_convenience.c)
 ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
-#target_include_directories(example_executor_convenience PRIVATE include)
+
+add_executable(example_executor_trigger src/example_executor_trigger.c)
+ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
+
 
 install(TARGETS
   example_executor
   example_executor_convenience
+  example_executor_trigger
   DESTINATION lib/${PROJECT_NAME}
 )
 
