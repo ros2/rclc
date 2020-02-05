@@ -86,6 +86,7 @@ typedef struct
  */
 rclc_executor_t
 rclc_executor_get_zero_initialized_executor(void);
+
 /**
  *  Initializes an executor.
  *  It creates a dynamic array with size \p number_of_handles using the
@@ -153,7 +154,6 @@ rclc_executor_set_timeout(
  * \return `RCL_RET_OK` if semantics was set successfully
  * \return `RCL_RET_INVALID_ARGUMENT` if \p executor is a null pointer
  */
-
 rcl_ret_t
 rclc_executor_set_semantics(
   rclc_executor_t * executor,
@@ -296,7 +296,6 @@ rclc_executor_spin_some(
 rcl_ret_t
 rclc_executor_spin(rclc_executor_t * executor);
 
-
 /**
  *  The spin_period function checks for new data at DDS queue as long as ros context is available.
  *  It is called every period nanoseconds.
@@ -324,56 +323,149 @@ rclc_executor_spin_period(
   rclc_executor_t * executor,
   const uint64_t period);
 
-
-/*
- The reason for splitting this function up, is to be able to write a unit test.
- The spin_period is an endless loop, therefore it is not possible to stop after x iterations. The function
- rclc_executor_spin_period_ implements one iteration and the function
- rclc_executor_spin_period implements the endless while-loop. The unit test covers only
- rclc_executor_spin_period_.
-*/
+/**
+ * The reason for splitting up the rclc_executor_spin_period function, is only to write a
+ * unit test for testing the accuracy of the period duration.
+ * 
+ * The rclc_executor_spin_period is an endless loop, therefore it is not possible to stop 
+ * after x iterations. The function rclc_executor_spin_one_period implements one iteration.
+ * The unit test for rclc_executor_spin_period covers only rclc_executor_spin_one_period.
+ * 
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] period in nanoseconds
+ * \return `RCL_RET_OK` if spin operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
 rcl_ret_t
 rclc_executor_spin_one_period(
   rclc_executor_t * executor,
   const uint64_t period);
 
-
+/**
+ * Set the trigger condition.
+ * 
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] trigger_function function of the trigger condition
+ * \param [in] trigger_object  pointer to a rcl-handle used in the trigger
+ * \return `RCL_RET_OK` if spin operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
 rcl_ret_t
 rclc_executor_set_trigger(
   rclc_executor_t * executor,
   rclc_executor_trigger_t trigger_function,
   void * trigger_object);
 
-/* returns true, if all handles have new input data
-   (new message for subscription, timer_ready for timer)
-   obj can be NULL
-*/
+/**
+ * Trigger condition: all, returns true if all handles are ready.
+ * 
+ * Parameter obj is not used.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [in] handles pointer to array of handles
+ * \param [in] size size of array 
+ * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
+ * \return true - if all handles are ready (subscriptions have new data, timers are ready)
+ * \return false - otherwise
+ */
 bool
 rclc_executor_trigger_all(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
 
-/* returns true, if at least one handle has new input data
-   (new message for subscription, timer_ready for timer)
-   obj can be NULL
-*/
+/**
+ * Trigger condition: any, returns true if at least one handles is ready.
+ * 
+ * Parameter obj is not used.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [in] handles pointer to array of handles
+ * \param [in] size size of array 
+ * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
+ * \return true - if at least one handles is ready (subscriptions have new data, timers are ready)
+ * \return false - otherwise
+ */
 bool
 rclc_executor_trigger_any(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
 
-/* returns always true
-*/
+/**
+ * Trigger condition: always, returns always true.
+ * 
+ * Parameter handles, size and obj are not used.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [in] handles pointer to array of handles (not used)
+ * \param [in] size size of array (not used)
+ * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
+ * \return true always
+ */
 bool
 rclc_executor_trigger_always(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
 
-/* triggeres when object obj received
-*/
+/**
+ * Trigger condition: one, returns true, if rcl handle obj is ready
+ * (when obj is a subscription, if new data available, 
+ *  when obj is a timer, if the timer is ready)
+ * 
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [in] handles pointer to array of handles (not used)
+ * \param [in] size size of array (not used)
+ * \param [in] obj trigger_object set by rclc_executor_set_trigger
+ * \return true if rcl-handle obj is ready
+ * \return false otherwise
+ */
 bool
 rclc_executor_trigger_one(
   rclc_executor_handle_t * handles,

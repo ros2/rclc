@@ -99,7 +99,6 @@ typedef struct
   size_t number_of_events;
 } rclc_executor_handle_counters_t;
 
-
 /**
  * Initializes the counters of each handle type to zero.
  *
@@ -183,7 +182,24 @@ rclc_executor_handle_clear(
 rcl_ret_t
 rclc_executor_handle_print(rclc_executor_handle_t * handle);
 
-
+/**
+ *  Returns a pointer to the rcl-handle stored in the rclc_executor_handle_t.
+ *  That can be rcl_subscription_t or rcl_timer_t
+ * 
+ *  If handle is NULL, then NULL is returned.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] handle preallocated rclc_executor_handle_t
+ * \return pointer to the rcl-handle (rcl_subscription_t or rcl_timer_t)
+ * \return NULL, if handle is a NULL pointer.
+ */
 void *
 rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle);
 
