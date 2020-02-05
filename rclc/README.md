@@ -51,7 +51,7 @@ In embedded systems, real-time behavior is approached by using the time-triggere
 
 Figure 1: Fixed periodic preemptive scheduling
 
-To each process one or multiple tasks can be assigned, as shown in Figure 2. These tasks are executed sequentially, which is often called co-operativ scheduling.
+To each process one or multiple tasks can be assigned, as shown in Figure 2. These tasks are executed sequentially, which is often called cooperative scheduling.
 
 <img src="doc/scheduling_02.png" alt="Schedule with fixed periods" width="250"/>
 
