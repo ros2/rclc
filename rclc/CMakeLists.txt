@@ -21,12 +21,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# for performance tracing
-# see https://gitlab.com/micro-ROS/ros_tracing/ros2_perf_analysis/tree/feature/simple-analysis/scripts
-#add_compile_options(-finstrument-functions
-#-fplugin=~/ros_ws/src/instrument-attribute-gcc-plugin/instrument_attribute.so
-#-fplugin-arg-instrument_attribute-debug)
-
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #################################################
@@ -35,14 +29,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
-
-
-#################################################
-# include directories
-#################################################
-include_directories(include)
+find_package(std_msgs REQUIRED)
 
 #################################################
 # create library
@@ -65,7 +53,6 @@ ament_target_dependencies(${PROJECT_NAME}
 #################################################
 # install
 #################################################
-
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
@@ -76,14 +63,13 @@ ament_export_libraries(${PROJECT_NAME})
 #################################################
 # gtest
 #################################################
-
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
-  find_package(std_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
+  find_package(std_msgs REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
@@ -119,8 +105,3 @@ ament_export_dependencies(rcl)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
 ament_package()
-
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
