@@ -40,32 +40,46 @@ As described in [CB2019](#CB2019), it is difficult to reason about end-to-end la
 Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
 ## RCLC-Executor
-Here we introduce the rclc Executor, which is a ROS 2 Executor implemented based on  and for the rcl API, for applications written in the C language. Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly replay test data. However, this is difficult with the default ROS 2 Executor because of its complex semantics, as discussed in the previous section.
+Here we introduce the rclc Executor, which is a ROS 2 Executor implemented based on  and for the rcl API, for applications written in the C language.
+Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly replay test data.
+However, this is difficult with the default ROS 2 Executor because of its complex semantics, as discussed in the previous section.
 
-First, we will analyse the requirements for such applications and, secondly, derive simple features for an Executor to enable deterministic and real-time behavior. Then we will present the API of the RCLC-Executor and provide example usages of the RCLC-Executor to address these requirements.
+First, we will analyse the requirements for such applications and, secondly, derive simple features for an Executor to enable deterministic and real-time behavior.
+Then we will present the API of the RCLC-Executor and provide example usages of the RCLC-Executor to address these requirements.
 
 ### Requirement Analysis
-First we discuss a use-case in the embedded domain, in which the time-triggered paradigm is often used to guarantee deterministic and real-time behavior. Then we analyse software design patterns in mobile robotics which enable deterministic behavior.
+First we discuss a use-case in the embedded domain, in which the time-triggered paradigm is often used to guarantee deterministic and real-time behavior.
+Then we analyse software design patterns in mobile robotics which enable deterministic behavior.
 
 #### Real-time embedded application use-case
-In embedded systems, real-time behavior is approached by using the time-triggered paradigm, which means that the processes are periodically activated. Processes can be assigned priorities to allow pre-emptions. Figure 1 shows an example, in which three processes with fixed periods are shown. The middle and lower process are pre-empted multiple times depicted with empty dashed boxes.
+In embedded systems, real-time behavior is approached by using the time-triggered paradigm, which means that the processes are periodically activated.
+Processes can be assigned priorities to allow pre-emptions.
+Figure 1 shows an example, in which three processes with fixed periods are shown.
+The middle and lower process are pre-empted multiple times depicted with empty dashed boxes.
 
 <img src="doc/scheduling_01.png" alt="Schedule with fixed periods" width="350"/>
 
 Figure 1: Fixed periodic preemptive scheduling
 
-To each process one or multiple tasks can be assigned, as shown in Figure 2. These tasks are executed sequentially, which is often called co-operativ scheduling.
+To each process one or multiple tasks can be assigned, as shown in Figure 2.
+These tasks are executed sequentially, which is often called co-operativ scheduling.
 
 <img src="doc/scheduling_02.png" alt="Schedule with fixed periods" width="250"/>
 
 Figure 2: Processes with sequentially executed tasks.
 
-While there are different ways to assign priorities to a given number of processes,
-the rate-monotonic scheduling assignment, in which processes with a shorter period have a higher priority, has been shown optimal if the processor utilization is less than 69% [LL1973](#LL1973).
+While there are different ways to assign priorities to a given number of processes, the rate-monotonic scheduling assignment, in which processes with a shorter period have a higher priority, has been shown optimal if the processor utilization is less than 69% [LL1973](#LL1973).
 
- In the last decades many different scheduling approaches have been presented, however fixed-periodic pre-emptive scheduling is still widely used in embedded real-time systems [KZH2015](#KZH2015]). This becomes also obvious, when looking at the features of current operating systems. Like Linux, real-time operating systems, such as NuttX, Zephyr, FreeRTOS, QNX etc., support fixed-periodic preemptive scheduling and the assignment of priorities, which makes the time-triggered paradigm the dominant design principle in this domain.
+In the last decades many different scheduling approaches have been presented, however fixed-periodic pre-emptive scheduling is still widely used in embedded real-time systems [KZH2015](#KZH2015]).
+This becomes also obvious, when looking at the features of current operating systems.
+Like Linux, real-time operating systems, such as NuttX, Zephyr, FreeRTOS, QNX etc., support fixed-periodic preemptive scheduling and the assignment of priorities, which makes the time-triggered paradigm the dominant design principle in this domain.
 
-However, data consistency is often an issue when preemptive scheduling is used and if data is being shared across multiple processes via global variables. Due to scheduling effects and varying execution times of processes, writing and reading these variables could occur sometimes sooner or later. This results in an latency jitter of update times (the timepoint at which a variable change becomes visible to other processes). Race conditions can occur when multiple processes access a variable at the same time. So solve this problem, the concept of logical-execution time (LET) was introduced in [HHK2001](#HHK2001), in which communication of data occurs only at pre-defined periodic time instances: Reading data only at the beginning of the period and writing data only at the end of the period. The cost of an additional latency delay is traded for data consistency and reduced jitter. This concept has also recently been applied to automotive applications  [NSP2018](#NSP2018).
+However, data consistency is often an issue when preemptive scheduling is used and if data is being shared across multiple processes via global variables.
+Due to scheduling effects and varying execution times of processes, writing and reading these variables could occur sometimes sooner or later.
+This results in an latency jitter of update times (the timepoint at which a variable change becomes visible to other processes).
+Race conditions can occur when multiple processes access a variable at the same time. So solve this problem, the concept of logical-execution time (LET) was introduced in [HHK2001](#HHK2001), in which communication of data occurs only at pre-defined periodic time instances: Reading data only at the beginning of the period and writing data only at the end of the period.
+The cost of an additional latency delay is traded for data consistency and reduced jitter.
+This concept has also recently been applied to automotive applications  [NSP2018](#NSP2018).
 
 <img src="doc/scheduling_LET.png" alt="Schedule with fixed periods" />
 
