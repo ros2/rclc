@@ -7,10 +7,9 @@
 [RCLC-Executor](#rclc-executor)
   * [Requirement Analysis](#requirement-analysis)
     * [Real-time embedded application use-case](#real-time-embedded-application-use-case)
-    * [Software design patterns in mobile robotics](#software-design-patterns-in-mobile-robotics)
-      * [Sense-plan-act pipeline](#sense-plan-act-pipeline)
+      * [Sense-plan-act pipeline in robotics](#sense-plan-act-pipeline-in-robotics)
       * [Synchronization of multiple rates](#synchronization-of-multiple-rates)
-      * [High priority path](#high-priority-path)
+      * [High priority processing path](#high-priority-processing-path)
   * [Features](#features)
     * [Sequential execution](#sequential-execution)
     * [Trigger condition](#trigger-condition)
@@ -34,10 +33,14 @@
 [References](#references)
 
 ## Overview
-The rclc-package is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create ROS Client Library(RCL) data types and an RCLC-Executor in the C programming language. The convenience functions are a thin API layer on top of RCL-layer to create publishers, subscribers, timers and nodes with a one-liner like in rclcpp. The RCLC-Executor provides an API register subscriptions and timers as well as reqesting data from DDS and executing the corresponding callbacks, like the rclcpp Executor for C++. As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor. Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
+The rclc-package is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create ROS Client Library(RCL) data types and an RCLC-Executor in the C programming language.
+The convenience functions are a thin API layer on top of RCL-layer to create publishers, subscribers, timers and nodes with a one-liner like in rclcpp.
+The RCLC-Executor provides an API register subscriptions and timers as well as reqesting data from DDS and executing the corresponding callbacks, like the rclcpp Executor for C++.
+As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor.
+Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
 ## RCLC-Executor
-Here we introduce an RCLC-Executor, which is a ROS2-Executor based on RCL-layer for applications written in the C language. Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly re-play test data. However, this is difficult with the default ROS2 Executor because of its complex semantics, as discussed in the previous section.
+Here we introduce the rclc Executor, which is a ROS 2 Executor implemented based on  and for the rcl API, for applications written in the C language. Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly replay test data. However, this is difficult with the default ROS 2 Executor because of its complex semantics, as discussed in the previous section.
 
 First, we will analyse the requirements for such applications and, secondly, derive simple features for an Executor to enable deterministic and real-time behavior. Then we will present the API of the RCLC-Executor and provide example usages of the RCLC-Executor to address these requirements.
 
@@ -84,12 +87,8 @@ Derived Requirements:
 - sequential processing of callbacks
 - data synchronization with LET semantics
 
-#### Software design patterns in mobile robotics
-
-In this section we describe common software design patterns which are used in mobile robotics to achieve deterministic behavior. For each design pattern we describe the concept and the derived requirements for a deterministic Executor.
-
-##### Sense-plan-act pipeline
-
+#### Sense-plan-act pipeline in robotics
+In the next sections we describe common software design patterns which are used in mobile robotics to achieve deterministic behavior. For each design pattern we describe the concept and the derived requirements for a deterministic Executor.
 Concept:
 
 A common design paradigm in mobile robotics is a control loop, consisting of several phases: A sensing phase to aquire sensor data, a plan phase for localization and path planning and an actuation-phase to steer the mobile robot. Of course, more phases are possible, here these three phases shall serve as an example. Such a processing pipeline is shown in Figure 4.
@@ -107,7 +106,7 @@ For this sense-plan-act pattern, we could define one executor for each phase. Th
 Derived Requirements:
 - triggered execution of callbacks
 
-##### Synchronization of multiple rates
+#### Synchronization of multiple rates
 
 Concept:
 
@@ -143,7 +142,7 @@ Derived Requirements from both concepts:
 - triggered execution
 - sequential procesing of callbacks
 
-##### High priority path
+#### High priority processing path
 Motivation:
 
 Often a robot has to fullfill several activities at the same time. For example following a path and avoiding obstacles. While path following is a permanent activity, obstacle avoidance is trigged by the environment and should be immediately reacted upon. Therefore one would like to specify priorities to activities. This is depicted in Figure 8:
