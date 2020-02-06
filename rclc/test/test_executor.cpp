@@ -13,19 +13,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-
 #include <std_msgs/msg/int32.h>
-#include <std_msgs/msg/string.h>
-#include <geometry_msgs/msg/twist.h>
 #include <gtest/gtest.h>
 
-#include <vector>
 #include <chrono>
 #include <thread>
+#include <vector>
 
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rclc/executor.h"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
 
 // 27.06.2019, unit test adapted from ros2/rcl/rcl_lifecycle/test/test_default_state_machine.cpp
@@ -33,7 +29,7 @@
 
 /******************************* CALLBACKS for subscriptions ************************/
 
-// some variables for testing the let-scheduler
+// some variables for testing the LET-semantics
 // array holds the msg_id in the order as they are received
 // the callback calls the function _results_add(msg_id)
 // at the end the array contains the order of received events.
@@ -44,11 +40,15 @@ static unsigned int _executor_results_i;
 
 // callback for topic "chatter1"
 static unsigned int _cb1_cnt = 0;
+static unsigned int _cb1_int_value = 0;
 // callback for topic "chatter2"
 static unsigned int _cb2_cnt = 0;
+static unsigned int _cb2_int_value = 0;
 // callback for topic "chatter3"
 static unsigned int _cb3_cnt = 0;
+static unsigned int _cb3_int_value = 0;
 // callback for testing data communication semantics
+static unsigned int _cb5_cnt = 0;
 static unsigned int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
@@ -69,6 +69,22 @@ _results_callback_counters_init()
   _cb3_cnt = 0;
 }
 
+static
+void
+_results_callback_values_init()
+{
+  _cb1_int_value = 0;
+  _cb2_int_value = 0;
+  _cb3_int_value = 0;
+}
+
+static
+void
+_results_callback_init()
+{
+  _results_callback_counters_init();
+  _results_callback_values_init();
+}
 
 static
 void
@@ -101,6 +117,10 @@ _executor_results_init(void)
   _results_callback_counters_init();
 }
 
+/// preserves the order of received data
+/// message values are stored in an array (left to right)
+/// after the message value is stored, the array index (_executor_results_i)
+/// is incremented.
 /// assumption msg_id > 0
 void
 _executor_results_add(unsigned int msg_id)
@@ -163,7 +183,30 @@ _executor_results_compare(unsigned int * array)
   return true;
 }
 
+// definition of callbacks
+#define INT_CALLBACK_DEFINITION(NUM) \
+  void int32_callback ## NUM(const void * msgin) \
+  { \
+    const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin; \
+    if (msg == NULL) { \
+      printf("Test CB " #NUM ": msg is NULL\n"); \
+    } else { \
+      _cb ## NUM ## _int_value = msg->data; \
+    } \
+    _cb ## NUM ## _cnt++; \
+    _executor_results_add(NUM); \
+  }
 
+// definition of function pointer
+#define INT_CALLBACK(NUM) \
+  int32_callback_ ## NUM
+
+
+INT_CALLBACK_DEFINITION(1)
+INT_CALLBACK_DEFINITION(2)
+INT_CALLBACK_DEFINITION(3)
+
+/*
 void int32_callback1(const void * msgin)
 {
   const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
@@ -175,6 +218,7 @@ void int32_callback1(const void * msgin)
   _cb1_cnt++;
   _executor_results_add(1);
 }
+
 
 void int32_callback2(const void * msgin)
 {
@@ -199,6 +243,7 @@ void int32_callback3(const void * msgin)
   _cb3_cnt++;
   _executor_results_add(3);
 }
+*/
 
 // for test case semantics
 void int32_callback4(const void * msgin)
@@ -269,24 +314,12 @@ void int32_callback8(const void * msgin)
   _cb8_cnt++;
 }
 
-// callback for topic "cmd_hello"
-void cmd_hello_callback(const void * msgin)
-{
-  const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
-
-
-  if (msg == NULL) {
-    printf("Callback: 'cmd_hello' msg NULL\n");
-  } else {
-    printf("Callback 'cmd_hello': I heard xx x: %s\n", msg->data.data);
-  }
-}
-
 // callback for unit test 'spin_period'
 static const unsigned int MAX_SPIN_PERIOD_INVOCATIONS = 100;
 static rcutils_duration_value_t callback_invocation_timepoints[MAX_SPIN_PERIOD_INVOCATIONS];
 static unsigned int invocation_count = 0;  // array index
 
+/*
 void spin_period_callback(const void * msgin)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
@@ -305,7 +338,7 @@ void spin_period_callback(const void * msgin)
   }
   invocation_count++;
 }
-
+*/
 // returns average time in nanoseconds
 uint64_t test_case_evaluate_spin_period()
 {
@@ -319,22 +352,6 @@ uint64_t test_case_evaluate_spin_period()
   return sum / (MAX_SPIN_PERIOD_INVOCATIONS - 1);
 }
 
-// callback for topic "cmd_vel"
-int numberMsgCmdVel = 0;
-void cmd_vel_callback(const void * msgin)  // TwistConstPtr
-{
-  const geometry_msgs__msg__Twist * twist = (const geometry_msgs__msg__Twist *)msgin;
-  numberMsgCmdVel++;
-  // printf("cmd_vel received(#%d)\n", numberMsgCmdVel);
-
-  if (twist != NULL) {
-    // printf("[#%d] Callback 'cmd_vel': tv=%f rv=%f \n", numberMsgCmdVel, (twist->linear.x),
-    // (twist->angular.z));
-  } else {
-    printf("Error callback commandVelCallback: Twist message is NULL.\n");
-  }
-}
-
 // timer callback
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
@@ -346,104 +363,99 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   }
 }
 
-
 class TestDefaultExecutor : public ::testing::Test
 {
 public:
-  rcl_context_t * context_ptr;
-  rcl_node_t * node_ptr;
+  rcl_context_t context;
+  rcl_node_t node;
 
-  // publisher 1
-  // TODO(Jan) remove pointer to avoid dynamic memory allocation
-  rcl_publisher_t * pub1_ptr;
-  const char * pub1_topic_name;
-  const rosidl_message_type_support_t * pub1_type_support;
-  rcl_publisher_options_t pub1_options;
-  geometry_msgs__msg__Twist pub1_msg;
-
-  // integer publisher
+  // integer publisher 1
   rcl_publisher_t pub1_int;
   const char * pub1_int_topic_name;
   const rosidl_message_type_support_t * pub1_int_type_support;
   rcl_publisher_options_t pub1_int_options;
   std_msgs__msg__Int32 pub1_int_msg;
 
+  // integer publisher 2
   rcl_publisher_t pub2_int;
   const char * pub2_int_topic_name;
   const rosidl_message_type_support_t * pub2_int_type_support;
   rcl_publisher_options_t pub2_int_options;
   std_msgs__msg__Int32 pub2_int_msg;
 
-  // subscription 1
-  // TODO(Jan) remove pointer to avoid dynamic memory allocation
-  rcl_subscription_t * sub1_ptr;
-  const char * sub1_topic_name;
-  const rosidl_message_type_support_t * sub1_type_support;
-  rcl_subscription_options_t sub1_options;
-  geometry_msgs__msg__Twist sub1_msg;
+  // integer publisher 3
+  rcl_publisher_t pub3_int;
+  const char * pub3_int_topic_name;
+  const rosidl_message_type_support_t * pub3_int_type_support;
+  rcl_publisher_options_t pub3_int_options;
+  std_msgs__msg__Int32 pub3_int_msg;
 
-  // subscription 2
-  // TODO(Jan) remove pointer to avoid dynamic memory allocation
-  rcl_subscription_t * sub2_ptr;
-  const char * sub2_topic_name;
-  const rosidl_message_type_support_t * sub2_type_support;
-  rcl_subscription_options_t sub2_options;
-  std_msgs__msg__String sub2_msg;
-
-  // integer subscriptions (to be used with integer publisher 'pub1_int')
+  // integer subscription 1
   rcl_subscription_t sub1_int;
+  const char * sub1_int_topic_name;
+  const rosidl_message_type_support_t * sub1_int_type_support;
   rcl_subscription_options_t sub1_int_options;
   std_msgs__msg__Int32 sub1_int_msg;
 
+  // integer subscription 2
   rcl_subscription_t sub2_int;
+  const char * sub2_int_topic_name;
+  const rosidl_message_type_support_t * sub2_int_type_support;
   rcl_subscription_options_t sub2_int_options;
   std_msgs__msg__Int32 sub2_int_msg;
 
+  // integer subscription 3
+  rcl_subscription_t sub3_int;
+  const char * sub3_int_topic_name;
+  const rosidl_message_type_support_t * sub3_int_type_support;
+  rcl_subscription_options_t sub3_int_options;
+  std_msgs__msg__Int32 sub3_int_msg;
+
   // timer 1
   // TODO(Jan) remove pointer to avoid dynamic memory allocation
-  rcl_timer_t * timer1_ptr;
+  rcl_timer_t timer1;
   const unsigned int timer1_timeout = 100;
-  rcl_clock_t * clock_ptr;
-  rcl_allocator_t * clock_allocator_ptr;
+  rcl_clock_t clock;
+  rcl_allocator_t clock_allocator;
+  const rcl_allocator_t * allocator_ptr;
 
-
-  const rcl_allocator_t * allocator;
   void SetUp()
   {
     rcl_ret_t ret;
+
+    // TODO(jan) hmm why these braces? funktioniert auch ohne?
     {
       rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
       ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      // TODO(jan) hmm das kann weg, oder?
       OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
         EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
       });
-      this->context_ptr = new rcl_context_t;
-      *this->context_ptr = rcl_get_zero_initialized_context();
-      ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+      // sollte normales objekt sein
+      this->context = rcl_get_zero_initialized_context();
+      ret = rcl_init(0, nullptr, &init_options, &this->context);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     }
     // create ROS node
-    this->node_ptr = new rcl_node_t;
-    *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "example_executor_node";
+    this->node = rcl_get_zero_initialized_node();
+    const char * name = "executor_test";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
+    ret = rcl_node_init(&this->node, name, "", &this->context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    const rcl_node_options_t * node_ops = rcl_node_get_options(this->node_ptr);
-    this->allocator = &node_ops->allocator;
+    const rcl_node_options_t * node_ops = rcl_node_get_options(&this->node);
+    this->allocator_ptr = &node_ops->allocator;
 
-    // create publisher 1 - cmd_vel
-    this->pub1_topic_name = "cmd_vel";
-    const char * expected_topic_name = "/cmd_vel";
-    this->pub1_ptr = new rcl_publisher_t;
-    *this->pub1_ptr = rcl_get_zero_initialized_publisher();
-    this->pub1_type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist);
-    this->pub1_options = rcl_publisher_get_default_options();
-    ret = rcl_publisher_init(this->pub1_ptr, this->node_ptr, this->pub1_type_support,
-        this->pub1_topic_name, &this->pub1_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(this->pub1_ptr), expected_topic_name), 0);
+    // TODO(jan)
+    // macro erstellen: create publisher 1 - cmd_vel
+    // parameter:
+    // - topic_name "cmd_vel"
+    // - type_support geometry_msgs msg Twist => change to std_msgs int
+    // - this->pub1_topic_name
+    // - this->pub1_ptr
+    // - this->node_ptr
+    // - this->pub1_type_support
+    // - this->pub1_options
 
     // create integer publisher
     this->pub1_int_topic_name = "data1_int";
@@ -451,7 +463,7 @@ public:
     this->pub1_int_type_support =
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
     this->pub1_int_options = rcl_publisher_get_default_options();
-    ret = rcl_publisher_init(&this->pub1_int, this->node_ptr, this->pub1_int_type_support,
+    ret = rcl_publisher_init(&this->pub1_int, &this->node, this->pub1_int_type_support,
         this->pub1_int_topic_name, &this->pub1_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -460,15 +472,24 @@ public:
     this->pub2_int_type_support =
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
     this->pub2_int_options = rcl_publisher_get_default_options();
-    ret = rcl_publisher_init(&this->pub2_int, this->node_ptr, this->pub2_int_type_support,
+    ret = rcl_publisher_init(&this->pub2_int, &this->node, this->pub2_int_type_support,
         this->pub2_int_topic_name, &this->pub2_int_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->pub3_int_topic_name = "data3_int";
+    this->pub3_int = rcl_get_zero_initialized_publisher();
+    this->pub3_int_type_support =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
+    this->pub3_int_options = rcl_publisher_get_default_options();
+    ret = rcl_publisher_init(&this->pub3_int, &this->node, this->pub3_int_type_support,
+        this->pub3_int_topic_name, &this->pub3_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
 
     // create integer subscription 1 - listens to publisher pub1_int
     this->sub1_int = rcl_get_zero_initialized_subscription();
     this->sub1_int_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(&this->sub1_int, this->node_ptr, this->pub1_int_type_support,
+    ret = rcl_subscription_init(&this->sub1_int, &this->node, this->pub1_int_type_support,
         this->pub1_int_topic_name, &this->sub1_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_subscription_is_valid(&this->sub1_int));
@@ -478,85 +499,50 @@ public:
     // create integer subscription 2 - listens to publisher pub2_int
     this->sub2_int = rcl_get_zero_initialized_subscription();
     this->sub2_int_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(&this->sub2_int, this->node_ptr, this->pub2_int_type_support,
+    ret = rcl_subscription_init(&this->sub2_int, &this->node, this->pub2_int_type_support,
         this->pub2_int_topic_name, &this->sub2_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2_int));
     rcl_reset_error();
 
-
-    // create subscription for 'cmd_vel'
-    this->sub1_topic_name = "cmd_vel";
-    this->sub1_ptr = new rcl_subscription_t;
-    *this->sub1_ptr = rcl_get_zero_initialized_subscription();
-    this->sub1_type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist);
-    this->sub1_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(this->sub1_ptr, this->node_ptr, this->sub1_type_support,
-        this->sub1_topic_name, &this->sub1_options);
+    // create integer subscription 3 - listens to publisher pub3_int
+    this->sub3_int = rcl_get_zero_initialized_subscription();
+    this->sub3_int_options = rcl_subscription_get_default_options();
+    ret = rcl_subscription_init(&this->sub3_int, &this->node, this->pub3_int_type_support,
+        this->pub3_int_topic_name, &this->sub3_int_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    // create subscription for 'cmd_hello'
-    this->sub2_topic_name = "cmd_hello";
-    this->sub2_ptr = new rcl_subscription_t;
-    *this->sub2_ptr = rcl_get_zero_initialized_subscription();
-    this->sub2_type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
-    this->sub2_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(this->sub2_ptr, this->node_ptr, this->sub2_type_support,
-        this->sub2_topic_name, &this->sub2_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_TRUE(rcl_subscription_is_valid(&this->sub3_int));
+    rcl_reset_error();
 
     // create timer with rcl
-    this->clock_ptr = new rcl_clock_t;
-    this->clock_allocator_ptr = new rcl_allocator_t;
-    // TODO(jst3si) can 'this->allocator' be used here as well?
-    *this->clock_allocator_ptr = rcl_get_default_allocator();
-    ret = rcl_clock_init(RCL_STEADY_TIME, this->clock_ptr, this->clock_allocator_ptr);
+    this->clock_allocator = rcl_get_default_allocator();
+    ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &this->clock_allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    this->timer1_ptr = new rcl_timer_t;
-    *this->timer1_ptr = rcl_get_zero_initialized_timer();
+    this->timer1 = rcl_get_zero_initialized_timer();
     ret =
-      rcl_timer_init(this->timer1_ptr, this->clock_ptr, this->context_ptr, RCL_MS_TO_NS(
-          this->timer1_timeout),
-        my_timer_callback, *this->clock_allocator_ptr);
+      rcl_timer_init(&this->timer1, &this->clock, &this->context, RCL_MS_TO_NS(
+          this->timer1_timeout), my_timer_callback, this->clock_allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret;
-
-    ret = rcl_subscription_fini(this->sub1_ptr, this->node_ptr);
+    ret = rcl_subscription_fini(&this->sub1_int, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    delete this->sub1_ptr;
-
-    ret = rcl_subscription_fini(this->sub2_ptr, this->node_ptr);
+    ret = rcl_subscription_fini(&this->sub2_int, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    delete this->sub2_ptr;
-
-    ret = rcl_subscription_fini(&this->sub1_int, this->node_ptr);
+    ret = rcl_subscription_fini(&this->sub3_int, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_subscription_fini(&this->sub2_int, this->node_ptr);
+    ret = rcl_timer_fini(&this->timer1);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    ret = rcl_timer_fini(this->timer1_ptr);
+    ret = rcl_clock_fini(&this->clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    delete this->timer1_ptr;
-
-    ret = rcl_clock_fini(this->clock_ptr);
+    ret = rcl_node_fini(&this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    delete this->clock_ptr;
-
-    delete this->clock_allocator_ptr;
-
-    ret = rcl_node_fini(this->node_ptr);
-    delete this->node_ptr;
+    ret = rcl_shutdown(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    ret = rcl_shutdown(this->context_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    ret = rcl_context_fini(this->context_ptr);
-    delete this->context_ptr;
+    ret = rcl_context_fini(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
@@ -570,14 +556,15 @@ TEST_F(TestDefaultExecutor, executor_init) {
 
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, this->context_ptr, 10, this->allocator);
+
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   // Executor: NULL executor
-  rc = rclc_executor_init(NULL, this->context_ptr, 10, this->allocator);
+  rc = rclc_executor_init(NULL, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
@@ -586,7 +573,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcutils_reset_error();
 
   // Error case: zero handles
-  rc = rclc_executor_init(&executor, this->context_ptr, 0, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 0, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
@@ -595,36 +582,26 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcutils_reset_error();
 }
 
-/*
- * Test suite
- */
+
 TEST_F(TestDefaultExecutor, executor_fini) {
   rcl_ret_t rc;
   rclc_executor_t executor;
 
-  // test normal case and failure-cases:
-  // - _fini function was called before.
-
-  // failure: executor not initialized
-  // rc = rclc_executor_fini(&executor);
-  // EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
-  // rcutils_reset_error();
-  // result : is not detected, even in un-initialized executor had in this case
-  //          executor->initialized == true !!!
   executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, this->context_ptr, 10, this->allocator);
+  rc = rclc_executor_init(&executor, this->context_ptr, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   // normal case
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  // call fini twice
+  // its okay to call rclc_executor_fini twice
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 }
 
+/*
 TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rcl_ret_t rc;
   rclc_executor_t executor;
@@ -1104,24 +1081,22 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // by Jan Staschulat, under Apache 2.0 License
 
   // test for invocation type ALWAYS ON_NEW_DATA
-  /*
-  publisher A
-  send 1 message
-  subscriber A' with invocation=ALWAYS
+  //
+  // publisher A
+  // send 1 message
+  // subscriber A' with invocation=ALWAYS
 
-  publisher B
-  send 1 message
-  subscriber B' with invocation=ON_NEW_DATA
+  // publisher B
+  // send 1 message
+  // subscriber B' with invocation=ON_NEW_DATA
 
-  executor setup()
-  executor_spin_some()
-  executor_spin_some()
+  // executor setup()
+  // executor_spin_some()
+  // executor_spin_some()
 
-  expected result
-  number of invocations of callback A' = 2
-  number of invocations of callback B' = 1
-
-   */
+  // expected result
+  // number of invocations of callback A' = 2
+  // number of invocations of callback B' = 1
 
 // 27.06.2019, adopted from ros2/rcl/rcl/test/rcl/test_subscriptions.cpp
   // by Jan Staschulat, under Apache 2.0 License
@@ -1903,3 +1878,4 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb7_cnt, (unsigned int) 3);
 }
+*/
