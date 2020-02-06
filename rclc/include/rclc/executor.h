@@ -326,11 +326,11 @@ rclc_executor_spin_period(
 /**
  * The reason for splitting up the rclc_executor_spin_period function, is only to write a
  * unit test for testing the accuracy of the period duration.
- * 
- * The rclc_executor_spin_period is an endless loop, therefore it is not possible to stop 
+ *
+ * The rclc_executor_spin_period is an endless loop, therefore it is not possible to stop
  * after x iterations. The function rclc_executor_spin_one_period implements one iteration.
  * The unit test for rclc_executor_spin_period covers only rclc_executor_spin_one_period.
- * 
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -353,7 +353,7 @@ rclc_executor_spin_one_period(
 
 /**
  * Set the trigger condition.
- * 
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -378,7 +378,7 @@ rclc_executor_set_trigger(
 
 /**
  * Trigger condition: all, returns true if all handles are ready.
- * 
+ *
  * Parameter obj is not used.
  * <hr>
  * Attribute          | Adherence
@@ -389,7 +389,7 @@ rclc_executor_set_trigger(
  * Lock-Free          | Yes
  *
  * \param [in] handles pointer to array of handles
- * \param [in] size size of array 
+ * \param [in] size size of array
  * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
  * \return true - if all handles are ready (subscriptions have new data, timers are ready)
  * \return false - otherwise
@@ -402,7 +402,7 @@ rclc_executor_trigger_all(
 
 /**
  * Trigger condition: any, returns true if at least one handles is ready.
- * 
+ *
  * Parameter obj is not used.
  * <hr>
  * Attribute          | Adherence
@@ -413,7 +413,7 @@ rclc_executor_trigger_all(
  * Lock-Free          | Yes
  *
  * \param [in] handles pointer to array of handles
- * \param [in] size size of array 
+ * \param [in] size size of array
  * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
  * \return true - if at least one handles is ready (subscriptions have new data, timers are ready)
  * \return false - otherwise
@@ -426,7 +426,7 @@ rclc_executor_trigger_any(
 
 /**
  * Trigger condition: always, returns always true.
- * 
+ *
  * Parameter handles, size and obj are not used.
  * <hr>
  * Attribute          | Adherence
@@ -449,9 +449,9 @@ rclc_executor_trigger_always(
 
 /**
  * Trigger condition: one, returns true, if rcl handle obj is ready
- * (when obj is a subscription, if new data available, 
+ * (when obj is a subscription, if new data available,
  *  when obj is a timer, if the timer is ready)
- * 
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
