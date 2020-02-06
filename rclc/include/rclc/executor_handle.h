@@ -185,7 +185,7 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle);
 /**
  *  Returns a pointer to the rcl-handle stored in the rclc_executor_handle_t.
  *  That can be rcl_subscription_t or rcl_timer_t
- * 
+ *
  *  If handle is NULL, then NULL is returned.
  *
  * <hr>

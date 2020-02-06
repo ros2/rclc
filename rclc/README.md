@@ -9,7 +9,7 @@
     * [Real-time embedded application use-case](#real-time-embedded-application-use-case)
     * [Sense-plan-act pipeline in mobile robotics](#sense-plan-act-pipeline-in-mobile-robotics)
     * [Synchronization of multiple rates](#synchronization-of-multiple-rates)
-    * [High priority processing path](#high-priority-processing-path)
+    * [High-priority processing path](#high-priority-processing-path)
   * [Features](#features)
     * [Sequential execution](#sequential-execution)
     * [Trigger condition](#trigger-condition)
@@ -19,10 +19,11 @@
     * [Running](#running-phase)
     * [Clean-Up](#clean-up)
   * [Examples RCLC-Executor](#examples-rclc-executor)
-    * [Example Embedded use-case](#example-embedded-use-case)
-    * [Example Sense-plan-act pipeline](#example-sense-plan-act-pipeline)
-    * [Example sensor fusion](#example-sensor-fusion)
-    * [Example high priority path](#example-high-priority-path)
+    * [Example real-time embedded application use-case](#example-real-time-embedded-application-use-case)
+    * [Example sense-plan-act pipeline in mobile robotics](#example-sense-plan-act-pipeline-in-mobile-robotics)
+    * [Example synchronization of multiple rates](#example-synchronization-of-multiple-rates)
+    * [Example high-priority processing path](#example-high-priority-processing-path)
+
 
 [RCL Convenience Functions](#rcl-convenience-functions)
 
@@ -70,7 +71,7 @@ Figure 2: Processes with sequentially executed tasks.
 
 While there are different ways to assign priorities to a given number of processes, the rate-monotonic scheduling assignment, in which processes with a shorter period have a higher priority, has been shown optimal if the processor utilization is less than 69% [LL1973](#LL1973).
 
-In the last decades many different scheduling approaches have been presented, however fixed-periodic preemptive scheduling is still widely used in embedded real-time systems [KZH2015](#KZH2015]).
+In the last decades many different scheduling approaches have been presented, however fixed-periodic preemptive scheduling is still widely used in embedded real-time systems [KZH2015](#KZH2015).
 This becomes also obvious, when looking at the features of current operating systems.
 Like Linux, real-time operating systems, such as NuttX, Zephyr, FreeRTOS, QNX etc., support fixed-periodic preemptive scheduling and the assignment of priorities, which makes the time-triggered paradigm the dominant design principle in this domain.
 
@@ -146,7 +147,7 @@ Derived Requirements:
 Concept:
 
 Often multiple sensors are being used to sense the invironment for mobile robotics.
-While an IMU sensor provides data samples at a very high rate (e.g 500Hz), laser scans are availabe at a much slower frequency (e.g. 10Hz) determined by the revolution time.
+While an IMU sensor provides data samples at a very high rate (e.g. 500 Hz), laser scans are availabe at a much slower frequency (e.g. 10Hz) determined by the revolution time.
 Then the challenge is, how to deterministically fuse sensor data with different frequencies. This problem is depicted in Figure 5.
 
 <img src="doc/sensorFusion_01.png" alt="Sychronization of multiple rates" width="300" />
@@ -167,7 +168,7 @@ With a trigger condition, which fires when both messages are available, the sens
 
 Figure 6: Synchronization of multiple input data with a trigger.
 
-In ROS 2 this is currently not possible to model because of the lack of a trigger concept in the ROS 2 Executor.
+In ROS 2 this is currently not possible to be modeled because of the lack of a trigger concept in the ROS 2 Executor.
 Message filters could be used to synchronize input data based on the timestamp in the header, but this is only available in rclcpp (and not in rcl).
 Further more, it would be more efficient to have such a trigger concept directly in the Executor.
 <!--
@@ -190,7 +191,7 @@ Derived Requirements from both concepts:
 - triggered execution
 - sequential procesing of callbacks
 
-#### High priority processing path
+#### High-priority processing path
 Motivation:
 
 Often a robot has to fullfill several activities at the same time. For example following a path and avoiding obstacles.
@@ -209,27 +210,28 @@ Derived requirements:
 
 ### Features
 
-Based on the real-time embedded use-case as well as the software architecture patterns in mobile robotics we propose an Executor with the following main features:
+Based on the real-time embedded use-case as well as the software architecture patterns in mobile robotics, we propose an Executor with the following main features:
 - user-defined sequential execution of callbacks
 - trigger condition to activate processing
 - data synchronization: LET-semantics or rclcpp Executor semantics
 
-As stated before, this Executor is based on the RCL library and is written in C to nativly support micro-controller applications written in C.
+As stated before, this Executor is based on the RCL library and is written in C to nativly support microcontroller applications written in C.
 These features are now described in more detail.
 
 #### Sequential execution
 
-- At configuration, the user defines the order of handles
-- At configuration, the defines, if the handle shall only called when new data is available (ON_NEW_DATA) or if the callback shall always be called (ALWAYS).
-- At runtime, all handles are processed in the user-defined order
+- At configuration, the user defines the order of handles.
+- At configuration, the user defines, whether the handle shall be called only when new data is available (ON_NEW_DATA) or whether the callback shall always be called (ALWAYS).
+- At runtime, all handles are processed in the user-defined order:
   - if the configuration of handle is ON_NEW_DATA, then the corresponding callback is only called if new data is available
-  - if the configuration of the handle is ALWAYS, then the corresponding callback is always executed
+  - if the configuration of the handle is ALWAYS, then the corresponding callback is always executed.
+    In case, no data is available from DDS, then the callback is called with no data (e.g. NULL pointer).
 
 #### Trigger condition
 
 - Given a set of handles, a trigger condition based on the input data of these handles shall decide when the processing is started.
 
-- Avaiable options:
+- Available options:
   - ALL operation: fires when input data is available for all handles
   - ANY operation: fires when input data is available for at least one handle
   - ONE: fires when input data for a user-specified handle is available
@@ -241,12 +243,13 @@ These features are now described in more detail.
 - Processes all callbacks in sequential order
 - Write output data at the end of the executor's period (Note: this is not implemented yet)
 
-Additionally we have implemented the current rclcpp Executor semantics:
+Additionally we have implemented the current rclcpp Executor semantics RCLCPP:
 - waiting for new data for all handles (rcl_wait)
 - using trigger condition ANY
 - if trigger fires, start processing handles in pre-defined sequential order
 - request from DDS-queue the new data just before the handle is executed (rcl_take)
 
+The selection of the LET semantics is optional. The default semantics is RCLCPP.
 ### Executor API
 
 The API of the RCLC-Executor can be divided in several phases: Configuration, Running and Clean-Up.
@@ -255,7 +258,7 @@ The API of the RCLC-Executor can be divided in several phases: Configuration, Ru
 
 During the configuration phase, the user shall define:
 - the total number of callbacks
-- trigger contition (optional, default: ANY)
+- trigger condition (optional, default: ANY)
 - data communcation semantics (optional, default RCLCPP)
 - the processing sequence of the callbacks
 
@@ -351,7 +354,7 @@ The function `rlce_executor_fini` frees the dynamically allocated memory of the 
 
 We provide the relevant code snippets how to setup the RCLC-Executor for the embedded use case and for the software design patterns in mobile robotics applications as described above.
 
-#### Example embedded use-case
+#### Example real-time embedded application use-case
 
 With seqential execution the co-operative scheduling of tasks within a process can be modeled.
 The trigger condition is used to periodically activate the process which will then execute all callbacks in a pre-defined order.
@@ -420,7 +423,7 @@ rclc_executor_data_comm_semantics(&exe, LET);
 rclc_executor_spin(&exe);
 ```
 
-#### Example sense-plan-act pipeline
+#### Example sense-plan-act pipeline in mobile robotics
 
 In this example we want to realise a sense-plan-act pipeline in a single thread. The trigger condition is demonstrated by activating the sense-phase when both data for the Laser and IMU are available.
 Three executors are necessary `exe_sense`, `exe_plan` and `exe_act`. The two sensor acquisition callbacks `sense_Laser` and `sense_IMU` are registered in the Executor `exe_sense`.
@@ -453,7 +456,7 @@ while (true) {
   rclc_executor_spin_some(&exe_act);
 }
 ```
-#### Example sensor fusion
+#### Example synchronization of multiple rates
 
 The sensor fusion synchronizing the multiple rates with a trigger is shown below.
 
@@ -494,7 +497,7 @@ rclc_executor_set_trigger(&exe_sense, rclc_executor_trigger_one, &sense_Laser);
 // spin
 rclc_executor_spin(&exe_sense);
 ```
-#### Example high priorty path
+#### Example high-priority processing path
 
 This example shows the sequential processing order to execute the obstacle avoidance `obst_avoid`
 after the callbacks of the sense-phase and before the callback of the planning phase `plan`.
