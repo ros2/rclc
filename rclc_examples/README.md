@@ -137,9 +137,9 @@ rc = rcl_subscription_init(
 
 Consequently, the messages "in between" are lost.
 
-The binary of the example is `example_executor`. You run the example with:
+The binary of the example is `example_executor_trigger`. You run the example with:
 ```C
-~/ros2_ws/$ ros2 run rclc_examples  example_executor
+~/ros2_ws/$ ros2 run rclc_examples  example_executor_trigger
 ```
  Then you should see the following output:
 
