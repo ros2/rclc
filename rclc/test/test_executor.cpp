@@ -201,10 +201,15 @@ _executor_results_compare(unsigned int * array)
 #define INT_CALLBACK(NUM) \
   int32_callback_ ## NUM
 
+
 // macro-definition               definition of callback function
 INT_CALLBACK_DEFINITION(1)  // => int32_callback_1
 INT_CALLBACK_DEFINITION(2)  // => int32_callback_2
 INT_CALLBACK_DEFINITION(3)  // => int32_callback_3
+
+#define CALLBACK_1 INT_CALLBACK(1)
+#define CALLBACK_2 INT_CALLBACK(2)
+#define CALLBACK_3 INT_CALLBACK(3)
 
 // for test case semantics
 void int32_callback4(const void * msgin)
@@ -234,7 +239,6 @@ void int32_callback5(const void * msgin)
     _cb5_int_value = msg->data;
   }
 }
-
 
 // test case: trigger conditions
 void int32_callback6(const void * msgin)
@@ -346,7 +350,6 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   EXPECT_TRUE(rcl_subscription_is_valid(&this->SUB)); \
   rcl_reset_error();
-
 
 class TestDefaultExecutor : public ::testing::Test
 {
@@ -543,7 +546,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
     "number of subscriptions is expected to be one";
 
   // test NULL pointer for executor
-  rc = rclc_executor_add_subscription(NULL, &this->sub1, &this->sub1_msg, &INT_CALLBACK(1),
+  rc = rclc_executor_add_subscription(NULL, &this->sub1, &this->sub1_msg, &CALLBACK_1,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -551,7 +554,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
     "number of subscriptions is expected to be one";
 
   // test NULL pointer for subscription
-  rc = rclc_executor_add_subscription(&executor, NULL, &this->sub1_msg, &INT_CALLBACK(1),
+  rc = rclc_executor_add_subscription(&executor, NULL, &this->sub1_msg, &CALLBACK_1,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -559,7 +562,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
     "number of subscriptions is expected to be one";
 
   // test NULL pointer for message
-  rc = rclc_executor_add_subscription(&executor, &this->sub1, NULL, &INT_CALLBACK(1),
+  rc = rclc_executor_add_subscription(&executor, &this->sub1, NULL, &CALLBACK_1,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -578,27 +581,27 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
-/*
+
 TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
-  // insert one handle, add two subscriptions
 
-  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator);
+  // insert one handle, add two subscriptions
+  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   // test 1: add subscription
-  rc = rclc_executor_add_subscription(&executor, this->sub1_ptr, &this->sub1_msg,
-      &cmd_vel_callback, ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
+      &CALLBACK_1, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   size_t num_subscriptions = 1;
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
     "number of subscriptions is expected to be one";
 
   // test 2: add another subscription : failure (array full)
-  rc = rclc_executor_add_subscription(&executor, this->sub2_ptr, &this->sub2_msg,
-      &cmd_hello_callback, ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
+      &CALLBACK_2, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
@@ -614,12 +617,12 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
   // add a timer
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   size_t exp_number_of_timers = 0;
   EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#times should be 0";
-  rc = rclc_executor_add_timer(&executor, this->timer1_ptr);
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   exp_number_of_timers = 1;
   EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
@@ -628,16 +631,16 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
-
+/*
 TEST_F(TestDefaultExecutor, executor_spin_some_API) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
   // add a timer
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  rc = rclc_executor_add_timer(&executor, this->timer1_ptr);
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   const unsigned int timeout_ms = 100;
@@ -843,7 +846,7 @@ TEST_F(TestDefaultExecutor, spin_some_let_semantic) {
   // initialize result variables
   _executor_results_init();
   // initialize executor with 3 handles
-  ret = rclc_executor_init(&executor, &this->context, 3, this->allocator);
+  ret = rclc_executor_init(&executor, &this->context, 3, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // define subscription messages
@@ -1079,7 +1082,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // initialize result variables
   _executor_results_init();
   // initialize executor with 2 handles
-  ret = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  ret = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1202,7 +1205,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   // initialize result variables
   _results_callback_counters_init();
   // initialize executor with 2 handles
-  ret = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  ret = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // define subscription messages
@@ -1301,14 +1304,14 @@ TEST_F(TestDefaultExecutor, spin_period) {
   rclc_executor_t executor;
 
   // initialize executor with 1 handle
-  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   // set timeout to zero - so that rcl_wait() comes back immediately
   rc = rclc_executor_set_timeout(&executor, 0);
 
   // add dummy subscription (with string msg), which is always executed
-  rc = rclc_executor_add_subscription(&executor, this->sub2_ptr, &this->sub2_msg,
+  rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
       &spin_period_callback, ALWAYS);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1372,7 +1375,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -1457,7 +1460,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -1526,7 +1529,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
   rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_one, &this->sub1);
@@ -1602,7 +1605,7 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
   rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_any, NULL);
@@ -1680,7 +1683,7 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
   rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_all, NULL);
@@ -1754,7 +1757,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator);
+  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
   rc = rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
