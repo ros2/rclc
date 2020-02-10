@@ -282,41 +282,38 @@ void int32_callback8(const void * msgin)
 }
 
 // callback for unit test 'spin_period'
-static const unsigned int MAX_SPIN_PERIOD_INVOCATIONS = 100;
-static rcutils_duration_value_t callback_invocation_timepoints[MAX_SPIN_PERIOD_INVOCATIONS];
-static unsigned int invocation_count = 0;  // array index
+static const unsigned int TC_SPIN_PERIOD_MAX_INVOCATIONS = 100;
+static rcutils_duration_value_t _tc_spin_period_timepoints[TC_SPIN_PERIOD_MAX_INVOCATIONS];
+static unsigned int _tc_spin_period_invocation_count = 0;  // array index
 
-/*
 void spin_period_callback(const void * msgin)
 {
-  const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
   rcutils_time_point_value_t now;
   rcl_ret_t rc;
-  RCL_UNUSED(msg);
+  RCL_UNUSED(msgin);
 
   rc = rcutils_system_time_now(&now);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(spin_period_callback, rcutils_system_time_now);
   }
-  if (invocation_count < MAX_SPIN_PERIOD_INVOCATIONS) {
-    callback_invocation_timepoints[invocation_count] = now;
+  if (_tc_spin_period_invocation_count < TC_SPIN_PERIOD_MAX_INVOCATIONS) {
+    _tc_spin_period_timepoints[_tc_spin_period_invocation_count] = now;
   } else {
     printf("Error: spin_period_callback: Too many calls to the callback.\n");
   }
-  invocation_count++;
+  _tc_spin_period_invocation_count++;
 }
-*/
 // returns average time in nanoseconds
 uint64_t test_case_evaluate_spin_period()
 {
   uint64_t sum;
   sum = 0;
-  // i starts from 1 because the the first measurement starts in 1st iteration.
-  for (unsigned int i = 1; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
-    sum += callback_invocation_timepoints[i] - callback_invocation_timepoints[i - 1];
+  // i starts from 1 because two timepoints are necessary, e.g. tp[1]- tp[0]
+  for (unsigned int i = 1; i < TC_SPIN_PERIOD_MAX_INVOCATIONS; i++) {
+    sum += _tc_spin_period_timepoints[i] - _tc_spin_period_timepoints[i - 1];
     // overflow => use micro-seconds (divide by 1000)
   }
-  return sum / (MAX_SPIN_PERIOD_INVOCATIONS - 1);
+  return sum / (TC_SPIN_PERIOD_MAX_INVOCATIONS - 1);
 }
 
 // timer callback
@@ -722,8 +719,8 @@ TEST_F(TestDefaultExecutor, pub_sub_example) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
-  unsigned int timeout_ms = 10;
-  _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ms, &tries,
+  unsigned int wait_timeout_ms = 10;
+  _wait_for_msg(&this->sub1, &this->context, max_tries, wait_timeout_ms, &tries,
     &success);
   // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
@@ -791,17 +788,16 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
-  unsigned int timeout_ms = 10;
-
+  unsigned int wait_timeout_ms = 10;
   // process subscriptions
   for (unsigned int i = 0; i < 100; i++) {
     const unsigned int timeout_ms = 100;
     // Assumption: messages for all sub1, sub2 and sub3 are available
-    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
 
     ret = rclc_executor_spin_some(&executor, timeout_ms);
@@ -846,11 +842,11 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
     const unsigned int timeout_ms = 100;
 
     // wait until messages are received
-    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ms, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, wait_timeout_ms, &tries, &success);
     ASSERT_TRUE(success);
     ret = rclc_executor_spin_some(&executor, timeout_ms);
     if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
@@ -1083,7 +1079,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ((unsigned int)2, _cb2_int_value);
 }
 
-/*
+
 TEST_F(TestDefaultExecutor, spin_period) {
   rcl_ret_t rc;
   rclc_executor_t executor;
@@ -1095,8 +1091,8 @@ TEST_F(TestDefaultExecutor, spin_period) {
   // set timeout to zero - so that rcl_wait() comes back immediately
   rc = rclc_executor_set_timeout(&executor, 0);
 
-  // add dummy subscription (with string msg), which is always executed
-  rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
+  // add dummy subscription which is always executed
+  rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
       &spin_period_callback, ALWAYS);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1105,19 +1101,19 @@ TEST_F(TestDefaultExecutor, spin_period) {
 
   // measure the timepoint, when spin_period_callback() is called
   uint64_t spin_period = 20000000;  // 20 ms
-  for (unsigned int i = 0; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
+  for (unsigned int i = 0; i < TC_SPIN_PERIOD_MAX_INVOCATIONS; i++) {
     rclc_executor_spin_one_period(&executor, spin_period);
   }
   // compute avarage time duration between calls to spin_period_callback
   uint64_t duration = test_case_evaluate_spin_period();
-  printf("expected 'spin_period' : %ld\n", spin_period);
-  printf("actual      'duration' : %ld\n", duration);
+  printf("expected  'spin_period' : %ld ns\n", spin_period);
+  printf("actual (%d iterations) : %ld ns\n", TC_SPIN_PERIOD_MAX_INVOCATIONS, duration);
 
-  uint64_t delta = 10000;  // 10 micro-seconds bound
+  uint64_t delta = 10000;  // 10 micro-seconds interval
   EXPECT_LE(duration, spin_period + delta);
   EXPECT_LE(spin_period - delta, duration);
 }
-
+/*
 TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_ret_t rc;
   rclc_executor_t executor;
