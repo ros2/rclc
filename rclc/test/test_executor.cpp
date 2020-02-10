@@ -191,7 +191,7 @@ _executor_results_compare(unsigned int * array)
   { \
     const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin; \
     if (msg == NULL) { \
-      printf("Test CB " #NUM ": msg is NULL\n"); \
+      // printf("Test CB " #NUM ": msg is NULL\n"); \
     } else { \
       _cb ## NUM ## _int_value = msg->data; \
     } \
@@ -391,7 +391,6 @@ wait_for_subscription_to_be_ready(
       }
     }
   } while ( (*tries) < max_tries);
-
 }
 
 class TestDefaultExecutor : public ::testing::Test
@@ -487,8 +486,8 @@ public:
     CREATE_SUBSCRIPTION(sub1, data1_int)
     CREATE_SUBSCRIPTION(sub2, data2_int)
     CREATE_SUBSCRIPTION(sub3, data3_int)
-    std_msgs__msg__Int32__init(&sub1_msg);
-    std_msgs__msg__Int32__init(&sub2_msg);
+    std_msgs__msg__Int32__init(&this->sub1_msg);
+    std_msgs__msg__Int32__init(&this->sub2_msg);
     std_msgs__msg__Int32__init(&sub3_msg);
 
     // create timer with rcl
@@ -726,7 +725,7 @@ TEST_F(TestDefaultExecutor, pub_sub_example) {
   unsigned int timeout_ms = 10;
   wait_for_subscription_to_be_ready(&this->sub1, &this->context, max_tries, timeout_ms, &tries,
     &success);
-  //printf("Number of tries to access DDS-queue: %u\n", tries);
+  // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
 
   ret = rcl_take(&this->sub1, &this->sub1_msg, nullptr, nullptr);
@@ -806,7 +805,7 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
 
-  // process subscriptions in Executor. Assumption: messages for all sub1, sub2 and sub3 are available
+  // process subscriptions. Assumption: messages for all sub1, sub2 and sub3 are available
   for (unsigned int i = 0; i < 100; i++) {
     const unsigned int timeout_ms = 100;
     ret = rclc_executor_spin_some(&executor, timeout_ms);
@@ -859,7 +858,7 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
 
-  // process subscriptions in Executor. Assumption: messages for all sub1, sub2 and sub3 are available
+  // process subscriptions. Assumption: messages for all sub1, sub2 and sub3 are available
   for (unsigned int i = 0; i < 100; i++) {
     const unsigned int timeout_ms = 100;
     ret = rclc_executor_spin_some(&executor, timeout_ms);
@@ -888,7 +887,7 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
 }
-/*
+
 TEST_F(TestDefaultExecutor, invocation_type) {
   // 27.06.2019, adopted from ros2/rcl/rcl/test/rcl/test_subscriptions.cpp
   // by Jan Staschulat, under Apache 2.0 License
@@ -916,55 +915,6 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   rcl_ret_t ret;
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
-  // publisher 1
-  rcl_publisher_t publisher1 = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts1 =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  const char * topic1 = "chatter1";
-  rcl_publisher_options_t publisher_options1 = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&this->pub1, this->node_ptr, ts1, topic1, &publisher_options1);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_publisher_fini(&this->pub1, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
-  // publisher 2
-  rcl_publisher_t this->pub2 = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts2 =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  const char * topic2 = "chatter2";
-  rcl_publisher_options_t publisher_options2 = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&this->pub2, this->node_ptr, ts2, topic2, &publisher_options2);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_publisher_fini(&this->pub2, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
-  // subscription 1
-  rcl_subscription_t subscription1 = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options1 = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription1, this->node_ptr, ts1, topic1, &subscription_options1);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_subscription_fini(&subscription1, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription1));
-  rcl_reset_error();
-
-  // subscription 2
-  rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription2, this->node_ptr, ts2, topic2, &subscription_options2);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_subscription_fini(&subscription2, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
-  rcl_reset_error();
 
   // initialize result variables
   _executor_results_init();
@@ -974,22 +924,15 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   ret = rclc_executor_set_trigger(&executor, rclc_executor_trigger_always, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  // define subscription messages
-  std_msgs__msg__Int32 sub_msg1;
-  std_msgs__msg__Int32__init(&sub_msg1);
-
-  std_msgs__msg__Int32 sub_msg2;
-  std_msgs__msg__Int32__init(&sub_msg2);
-
   // add subscription to the executor
   ret =
-    rclc_executor_add_subscription(&executor, &subscription1, &sub_msg1, &int32_callback1,
+    rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg, &CALLBACK_1,
       ALWAYS);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
 
   ret =
-    rclc_executor_add_subscription(&executor, &subscription2, &sub_msg2, &int32_callback2,
+    rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg, &CALLBACK_2,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -999,28 +942,26 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
     "number of subscriptions should be = 2";
 
-  // publish message 1
-  std_msgs__msg__Int32 pub_msg1;
-  std_msgs__msg__Int32__init(&pub_msg1);
-  pub_msg1.data = 1;
-
-  // publish message 2
-  std_msgs__msg__Int32 pub_msg2;
-  std_msgs__msg__Int32__init(&this->pub2_msg);
-  pub_msg2.data = 2;
-
-
   ///////////////////////////////////////////////////////////////////////////////////
   /////////// test case 1 : publish one data for each publisher
   ///////////////////////////////////////////////////////////////////////////////////
-
-
-  ret = rcl_publish(&this->pub1, &pub_msg1, nullptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
+  ret = rcl_publish(&this->pub1, &pub1_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << " this->pub1 did not publish!";
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub2 did not publish!";
-  // give DDS some time to publish the message (without the test fails)
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // wait until messages are received
+  bool success = false;
+  unsigned int tries;
+  unsigned int max_tries = 100;
+  unsigned int timeout_ms = 10;
+  wait_for_subscription_to_be_ready(&this->sub1, &this->context, max_tries, timeout_ms, &tries,
+    &success);
+  ASSERT_TRUE(success);
+  wait_for_subscription_to_be_ready(&this->sub2, &this->context, max_tries, timeout_ms, &tries,
+    &success);
+  ASSERT_TRUE(success);
+
   // initialize result variables
   _cb1_cnt = 0;
   _cb2_cnt = 0;
@@ -1042,7 +983,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
 }
 
-
+/*
 // call executor_add_subscription() after executor_spin_some()
 // this requires an update of the rcl wait_set
 TEST_F(TestDefaultExecutor, update_wait_set) {
@@ -1068,25 +1009,25 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   // subscription 1
   rcl_subscription_t subscription1 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options1 = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription1, this->node_ptr, ts1, topic1, &subscription_options1);
+  ret = rcl_subscription_init(&this->sub1, this->node_ptr, ts1, topic1, &subscription_options1);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_subscription_fini(&subscription1, this->node_ptr);
+    rcl_ret_t ret = rcl_subscription_fini(&this->sub1, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription1));
+  EXPECT_TRUE(rcl_subscription_is_valid(&this->sub1));
   rcl_reset_error();
 
   // subscription 2
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription2, this->node_ptr, ts1, topic1, &subscription_options2);
+  ret = rcl_subscription_init(&this->sub2, this->node_ptr, ts1, topic1, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_subscription_fini(&subscription2, this->node_ptr);
+    rcl_ret_t ret = rcl_subscription_fini(&this->sub2, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2));
   rcl_reset_error();
 
   // initialize result variables
@@ -1097,16 +1038,16 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
 
   // define subscription messages
   std_msgs__msg__Int32 sub_msg1;
-  std_msgs__msg__Int32__init(&sub_msg1);
+  std_msgs__msg__Int32__init(&this->sub2_msg);
 
   std_msgs__msg__Int32 sub_msg2;
-  std_msgs__msg__Int32__init(&sub_msg2);
+  std_msgs__msg__Int32__init(&this->sub2_msg);
 
   // initially the wait_set is zero_initialized
   EXPECT_EQ(false, rcl_wait_set_is_valid(&executor.wait_set));
   // add subscription to the executor
   ret =
-    rclc_executor_add_subscription(&executor, &subscription1, &sub_msg1, &int32_callback1,
+    rclc_executor_add_subscription(&executor, &this->sub1, &this->sub2_msg, &CALLBACK_1,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1116,7 +1057,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
 
   // initialize pub message 1
   std_msgs__msg__Int32 pub_msg1;
-  std_msgs__msg__Int32__init(&pub_msg1);
+  std_msgs__msg__Int32__init(&pub1_msg);
   pub_msg1.data = 1;
 
   ///////////////////////////////////////////////////////////////////////////////////
@@ -1127,9 +1068,9 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ((unsigned int)0, _cb1_cnt);
   EXPECT_EQ((unsigned int)0, _cb2_cnt);
 
-  ret = rcl_publish(&this->pub1, &pub_msg1, nullptr);
+  ret = rcl_publish(&this->pub1, &pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
-  ret = rcl_publish(&this->pub1, &pub_msg1, nullptr);
+  ret = rcl_publish(&this->pub1, &pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -1157,7 +1098,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
 
   ret =
-    rclc_executor_add_subscription(&executor, &subscription2, &sub_msg2, &int32_callback2,
+    rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg, &CALLBACK_2,
       ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1255,10 +1196,10 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
   subscription_options2.qos.depth = 0;  // qos: last is best
-  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub1_type_support,
+  rc = rcl_subscription_init(&this->sub2, this->node_ptr, this->pub1_type_support,
       this->pub1_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2));
   rcl_reset_error();
 
   // initialize executor with 2 handles
@@ -1271,7 +1212,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
       &int32_callback4, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-  rc = rclc_executor_add_subscription(&executor, &subscription2, &subscription2_int_msg,
+  rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_int_msg,
       &int32_callback5, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1297,7 +1238,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
     " expect value 2: Value from callback of int32_callback4 should be received.";
 
   // clean-up
-  rc = rcl_subscription_fini(&subscription2, this->node_ptr);
+  rc = rcl_subscription_fini(&this->sub2, this->node_ptr);
 }
 
 
@@ -1340,10 +1281,10 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
   subscription_options2.qos.depth = 0;  // qos: last is best
-  rc = rcl_subscription_init(&subscription2, this->node_ptr, this->pub1_type_support,
+  rc = rcl_subscription_init(&this->sub2, this->node_ptr, this->pub1_type_support,
       this->pub1_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  EXPECT_TRUE(rcl_subscription_is_valid(&this->sub2));
   rcl_reset_error();
 
   // initialize executor with 2 handles
@@ -1356,7 +1297,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
       &int32_callback4, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-  rc = rclc_executor_add_subscription(&executor, &subscription2, &subscription2_int_msg,
+  rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_int_msg,
       &int32_callback5, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -1382,7 +1323,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
     " expect value 1: first value of 'pub1' publisher should have been received.";
 
   // clean-up
-  rc = rcl_subscription_fini(&subscription2, this->node_ptr);
+  rc = rcl_subscription_fini(&this->sub2, this->node_ptr);
 }
 
 
