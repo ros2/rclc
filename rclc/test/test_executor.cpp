@@ -54,13 +54,6 @@ static unsigned int _cb5_cnt = 0;
 static unsigned int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
-// test data for trigger conditions
-static unsigned int _cb6_int_value = 0;
-static unsigned int _cb7_int_value = 0;
-static unsigned int _cb8_int_value = 0;
-static unsigned int _cb6_cnt = 0;
-static unsigned int _cb7_cnt = 0;
-static unsigned int _cb8_cnt = 0;
 
 static
 void
@@ -86,18 +79,6 @@ _results_callback_init()
 {
   _results_callback_counters_init();
   _results_callback_values_init();
-}
-
-static
-void
-_reset_result_values_for_trigger_test_case()
-{
-  _cb6_int_value = 0;
-  _cb7_int_value = 0;
-  _cb8_int_value = 0;
-  _cb6_cnt = 0;
-  _cb7_cnt = 0;
-  _cb8_cnt = 0;
 }
 
 static
@@ -241,45 +222,6 @@ void int32_callback5(const void * msgin)
     // printf("cb5 msg: %d\n", msg->data);
     _cb5_int_value = msg->data;
   }
-}
-
-// test case: trigger conditions
-void int32_callback6(const void * msgin)
-{
-  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
-  if (msg == NULL) {
-    printf("(int32_callback6): msg is NULL\n");
-  } else {
-    // printf("cb6 msg: %d\n", msg->data);
-    _cb6_int_value = msg->data;
-  }
-  _cb6_cnt++;
-}
-
-// test case: trigger conditions
-void int32_callback7(const void * msgin)
-{
-  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
-  if (msg == NULL) {
-    printf("(int32_callback7): msg is NULL\n");
-  } else {
-    // printf("cb7 msg: %d\n", msg->data);
-    _cb7_int_value = msg->data;
-  }
-  _cb7_cnt++;
-}
-
-// test case: trigger conditions
-void int32_callback8(const void * msgin)
-{
-  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
-  if (msg == NULL) {
-    printf("(int32_callback8): msg is NULL\n");
-  } else {
-    // printf("cb8 msg: %d\n", msg->data);
-    _cb8_int_value = msg->data;
-  }
-  _cb8_cnt++;
 }
 
 // callback for unit test 'spin_period'
@@ -1274,7 +1216,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
 }
-/*
+
 TEST_F(TestDefaultExecutor, trigger_one) {
   // test specification
   // multiple subscriptions
@@ -1312,37 +1254,37 @@ TEST_F(TestDefaultExecutor, trigger_one) {
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
-      &int32_callback6, ON_NEW_DATA);
+      &CALLBACK_1, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
-      &int32_callback7, ON_NEW_DATA);
+      &CALLBACK_2, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   const uint64_t timeout_ns = 10000000;  // 10ms
   // ------------------------- test case setup ---------------------------------------------
 
   // first round
-  _reset_result_values_for_trigger_test_case();
+  _results_callback_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 7;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A not called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
   // third round
   this->pub1_msg.data = 11;
@@ -1350,12 +1292,11 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 11) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 2);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 11) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 }
-
 
 TEST_F(TestDefaultExecutor, trigger_any) {
   // test specification
@@ -1388,52 +1329,50 @@ TEST_F(TestDefaultExecutor, trigger_any) {
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
-      &int32_callback6, ON_NEW_DATA);
+      &CALLBACK_1, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
-      &int32_callback7, ON_NEW_DATA);
+      &CALLBACK_2, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   const uint64_t timeout_ns = 10000000;  // 10ms
   // ------------------------- test case setup --------------------------------------------
-
   // first round
-  _reset_result_values_for_trigger_test_case();
+  _results_callback_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 7;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A not called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 
   // third round
   this->pub1_msg.data = 11;
-  _cb6_int_value = 0;
-  _cb7_int_value = 0;
+  _cb1_int_value = 0;
+  _cb2_int_value = 0;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 11) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 2);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 11) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 }
-
 
 TEST_F(TestDefaultExecutor, trigger_all) {
   // test specification
@@ -1466,50 +1405,49 @@ TEST_F(TestDefaultExecutor, trigger_all) {
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
-      &int32_callback6, ON_NEW_DATA);
+      &CALLBACK_1, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
-      &int32_callback7, ON_NEW_DATA);
+      &CALLBACK_2, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   const uint64_t timeout_ns = 10000000;  // 10ms
   // ------------------------- test case setup --------------------------------------------
-
   // first round
-  _reset_result_values_for_trigger_test_case();
+  _results_callback_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 0);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 7;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 
   // third round
   this->pub1_msg.data = 11;
-  _cb6_int_value = 0;
-  _cb7_int_value = 0;
+  _cb1_int_value = 0;
+  _cb2_int_value = 0;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B not called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 }
 
 TEST_F(TestDefaultExecutor, trigger_always) {
@@ -1540,44 +1478,42 @@ TEST_F(TestDefaultExecutor, trigger_always) {
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription(&executor, &this->sub1, &this->sub1_msg,
-      &int32_callback6, ON_NEW_DATA);
+      &CALLBACK_1, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   rc = rclc_executor_add_subscription(&executor, &this->sub2, &this->sub2_msg,
-      &int32_callback7, ALWAYS);
+      &CALLBACK_2, ALWAYS);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   const uint64_t timeout_ns = 10000000;  // 10ms
   // ------------------------- test case setup --------------------------------------------
-
   // first round
-  _reset_result_values_for_trigger_test_case();
+  _results_callback_init();
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 0);
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0);
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 0) << " expected: A not called";
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 1) << " expected: B called";
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 0);
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0);
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << " expected: B called";
   // second round
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 3) << " expected: A called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 0) << " expected: B called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1) << " expected: A called";
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 2) << " expected: B called";
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1) << " expected: A called";
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 2) << " expected: B called";
   // third round
   this->pub2_msg.data = 7;
-  _cb6_int_value = 0;
-  _cb7_int_value = 0;
+  _cb1_int_value = 0;
+  _cb2_int_value = 0;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclc_executor_spin_some(&executor, timeout_ns);
-  EXPECT_EQ(_cb6_int_value, (unsigned int) 0) << " expected: A not called";
-  EXPECT_EQ(_cb7_int_value, (unsigned int) 7) << " expected: B called";
-  EXPECT_EQ(_cb6_cnt, (unsigned int) 1);
-  EXPECT_EQ(_cb7_cnt, (unsigned int) 3);
+  EXPECT_EQ(_cb1_int_value, (unsigned int) 0) << " expected: A not called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 3);
 }
-*/
