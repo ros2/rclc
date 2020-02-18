@@ -36,7 +36,7 @@
 ## Overview
 The rclc-package is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create ROS Client Library(RCL) data types and an RCLC-Executor in the C programming language.
 The convenience functions are a thin API layer on top of RCL-layer to create publishers, subscribers, timers and nodes with a one-liner like in rclcpp.
-The RCLC-Executor provides an API register subscriptions and timers as well as reqesting data from DDS and executing the corresponding callbacks, like the rclcpp Executor for C++.
+The RCLC-Executor provides an API register subscriptions and timers as well as requesting data from DDS and executing the corresponding callbacks, like the rclcpp Executor for C++.
 As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor.
 Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
@@ -78,7 +78,7 @@ Like Linux, real-time operating systems, such as NuttX, Zephyr, FreeRTOS, QNX et
 However, data consistency is often an issue when preemptive scheduling is used and if data is being shared across multiple processes via global variables.
 Due to scheduling effects and varying execution times of processes, writing and reading these variables could occur sometimes sooner or later.
 This results in an latency jitter of update times (the timepoint at which a variable change becomes visible to other processes).
-Race conditions can occur when multiple processes access a variable at the same time. So solve this problem, the concept of logical-execution time (LET) was introduced in [HHK2001](#HHK2001), in which communication of data occurs only at pre-defined periodic time instances: Reading data only at the beginning of the period and writing data only at the end of the period.
+Race conditions can occur when multiple processes access a variable at the same time. To solve this problem, the concept of logical-execution time (LET) was introduced in [HHK2001](#HHK2001), in which communication of data occurs only at pre-defined periodic time instances: Reading data only at the beginning of the period and writing data only at the end of the period.
 The cost of an additional latency delay is traded for data consistency and reduced jitter.
 This concept has also recently been applied to automotive applications  [NSP2018](#NSP2018).
 
@@ -131,7 +131,7 @@ Typically multiple sensors are used to perceive the environment.
 For example an IMU and a laser scanner.
 The quality of localization algorithms highly depend on how old such sensor data is when it is processed.
 Ideally the latest data of all sensors should be processed.
-One way to achive this is to execute first all sensor drivers in the sense-phase and then process all algorithms in the plan-phase.
+One way to achieve this is to execute first all sensor drivers in the sense-phase and then process all algorithms in the plan-phase.
 
 Currently, such a processing order cannot be defined with the default ROS 2 Executor.
 One could in principle design a data-driven pipeline, however if e.g. the Laser scan is needed by some other callback in the sense-phase as well as in the plan-phase, the processing order of these subscribers is arbitrary.
@@ -146,8 +146,8 @@ Derived Requirements:
 
 Concept:
 
-Often multiple sensors are being used to sense the invironment for mobile robotics.
-While an IMU sensor provides data samples at a very high rate (e.g. 500 Hz), laser scans are availabe at a much slower frequency (e.g. 10Hz) determined by the revolution time.
+Often multiple sensors are being used to sense the environment for mobile robotics.
+While an IMU sensor provides data samples at a very high rate (e.g. 500 Hz), laser scans are available at a much slower frequency (e.g. 10Hz) determined by the revolution time.
 Then the challenge is, how to deterministically fuse sensor data with different frequencies. This problem is depicted in Figure 5.
 
 <img src="doc/sensorFusion_01.png" alt="Sychronization of multiple rates" width="300" />
@@ -158,7 +158,7 @@ Due to scheduling effects, the callback for evaluating the laser scan might be c
 One way to tackle this is to write additional synchronization code inside the application.
 Obviously, this is a cumbersome and not-portable solution.
 
-An Alternative would be to evalute the IMU sample and the laser scan by synchronizing their frequency.
+An Alternative would be to evaluate the IMU sample and the laser scan by synchronizing their frequency.
 For example by processing always 50 IMU samples with one laser scan. This approach is shown in Figure 6.
 A pre-processing callback aggregates the IMU samples and sends an aggregated message with 50 samples at 10Hz rate.
 Now both messages have the same frequency.
@@ -177,9 +177,9 @@ TODO
   dann wird klarer was mit den Daten wird
 - Aus dem Bild die Beschreibung löschen
 -->
-Another idea would be to activly request for IMU data only when a laser scan is received.
+Another idea would be to actively request for IMU data only when a laser scan is received.
 This concept is shown in Figure 7.
-Upon arrival of a laser scan mesage, first, a message with aggregated IMU samples is requested.
+Upon arrival of a laser scan message, first, a message with aggregated IMU samples is requested.
 Then, the laser scan is processed and later the sensor fusion algorithm.
 An Executor, which would support sequential execution of callbacks, could realize this idea.
 
@@ -189,13 +189,13 @@ Figure 7: Synchronization with sequential processing.
 
 Derived Requirements from both concepts:
 - triggered execution
-- sequential procesing of callbacks
+- sequential processing of callbacks
 
 #### High-priority processing path
 Motivation:
 
 Often a robot has to fullfill several activities at the same time. For example following a path and avoiding obstacles.
-While path following is a permanent activity, obstacle avoidance is trigged by the environment and should be immediately reacted upon.
+While path following is a permanent activity, obstacle avoidance is triggered by the environment and should be immediately reacted upon.
 Therefore one would like to specify priorities to activities. This is depicted in Figure 8:
 
 <img src="doc/highPriorityPath.png" alt="HighPriorityPath" width="500" />
@@ -203,7 +203,7 @@ Therefore one would like to specify priorities to activities. This is depicted i
 Figure 8: Managing high priority path with sequential order.
 
 Assuming a simplified control loop with the activities sense-plan-act, the obstacle avoidance, which might temporarily stop the robot, should be processed before the planning phase.
-In this example we assume that these activites are processed in one thread.
+In this example we assume that these activities are processed in one thread.
 
 Derived requirements:
 - sequential processing of callbacks
@@ -215,7 +215,7 @@ Based on the real-time embedded use-case as well as the software architecture pa
 - trigger condition to activate processing
 - data synchronization: LET-semantics or rclcpp Executor semantics
 
-As stated before, this Executor is based on the RCL library and is written in C to nativly support microcontroller applications written in C.
+As stated before, this Executor is based on the RCL library and is written in C to natively support microcontroller applications written in C.
 These features are now described in more detail.
 
 #### Sequential execution
@@ -299,7 +299,7 @@ For convenience some trigger conditions have been defined:
 - `rclc_executor_trigger_all` : start executing if all callbacks have new data
 - `rclc_executor_trigger_one(&data)` : start executing if `data` has been received
 - `rclc_executor_trigger_always`: returns always true, that is every time the Executor spins, the processing of the callbacks is invocated.
-For example with `spin_period` and this trigger condition as well as specifiying all callbacks of subscriptions being called as `ALWAYS`, a fixed period execution of all callbacks can be implemented, irrespective whether new data is available or not.
+For example with `spin_period` and this trigger condition as well as specifying all callbacks of subscriptions being called as `ALWAYS`, a fixed period execution of all callbacks can be implemented, irrespective whether new data is available or not.
 - user_defined_function: the user can also define its own function with more complex logic
 
 With `rclc_executor_trigger_any` being the default trigger condition, the current semantics of the rclcpp Executor is selected.
@@ -344,7 +344,7 @@ The function `rclc_executor_spin_period` calls `rclc_executor_spin_some` periodi
 This is a function used by `rclc_executor_spin_period` to spin one time.
 The purpose is to test the accurary of the spin_period function in the unit tests.
 
-####Clean-Up
+#### Clean-Up
 
 **rclc_executor_fini()**
 
@@ -356,7 +356,7 @@ We provide the relevant code snippets how to setup the RCLC-Executor for the emb
 
 #### Example real-time embedded application use-case
 
-With seqential execution the co-operative scheduling of tasks within a process can be modeled.
+With sequential execution the co-operative scheduling of tasks within a process can be modeled.
 The trigger condition is used to periodically activate the process which will then execute all callbacks in a pre-defined order.
 Data will be communicated using the LET-semantics.
 Every Executor is executed in its own tread, to which an appropriate priority can be assigned.
@@ -365,7 +365,7 @@ In the following example, the Executor is setup with 4 handles.
 We assume a process has three subscriptions `sub1`, `sub2`, `sub3`.
 The sequential processing order is given by the order as they are added to the Executor.
 A timer `timer` defines the period.
-The `trigger_one` with the paramter `timer` is used, so that whenever the timer is ready, all callbacks are processed. Finally the data communication semantics LET is defined.
+The `trigger_one` with the parameter `timer` is used, so that whenever the timer is ready, all callbacks are processed. Finally the data communication semantics LET is defined.
 ```C
 #include "rcl_executor/let_executor.h"
 
@@ -482,7 +482,7 @@ while (true) {
 ```
 
 The setup for the sensor fusion using sequential execution is shown below.
-Note, that the sequetial order is `sense_IMU`, which will request the aggregated IMU message, and then `sense_Laser` while the trigger will fire, when a laser message is received.
+Note, that the sequential order is `sense_IMU`, which will request the aggregated IMU message, and then `sense_Laser` while the trigger will fire, when a laser message is received.
 
 ```C
 ...
@@ -537,7 +537,7 @@ Convenience functions:
 - rclc_timer_init_default()
 
 The setup of RCL objects is simplified, by defining a new type `rclc_support_t`, which contains
-the paramaters used in multiple RCL initialization functions:
+the parameters used in multiple RCL initialization functions:
 
 ```C
 typedef struct
@@ -550,7 +550,7 @@ typedef struct
 ```
 
 In the example provided in [rclc_examples](../rclc_examples), one node with one publisher, one timer and one subscription is implemented with and without the convenience functions.
-The number of code lines of the exmaple to setup the rcl objects with the convenience functions is reduced by 24% compared to the initialization using the rcl API.
+The number of code lines of the example to setup the rcl objects with the convenience functions is reduced by 24% compared to the initialization using the rcl API.
 
 ## RCLC-Example Package
 
