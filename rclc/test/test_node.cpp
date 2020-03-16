@@ -1,4 +1,6 @@
-// Copyright 2017 Open Source Robotics Foundation, Inc.
+// Copyright (c) 2019 - for information on the respective copyright owner
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
+// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,40 +13,54 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #include <gtest/gtest.h>
+#include "rclc/node.h"
 
-#include "rclc/rclc.h"
+TEST(Test, rclc_node_init_default) {
+  rclc_support_t support;
+  rcl_ret_t rc;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rc = rclc_support_init(&support, 0, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  const char * my_name = "test_name";
+  const char * my_namespace = "test_namespace";
+  rcl_node_t node = rcl_get_zero_initialized_node();
 
-#define EXPECT_NULL(ptr) EXPECT_EQ((void *)ptr, (void *)NULL)
-#define EXPECT_NON_NULL(ptr) EXPECT_NE((void *)ptr, (void *)NULL)
+  // test with valid arguments
+  rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
-class TestNode : public ::testing::Test
-{
-protected:
-  static void SetUpTestCase()
-  {
-    rclc_init(0, NULL);
-  }
-};
+  // tests with invalid arguments
 
-/*
-   Testing node construction and destruction.
- */
-TEST_F(TestNode, construction_and_destruction) {
-  {
-    rclc_node_t * node = rclc_create_node("my_node", "/ns");
-    EXPECT_NON_NULL(node);
-    rclc_destroy_node(node);
-  }
+  // test case: node already initialized
+  rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, rc);
+  rcutils_reset_error();
 
-  {
-    rclc_node_t * node = rclc_create_node("invalid_node?", "/ns");
-    EXPECT_NULL(node);
-  }
+  // test case: null pointer for node
+  rc = rclc_node_init_default(nullptr, my_name, my_namespace, &support);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
 
-  {
-    rclc_node_t * node = rclc_create_node("my_node", "/invalid_ns?");
-    EXPECT_NULL(node);
-  }
+  // test case: null pointer for name
+  rc = rcl_node_fini(&node);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  node = rcl_get_zero_initialized_node();
+  rc = rclc_node_init_default(&node, nullptr, my_namespace, &support);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  // test case: null pointer for namespace
+  rc = rclc_node_init_default(&node, my_name, nullptr, &support);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  // test case: null pointer for support obj
+  rc = rclc_node_init_default(&node, my_name, my_namespace, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  // clean up
+  rc = rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_OK, rc);
 }

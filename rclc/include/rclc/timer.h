@@ -13,45 +13,44 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-#ifndef RCLC__TYPES_H_
-#define RCLC__TYPES_H_
+#ifndef RCLC__TIMER_H_
+#define RCLC__TIMER_H_
 
 #if __cplusplus
 extern "C"
 {
 #endif
 
-#include <rcl/init_options.h>
-#include <rcl/context.h>
-#include <rcl/allocator.h>
-#include <rcl/time.h>
-
-typedef struct
-{
-  rcl_init_options_t init_options;
-  rcl_context_t context;
-  rcl_allocator_t * allocator;
-  rcl_clock_t clock;
-} rclc_support_t;
-
+#include <rcl/timer.h>
+#include <rclc/types.h>
 
 /**
- * macro to print errors
+ *  Creates an rcl timer.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes (in RCL)
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] timer a zero-initialized rcl_timer_t
+ * \param[in] support the rclc_support_t object
+ * \param[in] timeout_ns the time out in nanoseconds of the timer
+ * \param[in] callback the callback of the timer
+ * \return `RCL_RET_OK` if successful
+ * \return `RCL_ERROR` (or other error code) if an error occurred
  */
-#ifndef PRINT_RCLC_ERROR
-#define PRINT_RCLC_ERROR(rclc, rcl) \
-  do { \
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, \
-      "[" #rclc "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \
-    rcl_reset_error(); \
-  } while (0)
-#endif
-
-#define UNUSED(x) (void)x;
+rcl_ret_t
+rclc_timer_init_default(
+  rcl_timer_t * timer,
+  rclc_support_t * support,
+  const uint64_t timeout_ns,
+  const rcl_timer_callback_t callback);
 
 #if __cplusplus
 }
 #endif
 
-#endif  // RCLC__TYPES_H_
+#endif  // RCLC__TIMER_H_

@@ -13,48 +13,45 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <std_msgs/msg/int32.h>
 #include <gtest/gtest.h>
-#include <rclc/rclc.h>
+#include "rclc/init.h"
 
-TEST(Test, rclc_subscription_init_default) {
+TEST(Test, rclc_support_init) {
   rclc_support_t support;
   rcl_ret_t rc;
-
-  // preliminary setup
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
-  const char * my_name = "test_name";
-  const char * my_namespace = "test_namespace";
-  rcl_node_t node = rcl_get_zero_initialized_node();
-  rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
-
-  // test with valid arguments
-
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  const rosidl_message_type_support_t * type_support =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  rc = rclc_subscription_init_default(&subscription, &node, type_support, "topic1");
   EXPECT_EQ(RCL_RET_OK, rc);
-
-  // tests with invalid arguments
-  rc = rclc_subscription_init_default(nullptr, &node, type_support, "topic1");
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, nullptr, type_support, "topic1");
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, &node, nullptr, "topic1");
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  rc = rclc_subscription_init_default(&subscription, &node, type_support, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  // clean up
-  rc = rcl_subscription_fini(&subscription, &node);
-  EXPECT_EQ(RCL_RET_OK, rc);
-  rc = rcl_node_fini(&node);
-  EXPECT_EQ(RCL_RET_OK, rc);
+  // after rcl_init context should be valid
+  ASSERT_TRUE(rcl_context_is_valid(&support.context));
+  EXPECT_EQ(&allocator, support.allocator);
+  EXPECT_TRUE(rcl_clock_valid(&support.clock));
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
+  // test invalid arguments
+  rc = rclc_support_init(nullptr, 0, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+  rc = rclc_support_init(&support, 0, nullptr, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+}
+
+
+TEST(Test, rclc_support_fini) {
+  rclc_support_t support;
+  rcl_ret_t rc;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rc = rclc_support_init(&support, 0, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  // test invalid arguments
+  rc = rclc_support_fini(nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+  // calling _fini multiple times gives an error
+  rc = rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
 }
