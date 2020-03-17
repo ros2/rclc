@@ -4,9 +4,10 @@
   <name>rclc</name>
   <version>0.0.0</version>
   <description>The ROS client library in C.</description>
+  <author email="william@osrfoundation.org">William Woodall</author>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="julianbermudez@eprosima.com">Julián Bermúdez Ortega</maintainer>
-  <author> Jan Staschulat</author>
+  <author>Jan Staschulat</author>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
