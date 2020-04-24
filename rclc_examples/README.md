@@ -3,9 +3,9 @@ General information about this repository, including legal information, build in
 # The rclc_examples package
 
 The rclc_examples package provides examples for using the RCLC-Exector and convenience functions.
-- [example_executor.c](example_executor.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
-- [example_executor_convenience.c](example_executor_convenience.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
-- [example_executor_trigger.c](example_executor_trigger.c) demonstrates the trigger condition of the RCLC-Executor.
+- [example_executor.c](src/example_executor.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
+- [example_executor_convenience.c](src/example_executor_convenience.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
+- [example_executor_trigger.c](src/example_executor_trigger.c) demonstrates the trigger condition of the RCLC-Executor.
 
 The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with RCL objects compared to using the convenience functions is about 24%:
 - example_executor.c: 92 LoC (lines 56-148)
