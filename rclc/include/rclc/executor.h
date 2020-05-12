@@ -30,6 +30,12 @@ extern "C"
 #include "rclc/executor_handle.h"
 #include "rclc/types.h"
 
+// backport for ROS 2 version Dashing and Eloquent
+// these pre-processor macros are set in CMakeList.txt
+#if defined (ROS_VERSION_ELOQUENT) || defined (ROS_VERSION_DASHING)
+#include <rclc/rcl_foxy.h>
+#endif
+
 /*! \file executor.h
     \brief The RCLC-Executor provides an Executor based on RCL in which all callbacks are
     processed in a user-defined order.
