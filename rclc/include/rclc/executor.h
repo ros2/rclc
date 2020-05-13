@@ -30,9 +30,10 @@ extern "C"
 #include "rclc/executor_handle.h"
 #include "rclc/types.h"
 
-// backport for ROS 2 version Dashing and Eloquent
-// these pre-processor macros are set in CMakeList.txt
-#if defined (ROS_VERSION_ELOQUENT) || defined (ROS_VERSION_DASHING)
+// backport for Dashing and Eloquent for function 'rcl_wait_set_is_valid'
+// which is supported in ROS 2 Foxy release and not available in earlier releases
+// this pre-processor macro is defined in CMakeLists.txt
+#if defined (ROS2_BACKPORT_RCL_WAIT_SET)
 #include <rclc/rcl_foxy.h>
 #endif
 

@@ -13,8 +13,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef RCL__RCL_ELOQUENT_H_
-#define RCL__RCL_ELOQUENT_H_
+
+#ifndef RCLC__RCL_FOXY_H_
+#define RCLC__RCL_FOXY_H_
 
 #if __cplusplus
 extern "C"
@@ -46,4 +47,4 @@ rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set);
 }
 #endif
 
-#endif  // RCL__RCL_ELOQUENT_H_
+#endif  // RCLC__RCL_FOXY_H_

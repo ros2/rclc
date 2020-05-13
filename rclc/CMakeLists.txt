@@ -17,24 +17,6 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-# pass ROS_DISTRO as preprocessor macro to the compiler
-if ($ENV{ROS_DISTRO} STREQUAL eloquent)
-  message("Building for ROS 2 Version Eloquent")
-  set(ROS_VERSION_ELOQUENT 1)
-  # this should be the correct way, but only available from CMake 3.12
-  #add_compile_definitions(ROS_VERSION_ELOQUENT)
-  add_definitions(-DROS_VERSION_ELOQUENT)
-endif()
-
-# pass ROS_DISTRO as preprocessor macro to the compiler
-if ($ENV{ROS_DISTRO} STREQUAL dashing)
-  message("Building for ROS 2 Version Dashing")
-  set(ROS_VERSION_DASHING 1)
-  # this should be the correct way, but only available from CMake 3.12
-  #add_compile_definitions(ROS_VERSION_DASHING)
-  add_definitions(-DROS_VERSION_DASHING)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -50,21 +32,30 @@ find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
+if("${rcl_VERSION}" VERSION_LESS "1.0.0")
+  message("rcl_VERSION: Probably Dashing or Eloquent")
+  #add_compile_definitions(ROS2_BACKPORT_RCL_WAIT_SET)
+  add_definitions(-DROS2_BACKPORT_RCL_WAIT_SET)
+else()
+  message("rcl_VERSION: Probably Foxy")
+endif()
+
 #################################################
 # create library
 #################################################
+
 add_library(${PROJECT_NAME}
- src/init.c
- src/publisher.c
- src/subscription.c
- src/timer.c
- src/node.c
- src/executor_handle.c
- src/executor.c
- #if (defined ROS_VERSION_ELOQUENT or defined ROS_VERION_DASHING)
-   src/rcl_foxy.c
- #endif
- )
+  src/init.c
+  src/publisher.c
+  src/subscription.c
+  src/timer.c
+  src/node.c
+  src/executor_handle.c
+  src/executor.c
+  #if (defined ROS2_BACKPORT_RCL_WAIT_SET)
+  src/rcl_foxy.c
+  #endif
+)
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
