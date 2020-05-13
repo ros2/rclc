@@ -657,7 +657,7 @@ rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
     RCL_SET_ERROR_MSG("rclc_executor_spin_some error");
     return ret;
   }
-  // sleep until invocation_time plus period
+  // sleep UNTIL next invocation time point = invocation_time + period
   ret = rcutils_system_time_now(&end_time_point);
   sleep_time = (executor->invocation_time + period) - end_time_point;
   if (sleep_time > 0) {
