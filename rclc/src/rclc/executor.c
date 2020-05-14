@@ -24,7 +24,7 @@
 // in case of building for Dashing and Eloquent. This pre-processor macro
 // is defined in CMakeLists.txt.
 #if defined (USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
-#include "rcl_wait_set_is_valid_backport.h"
+#include "rclc/rcl_wait_set_is_valid_backport.h"
 #endif
 
 
@@ -578,14 +578,14 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         rc = rcl_wait_set_add_subscription(
           &executor->wait_set, executor->handles[i].subscription,
           &executor->handles[i].index);
-        if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
-          return rc;
-        } else {
+        if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME,
             "Subscription added to wait_set_subscription[%ld]",
             executor->handles[i].index);
+        } else {
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
+          return rc;
         }
         break;
 
@@ -594,13 +594,13 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         rc = rcl_wait_set_add_timer(
           &executor->wait_set, executor->handles[i].timer,
           &executor->handles[i].index);
-        if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_timer);
-          return rc;
-        } else {
+        if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
             executor->handles[i].index);
+        } else {
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_timer);
+          return rc;
         }
         break;
 
@@ -616,6 +616,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
   // wait up to 'timeout_ns' to receive notification about which handles reveived
   // new data from DDS queue.
   rc = rcl_wait(&executor->wait_set, timeout_ns);
+  UNUSED(rc);
 
   // based on semantics process input data
   switch (executor->data_comm_semantics) {
@@ -628,11 +629,6 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     default:
       PRINT_RCLC_ERROR(rclc_executor_spin_some, unknown_semantics);
       return RCL_RET_ERROR;
-  }
-
-  if (rc != RCL_RET_OK) {
-    // PRINT_RCLC_ERROR has been called in _rclc_*_scheduling()
-    return rc;
   }
 
   return rc;
@@ -672,6 +668,7 @@ rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
 
   if (executor->invocation_time == 0) {
     ret = rcutils_system_time_now(&executor->invocation_time);
+    UNUSED(ret);
   }
   ret = rclc_executor_spin_some(executor, executor->timeout_ns);
   if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {

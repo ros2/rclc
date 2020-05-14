@@ -14,10 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl_wait_set_is_valid_backport.h"
+#ifndef RCL_WAIT_SET_IS_VALID_BACKPORT_H_
+#define RCL_WAIT_SET_IS_VALID_BACKPORT_H_
+
+#if __cplusplus
+extern "C"
+{
+#endif
+
+#include <rcl/wait.h>
+/**
+ *  RCLC-Executor built for ROS2 Version Eloquent
+ *  This is a compatability function, which is not available in ROS2 Dashing.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] wait_set rcl wait set
+ * \return true if wait_set is initialized
+ * \return false otherwise
+ */
 
 bool
-rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
-{
-  return wait_set && wait_set->impl;
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set);
+
+#if __cplusplus
 }
+#endif
+
+#endif  // RCL_WAIT_SET_IS_VALID_BACKPORT_H_

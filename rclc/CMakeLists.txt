@@ -3,6 +3,8 @@ set(CMAKE_C_CLANG_TIDY clang-tidy -checks=*)
 
 project(rclc)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 #################################################
 # compiler settings
 #################################################
@@ -33,10 +35,11 @@ find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  message("Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
-  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)   # With CMake 3.12+ use: add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
+  # With CMake 3.12+ use: add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT) 
 else()
-  message("Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
+  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
   find_package(rosidl_runtime_c REQUIRED)
 endif()
 
@@ -45,17 +48,17 @@ endif()
 #################################################
 
 add_library(${PROJECT_NAME}
-  src/init.c
-  src/publisher.c
-  src/subscription.c
-  src/timer.c
-  src/node.c
-  src/executor_handle.c
-  src/executor.c
-  #if (defined USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
-  src/rcl_wait_set_is_valid_backport.c
-  #endif
+  src/rclc/init.c
+  src/rclc/publisher.c
+  src/rclc/subscription.c
+  src/rclc/timer.c
+  src/rclc/node.c
+  src/rclc/executor_handle.c
+  src/rclc/executor.c
 )
+if("${rcl_VERSION}" VERSION_LESS "1.0.0")
+  target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
+endif()
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
@@ -92,13 +95,13 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
-    test/test_init.cpp
-    test/test_node.cpp
-    test/test_publisher.cpp
-    test/test_subscription.cpp
-    test/test_timer.cpp
-    test/test_executor_handle.cpp
-    test/test_executor.cpp
+    test/rclc/test_init.cpp
+    test/rclc/test_node.cpp
+    test/rclc/test_publisher.cpp
+    test/rclc/test_subscription.cpp
+    test/rclc/test_timer.cpp
+    test/rclc/test_executor_handle.cpp
+    test/rclc/test_executor.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)

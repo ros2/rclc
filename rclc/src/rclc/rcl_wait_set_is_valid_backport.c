@@ -14,37 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC__RCL_FOXY_H_
-#define RCLC__RCL_FOXY_H_
-
-#if __cplusplus
-extern "C"
-{
-#endif
-
-#include <rcl/wait.h>
-/**
- *  RCLC-Executor built for ROS2 Version Eloquent
- *  This is a compatability function, which is not available in ROS2 Dashing.
- *
- *  * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] wait_set rcl wait set
- * \return true if wait_set is initialized
- * \return false otherwise
- */
+#include "rclc/rcl_wait_set_is_valid_backport.h"
 
 bool
-rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set);
-
-#if __cplusplus
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
+{
+  return wait_set && wait_set->impl;
 }
-#endif
-
-#endif  // RCLC__RCL_FOXY_H_

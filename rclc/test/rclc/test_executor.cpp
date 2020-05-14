@@ -13,8 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "rclc/executor.h"
-
 #include <std_msgs/msg/int32.h>
 #include <gtest/gtest.h>
 
@@ -22,6 +20,7 @@
 #include <thread>
 #include <vector>
 
+#include "rclc/executor.h"
 #include <osrf_testing_tools_cpp/scope_exit.hpp>
 #include <rcutils/time.h>
 
@@ -29,7 +28,7 @@
 // in case of building for Dashing and Eloquent. This pre-processor macro
 // is defined in CMakeLists.txt.
 #if defined (USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
-#include "rcl_wait_set_is_valid_backport.h"
+#include "rclc/rcl_wait_set_is_valid_backport.h"
 #endif
 
 
@@ -1083,7 +1082,7 @@ TEST_F(TestDefaultExecutor, spin_period) {
   printf("expected  'spin_period' : %ld ns\n", spin_period);
   printf("actual (%d iterations) : %ld ns\n", TC_SPIN_PERIOD_MAX_INVOCATIONS, duration);
 
-  uint64_t delta = 10000;  // 10 micro-seconds interval
+  uint64_t delta = 5000000;  // 5 ms interval
   EXPECT_LE(duration, spin_period + delta);
   EXPECT_LE(spin_period - delta, duration);
 }
