@@ -2,6 +2,6 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2020-05-14)
+------------------
 * Initial release
