@@ -3,6 +3,8 @@ set(CMAKE_C_CLANG_TIDY clang-tidy -checks=*)
 
 project(rclc)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 #################################################
 # compiler settings
 #################################################
@@ -32,15 +34,39 @@ find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
+if("${rcl_VERSION}" VERSION_LESS "1.0.0")
+  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
+  # Later, with CMake 3.12+ use:
+  # add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+else()
+  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
+  find_package(rosidl_runtime_c REQUIRED)
+endif()
+
 #################################################
 # create library
 #################################################
-add_library(${PROJECT_NAME} src/init.c src/publisher.c src/subscription.c src/timer.c src/node.c src/executor_handle.c src/executor.c)
+
+add_library(${PROJECT_NAME}
+  src/rclc/init.c
+  src/rclc/publisher.c
+  src/rclc/subscription.c
+  src/rclc/timer.c
+  src/rclc/node.c
+  src/rclc/executor_handle.c
+  src/rclc/executor.c
+)
+if("${rcl_VERSION}" VERSION_LESS "1.0.0")
+  target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
+endif()
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
 
 ament_target_dependencies(${PROJECT_NAME}
@@ -72,16 +98,16 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
-    test/test_init.cpp
-    test/test_node.cpp
-    test/test_publisher.cpp
-    test/test_subscription.cpp
-    test/test_timer.cpp
-    test/test_executor_handle.cpp
-    test/test_executor.cpp
+    test/rclc/test_init.cpp
+    test/rclc/test_node.cpp
+    test/rclc/test_publisher.cpp
+    test/rclc/test_subscription.cpp
+    test/rclc/test_timer.cpp
+    test/rclc/test_executor_handle.cpp
+    test/rclc/test_executor.cpp
   )
 
-  target_include_directories(${PROJECT_NAME}_test PRIVATE include)
+  target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
     rcl

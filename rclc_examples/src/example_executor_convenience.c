@@ -12,10 +12,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <stdio.h>
+
 #include <std_msgs/msg/string.h>
 #include <rclc/rclc.h>
-#include "rclc/executor.h"
+#include <rclc/executor.h>
+
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
@@ -106,10 +109,11 @@ int main(int argc, const char * argv[])
 
   // assign message to publisher
   std_msgs__msg__String__init(&pub_msg);
-  const unsigned int PUB_MSG_SIZE = 20;
-  char pub_string[PUB_MSG_SIZE];
-  snprintf(pub_string, 13, "%s", "Hello World!");
-  rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
+  const unsigned int PUB_MSG_CAPACITY = 20;
+  pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
+  pub_msg.data.capacity = PUB_MSG_CAPACITY;
+  snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!");
+  pub_msg.data.size = strlen(pub_msg.data.data);
 
   // create subscription
   rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
@@ -147,8 +151,9 @@ int main(int argc, const char * argv[])
   }
 
   // add subscription to executor
-  rc = rclc_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor, &my_sub, &sub_msg, &my_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription. \n");
   }
@@ -170,6 +175,8 @@ int main(int argc, const char * argv[])
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
+  std_msgs__msg__String__fini(&pub_msg);
+  std_msgs__msg__String__fini(&sub_msg);
 
   if (rc != RCL_RET_OK) {
     printf("Error while cleaning up!\n");
