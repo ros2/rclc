@@ -13,17 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <stdio.h>
+#include <unistd.h>
+
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
-#include "rclc/executor.h"
-#include <unistd.h>
+#include <rclc/executor.h>
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
 rcl_publisher_t my_int_pub;
 
-std_msgs__msg__String pub_msg;
 std_msgs__msg__String sub_msg;
 
 std_msgs__msg__Int32 pub_int_msg;
@@ -153,15 +153,13 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
 
-    // create message
+    std_msgs__msg__String pub_msg;
     std_msgs__msg__String__init(&pub_msg);
-    const unsigned int PUB_MSG_SIZE = 20;
-    char pub_string[PUB_MSG_SIZE];
-    char num_string[10];
-    snprintf(pub_string, 14, "%s", "Hello World! ");
-    sprintf(num_string, "%d", pub_string_value++);
-    strcat(pub_string, num_string);
-    rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
+    const unsigned int PUB_MSG_CAPACITY = 20;
+    pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
+    pub_msg.data.capacity = PUB_MSG_CAPACITY;
+    snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!%d", pub_string_value++);
+    pub_msg.data.size = strlen(pub_msg.data.data);
 
     rc = rcl_publish(&my_pub, &pub_msg, NULL);
     if (rc == RCL_RET_OK) {
@@ -169,6 +167,7 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
     } else {
       printf("Error in my_timer_string_callback: publishing message %s\n", pub_msg.data.data);
     }
+    std_msgs__msg__String__fini(&pub_msg);
   } else {
     printf("Error in my_timer_string_callback: timer parameter is NULL\n");
   }
@@ -379,17 +378,19 @@ int main(int argc, const char * argv[])
   rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg,
-      &my_string_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor_sub, &my_string_sub, &sub_msg,
+    &my_string_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_string_sub'. \n");
   }
 
   // add int subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg,
-      &my_int_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor_sub, &my_int_sub, &sub_int_msg,
+    &my_int_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_int_sub'. \n");
   }

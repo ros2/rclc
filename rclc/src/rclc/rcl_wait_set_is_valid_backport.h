@@ -14,45 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC__TYPES_H_
-#define RCLC__TYPES_H_
+#ifndef RCLC__RCL_WAIT_SET_IS_VALID_BACKPORT_H_
+#define RCLC__RCL_WAIT_SET_IS_VALID_BACKPORT_H_
 
 #if __cplusplus
 extern "C"
 {
 #endif
 
-#include <rcl/init_options.h>
-#include <rcl/context.h>
-#include <rcl/allocator.h>
-#include <rcl/time.h>
-
-typedef struct
-{
-  rcl_init_options_t init_options;
-  rcl_context_t context;
-  rcl_allocator_t * allocator;
-  rcl_clock_t clock;
-} rclc_support_t;
-
-
+#include <rcl/wait.h>
 /**
- * macro to print errors
+ *  RCLC-Executor built for ROS2 Version Eloquent
+ *  This is a compatability function, which is not available in ROS2 Dashing.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] wait_set rcl wait set
+ * \return true if wait_set is initialized
+ * \return false otherwise
  */
-#ifndef PRINT_RCLC_ERROR
-#define PRINT_RCLC_ERROR(rclc, rcl) \
-  do { \
-    RCUTILS_LOG_ERROR_NAMED( \
-      ROS_PACKAGE_NAME, \
-      "[" #rclc "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \
-    rcl_reset_error(); \
-  } while (0)
-#endif
 
-#define UNUSED(x) (void)x;
+bool
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set);
 
 #if __cplusplus
 }
 #endif
 
-#endif  // RCLC__TYPES_H_
+#endif  // RCLC__RCL_WAIT_SET_IS_VALID_BACKPORT_H_

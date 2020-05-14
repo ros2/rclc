@@ -14,45 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC__TYPES_H_
-#define RCLC__TYPES_H_
+#include "rclc/rcl_wait_set_is_valid_backport.h"
 
-#if __cplusplus
-extern "C"
+bool
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
 {
-#endif
-
-#include <rcl/init_options.h>
-#include <rcl/context.h>
-#include <rcl/allocator.h>
-#include <rcl/time.h>
-
-typedef struct
-{
-  rcl_init_options_t init_options;
-  rcl_context_t context;
-  rcl_allocator_t * allocator;
-  rcl_clock_t clock;
-} rclc_support_t;
-
-
-/**
- * macro to print errors
- */
-#ifndef PRINT_RCLC_ERROR
-#define PRINT_RCLC_ERROR(rclc, rcl) \
-  do { \
-    RCUTILS_LOG_ERROR_NAMED( \
-      ROS_PACKAGE_NAME, \
-      "[" #rclc "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \
-    rcl_reset_error(); \
-  } while (0)
-#endif
-
-#define UNUSED(x) (void)x;
-
-#if __cplusplus
+  return wait_set && wait_set->impl;
 }
-#endif
-
-#endif  // RCLC__TYPES_H_
