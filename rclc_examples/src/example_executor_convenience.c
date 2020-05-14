@@ -157,8 +157,9 @@ int main(int argc, const char * argv[])
   }
 
   // add subscription to executor
-  rc = rclc_executor_add_subscription(&executor, &my_sub, &sub_msg, &my_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor, &my_sub, &sub_msg, &my_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription. \n");
   }

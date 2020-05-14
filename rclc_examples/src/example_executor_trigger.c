@@ -389,17 +389,19 @@ int main(int argc, const char * argv[])
   rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_string_sub, &sub_msg,
-      &my_string_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor_sub, &my_string_sub, &sub_msg,
+    &my_string_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_string_sub'. \n");
   }
 
   // add int subscription to executor
-  rc = rclc_executor_add_subscription(&executor_sub, &my_int_sub, &sub_int_msg,
-      &my_int_subscriber_callback,
-      ON_NEW_DATA);
+  rc = rclc_executor_add_subscription(
+    &executor_sub, &my_int_sub, &sub_int_msg,
+    &my_int_subscriber_callback,
+    ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_subscription 'my_int_sub'. \n");
   }

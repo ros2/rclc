@@ -109,8 +109,9 @@ rclc_executor_init(
   executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   // allocate memory for the array
   executor->handles =
-    executor->allocator->allocate( (number_of_handles * sizeof(rclc_executor_handle_t)),
-      executor->allocator->state);
+    executor->allocator->allocate(
+    (number_of_handles * sizeof(rclc_executor_handle_t)),
+    executor->allocator->state);
   if (NULL == executor->handles) {
     RCL_SET_ERROR_MSG("Could not allocate memory for 'handles'.");
     return RCL_RET_BAD_ALLOC;
@@ -325,7 +326,8 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
       break;
 
     default:
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
         handle->type);
       return RCL_RET_ERROR;
   }    // switch-case
@@ -347,8 +349,9 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
     case SUBSCRIPTION:
       if (wait_set->subscriptions[handle->index]) {
         rmw_message_info_t messageInfo;
-        rc = rcl_take(handle->subscription, handle->data, &messageInfo,
-            NULL);
+        rc = rcl_take(
+          handle->subscription, handle->data, &messageInfo,
+          NULL);
         if (rc != RCL_RET_OK) {
           // it is documented, that rcl_take might return this error with successfull rcl_wait
           if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
@@ -366,7 +369,8 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
       break;
 
     default:
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
         handle->type);
       return RCL_RET_ERROR;
   }    // switch-case
@@ -420,7 +424,8 @@ _rclc_execute(rclc_executor_handle_t * handle)
         break;
 
       default:
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Execute callback: unknwon handle type: %d",
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Execute callback: unknwon handle type: %d",
           handle->type);
         return RCL_RET_ERROR;
     }    // switch-case
@@ -449,8 +454,9 @@ _rclc_default_scheduling(rclc_executor_t * executor)
     }
   }
   // if the trigger condition is fullfilled, fetch data and execute
-  if (executor->trigger_function(executor->handles, executor->max_handles,
-    executor->trigger_object))
+  if (executor->trigger_function(
+      executor->handles, executor->max_handles,
+      executor->trigger_object))
   {
     // take new input data from DDS-queue and execute the corresponding callback of the handle
     for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
@@ -492,8 +498,9 @@ _rclc_let_scheduling(rclc_executor_t * executor)
 
   // if the trigger condition is fullfilled, fetch data and execute
   // complexity: O(n) where n denotes the number of handles
-  if (executor->trigger_function(executor->handles, executor->max_handles,
-    executor->trigger_object))
+  if (executor->trigger_function(
+      executor->handles, executor->max_handles,
+      executor->trigger_object))
   {
     // step 1: read input data
     for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
@@ -534,11 +541,12 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     // initialize wait_set
     executor->wait_set = rcl_get_zero_initialized_wait_set();
     // create sufficient memory space for all handles in the wait_set
-    rc = rcl_wait_set_init(&executor->wait_set, executor->info.number_of_subscriptions,
-        executor->info.number_of_guard_conditions, executor->info.number_of_timers,
-        executor->info.number_of_clients, executor->info.number_of_services,
-        executor->info.number_of_events,
-        executor->context, rcl_get_default_allocator());
+    rc = rcl_wait_set_init(
+      &executor->wait_set, executor->info.number_of_subscriptions,
+      executor->info.number_of_guard_conditions, executor->info.number_of_timers,
+      executor->info.number_of_clients, executor->info.number_of_services,
+      executor->info.number_of_events,
+      executor->context, rcl_get_default_allocator());
     if (rc != RCL_RET_OK) {
       PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_init);
       return rc;
@@ -559,13 +567,15 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     switch (executor->handles[i].type) {
       case SUBSCRIPTION:
         // add subscription to wait_set and save index
-        rc = rcl_wait_set_add_subscription(&executor->wait_set, executor->handles[i].subscription,
-            &executor->handles[i].index);
+        rc = rcl_wait_set_add_subscription(
+          &executor->wait_set, executor->handles[i].subscription,
+          &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
           return rc;
         } else {
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME,
             "Subscription added to wait_set_subscription[%ld]",
             executor->handles[i].index);
         }
@@ -573,19 +583,22 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
 
       case TIMER:
         // add timer to wait_set and save index
-        rc = rcl_wait_set_add_timer(&executor->wait_set, executor->handles[i].timer,
-            &executor->handles[i].index);
+        rc = rcl_wait_set_add_timer(
+          &executor->wait_set, executor->handles[i].timer,
+          &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_timer);
           return rc;
         } else {
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
             executor->handles[i].index);
         }
         break;
 
       default:
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
           executor->handles[i].type);
         PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_unknown_handle);
         return RCL_RET_ERROR;
