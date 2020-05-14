@@ -16,7 +16,11 @@
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
 #include <rosidl_generator_c/string_functions.h>
+<<<<<<< HEAD
 #include "rclc/executor.h"
+=======
+#include <rclc/executor.h>
+>>>>>>> c5280c54090f24535da4adaf888cb109ddb79c51
 #include <unistd.h>
 
 // these data structures for the publisher and subscriber are global, so that

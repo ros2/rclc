@@ -15,9 +15,8 @@
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <rclc/rclc.h>
-#include "rclc/executor.h"
 #include <rosidl_generator_c/string_functions.h>
-
+#include <rclc/executor.h>
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
