@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rclc/rcl_foxy.h"
+#include "rcl_wait_set_is_valid_backport.h"
 
 bool
 rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)

@@ -20,6 +20,14 @@
 
 #include <rcutils/time.h>
 
+// Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
+// in case of building for Dashing and Eloquent. This pre-processor macro
+// is defined in CMakeLists.txt.
+#if defined (USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+#include "rcl_wait_set_is_valid_backport.h"
+#endif
+
+
 // default timeout for rcl_wait() is 100ms
 #define DEFAULT_WAIT_TIMEOUT_MS 100000000
 

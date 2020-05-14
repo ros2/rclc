@@ -33,11 +33,10 @@ find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  message("rcl_VERSION: Probably Dashing or Eloquent")
-  #add_compile_definitions(ROS2_BACKPORT_RCL_WAIT_SET)
-  add_definitions(-DROS2_BACKPORT_RCL_WAIT_SET)
+  message("Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
+  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)   # With CMake 3.12+ use: add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
 else()
-  message("rcl_VERSION: Probably Foxy")
+  message("Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
   find_package(rosidl_runtime_c REQUIRED)
 endif()
 
@@ -53,8 +52,8 @@ add_library(${PROJECT_NAME}
   src/node.c
   src/executor_handle.c
   src/executor.c
-  #if (defined ROS2_BACKPORT_RCL_WAIT_SET)
-  src/rcl_foxy.c
+  #if (defined USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+  src/rcl_wait_set_is_valid_backport.c
   #endif
 )
 
@@ -102,7 +101,7 @@ if(BUILD_TESTING)
     test/test_executor.cpp
   )
 
-  target_include_directories(${PROJECT_NAME}_test PRIVATE include)
+  target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
     rcl

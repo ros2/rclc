@@ -13,6 +13,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include "rclc/executor.h"
+
 #include <std_msgs/msg/int32.h>
 #include <gtest/gtest.h>
 
@@ -20,9 +22,16 @@
 #include <thread>
 #include <vector>
 
-#include "rclc/executor.h"
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
-#include "rcutils/time.h"
+#include <osrf_testing_tools_cpp/scope_exit.hpp>
+#include <rcutils/time.h>
+
+// Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
+// in case of building for Dashing and Eloquent. This pre-processor macro
+// is defined in CMakeLists.txt.
+#if defined (USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+#include "rcl_wait_set_is_valid_backport.h"
+#endif
+
 
 // 27.06.2019, unit test adapted from ros2/rcl/rcl_lifecycle/test/test_default_state_machine.cpp
 // by Jan Staschulat, under Apache 2.0 License

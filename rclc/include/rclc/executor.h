@@ -30,13 +30,6 @@ extern "C"
 #include "rclc/executor_handle.h"
 #include "rclc/types.h"
 
-// backport for Dashing and Eloquent for function 'rcl_wait_set_is_valid'
-// which is supported in ROS 2 Foxy release and not available in earlier releases
-// this pre-processor macro is defined in CMakeLists.txt
-#if defined (ROS2_BACKPORT_RCL_WAIT_SET)
-#include <rclc/rcl_foxy.h>
-#endif
-
 /*! \file executor.h
     \brief The RCLC-Executor provides an Executor based on RCL in which all callbacks are
     processed in a user-defined order.
