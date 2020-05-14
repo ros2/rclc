@@ -11,51 +11,27 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 11)
 endif()
 
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-#################################################
-# package dependencies
-#################################################
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rclc REQUIRED)
-find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
-if("${rosidl_generator_c_VERSION}" VERSION_LESS "0.9.1")
-  message("rosidl_generator_c_VERSION: Probably Dashing or Eloquent")
-  #add_compile_definitions(ROS2_BACKPORT_ROSIDL_GENERATOR_C)
-  add_definitions(-DROS2_BACKPORT_ROSIDL_GENERATOR_C)
-else()
-  message("rosidl_generator_c_VERSION: Probably Foxy")
-endif()
-
-#################################################
-# include directories
-#################################################
 include_directories(include)
 
-#################################################
-# examples
-#################################################
-
 add_executable(example_executor src/example_executor.c)
-ament_target_dependencies(example_executor rcl rclc rosidl_generator_c std_msgs)
+ament_target_dependencies(example_executor rcl rclc std_msgs)
 
 add_executable(example_executor_convenience src/example_executor_convenience.c)
-ament_target_dependencies(example_executor_convenience rcl rclc rosidl_generator_c std_msgs)
+ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
 
 add_executable(example_executor_trigger src/example_executor_trigger.c)
-ament_target_dependencies(example_executor_trigger rcl rclc rosidl_generator_c std_msgs)
+ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
 
 
 install(TARGETS

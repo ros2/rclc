@@ -12,14 +12,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <stdio.h>
-#include <std_msgs/msg/string.h>
-#if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
-#include <rosidl_generator_c/string_functions.h>
-#else
-#include <rosidl_runtime_c/string_functions.h>
-#endif
+
 #include <rclc/executor.h>
+#include <std_msgs/msg/string.h>
+
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
@@ -128,15 +126,11 @@ int main(int argc, const char * argv[])
 
   // assign message to publisher
   std_msgs__msg__String__init(&pub_msg);
-  const unsigned int PUB_MSG_SIZE = 20;
-  char pub_string[PUB_MSG_SIZE];
-  snprintf(pub_string, 13, "%s", "Hello World!");
-
-  #if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
-  rosidl_generator_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
-  #else
-  rosidl_runtime_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
-  #endif
+  const unsigned int PUB_MSG_CAPACITY = 20;
+  pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
+  pub_msg.data.capacity = PUB_MSG_CAPACITY;
+  snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!");
+  pub_msg.data.size = strlen(pub_msg.data.data);
 
   // create subscription
   rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
@@ -203,6 +197,8 @@ int main(int argc, const char * argv[])
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
   rc += rcl_init_options_fini(&init_options);
+  std_msgs__msg__String__fini(&pub_msg);
+  std_msgs__msg__String__fini(&sub_msg);
 
   if (rc != RCL_RET_OK) {
     printf("Error while cleaning up!\n");
