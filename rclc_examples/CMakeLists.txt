@@ -28,6 +28,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rclc REQUIRED)
+find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
 #################################################
@@ -40,13 +41,13 @@ include_directories(include)
 #################################################
 
 add_executable(example_executor src/example_executor.c)
-ament_target_dependencies(example_executor rcl rclc std_msgs)
+ament_target_dependencies(example_executor rcl rclc rosidl_generator_c std_msgs)
 
 add_executable(example_executor_convenience src/example_executor_convenience.c)
-ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
+ament_target_dependencies(example_executor_convenience rcl rclc rosidl_generator_c std_msgs)
 
 add_executable(example_executor_trigger src/example_executor_trigger.c)
-ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
+ament_target_dependencies(example_executor_trigger rcl rclc rosidl_generator_c std_msgs)
 
 
 install(TARGETS

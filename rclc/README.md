@@ -717,7 +717,7 @@ int main(int argc, const char * argv[])
   const unsigned int PUB_MSG_SIZE = 20;
   char pub_string[PUB_MSG_SIZE];
   snprintf(pub_string, 13, "%s", "Hello World!");
-  rosidl_generator_c__String__assignn(&pub_msg, pub_string, PUB_MSG_SIZE);
+  rosidl_generator_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
 ```
 **Step 6:** <a name="Step6"> </a> Create an rcl_subscription `my_sub` with the topic `topic_name`.
 
