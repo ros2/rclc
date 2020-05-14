@@ -6,11 +6,12 @@
   <description>The ROS client library in C.</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="julianbermudez@eprosima.com">Julián Bermúdez Ortega</maintainer>
+
+  <license>Apache License 2.0</license>
+
   <author email="jan.staschulat@de.bosch.com">Jan Staschulat</author>
   <author email="william@osrfoundation.org">William Woodall</author>
  
-  <license>Apache License 2.0</license>
-
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <build_depend>rcl</build_depend>
