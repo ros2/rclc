@@ -36,8 +36,9 @@ find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
-  # With CMake 3.12+ use: add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
-  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT) 
+  # Later, with CMake 3.12+ use:
+  # add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
+  add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)
 else()
   message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
   find_package(rosidl_runtime_c REQUIRED)

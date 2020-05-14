@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "rclc/executor.h"
-#include <osrf_testing_tools_cpp/scope_exit.hpp>
-#include <rcutils/time.h>
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcutils/time.h"
 
 // Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
 // in case of building for Dashing and Eloquent. This pre-processor macro
@@ -1552,7 +1552,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(250));
   rclc_executor_spin_some(&executor, timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B called";
@@ -1564,7 +1564,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   _cb2_int_value = 0;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(250));
   rclc_executor_spin_some(&executor, timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 0) << " expected: A not called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
