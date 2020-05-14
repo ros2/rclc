@@ -1048,7 +1048,6 @@ TEST_F(TestDefaultExecutor, spin_period) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   // initialize executor with 1 handle
   rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -1378,6 +1377,7 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   // ------------------------- test case setup --------------------------------------------
   // first round
   _results_callback_init();
+  _executor_results_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
@@ -1457,6 +1457,7 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   // ------------------------- test case setup --------------------------------------------
   // first round
   _results_callback_init();
+  _executor_results_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
@@ -1533,6 +1534,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   // ------------------------- test case setup --------------------------------------------
   // first round
   _results_callback_init();
+  _executor_results_init();
   rclc_executor_spin_some(&executor, timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 0);
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0);
