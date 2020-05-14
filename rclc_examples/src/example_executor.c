@@ -14,7 +14,11 @@
 // limitations under the License.
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
+#if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
 #include <rosidl_generator_c/string_functions.h>
+#else
+#include <rosidl_runtime_c/string_functions.h>
+#endif
 #include <rclc/executor.h>
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
@@ -127,7 +131,13 @@ int main(int argc, const char * argv[])
   const unsigned int PUB_MSG_SIZE = 20;
   char pub_string[PUB_MSG_SIZE];
   snprintf(pub_string, 13, "%s", "Hello World!");
+
+  #if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
   rosidl_generator_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
+  #else
+  rosidl_runtime_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
+  #endif
+
   // create subscription
   rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();

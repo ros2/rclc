@@ -38,6 +38,7 @@ if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   add_definitions(-DROS2_BACKPORT_RCL_WAIT_SET)
 else()
   message("rcl_VERSION: Probably Foxy")
+  find_package(rosidl_runtime_c REQUIRED)
 endif()
 
 #################################################

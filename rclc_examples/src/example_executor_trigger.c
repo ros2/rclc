@@ -15,7 +15,11 @@
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
+#if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
 #include <rosidl_generator_c/string_functions.h>
+#else
+#include <rosidl_runtime_c/string_functions.h>
+#endif
 #include <rclc/executor.h>
 #include <unistd.h>
 
@@ -162,7 +166,13 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
     snprintf(pub_string, 14, "%s", "Hello World! ");
     sprintf(num_string, "%d", pub_string_value++);
     strcat(pub_string, num_string);
+
+    #if defined (ROS2_BACKPORT_ROSIDL_GENERATOR_C)
     rosidl_generator_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
+    #else
+    rosidl_runtime_c__String__assignn(&pub_msg.data, pub_string, PUB_MSG_SIZE);
+    #endif
+
     rc = rcl_publish(&my_pub, &pub_msg, NULL);
     if (rc == RCL_RET_OK) {
       printf("Published: %s\n", pub_msg.data.data);

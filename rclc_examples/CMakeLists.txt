@@ -31,6 +31,14 @@ find_package(rclc REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
+if("${rosidl_generator_c_VERSION}" VERSION_LESS "0.9.1")
+  message("rosidl_generator_c_VERSION: Probably Dashing or Eloquent")
+  #add_compile_definitions(ROS2_BACKPORT_ROSIDL_GENERATOR_C)
+  add_definitions(-DROS2_BACKPORT_ROSIDL_GENERATOR_C)
+else()
+  message("rosidl_generator_c_VERSION: Probably Foxy")
+endif()
+
 #################################################
 # include directories
 #################################################
