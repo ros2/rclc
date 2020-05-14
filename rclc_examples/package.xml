@@ -5,8 +5,10 @@
   <version>0.0.0</version>
   <description>Example of using rclc_executor</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
-  <author> Jan Staschulat</author>
+
   <license>Apache License 2.0</license>
+
+  <author email="jan.staschulat@de.bosch.com">Jan Staschulat</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
   
