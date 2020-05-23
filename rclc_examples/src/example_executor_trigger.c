@@ -23,14 +23,14 @@
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
-rcl_publisher_t my_pub;
+rcl_publisher_t my_string_pub;
 rcl_publisher_t my_int_pub;
-std_msgs__msg__Int32 pub_int_msg;
-int pub_int_value;
-int pub_string_value;
+std_msgs__msg__Int32 int_pub_msg;
+int int_pub_value;
+int string_pub_value;
 
-std_msgs__msg__String sub_msg;
-std_msgs__msg__Int32 sub_int_msg;
+std_msgs__msg__String string_sub_msg;
+std_msgs__msg__Int32 int_sub_msg;
 
 
 /***************************** CALLBACKS ***********************************/
@@ -156,10 +156,10 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
     const unsigned int PUB_MSG_CAPACITY = 20;
     pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
     pub_msg.data.capacity = PUB_MSG_CAPACITY;
-    snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!%d", pub_string_value++);
+    snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!%d", string_pub_value++);
     pub_msg.data.size = strlen(pub_msg.data.data);
 
-    rc = rcl_publish(&my_pub, &pub_msg, NULL);
+    rc = rcl_publish(&my_string_pub, &pub_msg, NULL);
     if (rc == RCL_RET_OK) {
       printf("Published: %s\n", pub_msg.data.data);
     } else {
@@ -177,12 +177,12 @@ void my_timer_int_callback(rcl_timer_t * timer, int64_t last_call_time)
   UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
-    pub_int_msg.data = pub_int_value++;
-    rc = rcl_publish(&my_int_pub, &pub_int_msg, NULL);
+    int_pub_msg.data = int_pub_value++;
+    rc = rcl_publish(&my_int_pub, &int_pub_msg, NULL);
     if (rc == RCL_RET_OK) {
-      printf("Published: %d\n", pub_int_msg.data);
+      printf("Published: %d\n", int_pub_msg.data);
     } else {
-      printf("Error in my_timer_int_callback: publishing message %d\n", pub_int_msg.data);
+      printf("Error in my_timer_int_callback: publishing message %d\n", int_pub_msg.data);
     }
   } else {
     printf("Error in my_timer_int_callback: timer parameter is NULL\n");
@@ -219,7 +219,7 @@ int main(int argc, const char * argv[])
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
   
   rc = rclc_publisher_init_default(
-    &my_pub,
+    &my_string_pub,
     &my_node,
     my_type_support,
     topic_name);
@@ -229,7 +229,7 @@ int main(int argc, const char * argv[])
   }
   
   // create timer 1
-  // - publishes 'my_pub' every 'timer_timeout' ms 
+  // - publishes 'my_string_pub' every 'timer_timeout' ms 
   rcl_timer_t my_string_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 100;
   rc = rclc_timer_init_default(
@@ -278,17 +278,21 @@ int main(int argc, const char * argv[])
   
   // initialized messages and counter variables
   // the string publisher message 'pub_msg' is assigned in the callback
-  std_msgs__msg__Int32__init(&pub_int_msg);
-  pub_int_value = 0;
-  pub_string_value = 0;
+  std_msgs__msg__Int32__init(&int_pub_msg);
+  int_pub_value = 0;
+  string_pub_value = 0;
 
   // create subscription 1 
   rcl_subscription_t my_string_sub = rcl_get_zero_initialized_subscription();
-  rc = rclc_subscription_init_default(
+  rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
+  my_subscription_options.qos.depth = 0; // qos: last is best = register semantics
+  rc = rcl_subscription_init(
     &my_string_sub,
     &my_node,
     my_type_support,
-    topic_name);
+    topic_name,
+    &my_subscription_options);
+
   if (rc != RCL_RET_OK) {
     printf("Failed to create subscriber %s.\n", topic_name);
     return -1;
@@ -296,7 +300,7 @@ int main(int argc, const char * argv[])
     printf("Created subscriber %s:\n", topic_name);
   }
   // initialize subscription message
-  std_msgs__msg__String__init(&sub_msg);
+  std_msgs__msg__String__init(&string_sub_msg);
 
 
   // create subscription 2 
@@ -313,7 +317,7 @@ int main(int argc, const char * argv[])
     printf("Created subscriber %s:\n", topic_name_1);
   }
   // initialize subscription message
-  std_msgs__msg__Int32__init(&sub_int_msg);
+  std_msgs__msg__Int32__init(&int_sub_msg);
 
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
@@ -351,7 +355,7 @@ int main(int argc, const char * argv[])
 
   // add subscription to executor
   rc = rclc_executor_add_subscription(
-    &executor_sub, &my_string_sub, &sub_msg,
+    &executor_sub, &my_string_sub, &string_sub_msg,
     &my_string_subscriber_callback,
     ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
@@ -360,7 +364,7 @@ int main(int argc, const char * argv[])
 
   // add int subscription to executor
   rc = rclc_executor_add_subscription(
-    &executor_sub, &my_int_sub, &sub_int_msg,
+    &executor_sub, &my_int_sub, &int_sub_msg,
     &my_int_subscriber_callback,
     ON_NEW_DATA);
   if (rc != RCL_RET_OK) {
@@ -390,7 +394,7 @@ int main(int argc, const char * argv[])
   // clean up
   rc = rclc_executor_fini(&executor_pub);
   rc += rclc_executor_fini(&executor_sub);
-  rc += rcl_publisher_fini(&my_pub, &my_node);
+  rc += rcl_publisher_fini(&my_string_pub, &my_node);
   rc += rcl_publisher_fini(&my_int_pub, &my_node);
   rc += rcl_timer_fini(&my_string_timer);
   rc += rcl_timer_fini(&my_int_timer);
@@ -399,9 +403,9 @@ int main(int argc, const char * argv[])
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
 
-  std_msgs__msg__Int32__fini(&pub_int_msg);
-  std_msgs__msg__String__fini(&sub_msg);
-  std_msgs__msg__Int32__fini(&sub_int_msg);
+  std_msgs__msg__Int32__fini(&int_pub_msg);
+  std_msgs__msg__String__fini(&string_sub_msg);
+  std_msgs__msg__Int32__fini(&int_sub_msg);
 
   if (rc != RCL_RET_OK) {
     printf("Error while cleaning up!\n");
