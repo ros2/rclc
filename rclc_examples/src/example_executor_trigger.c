@@ -17,19 +17,21 @@
 
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
+
 #include <rclc/executor.h>
+#include <rclc/rclc.h>
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
 rcl_publisher_t my_pub;
 rcl_publisher_t my_int_pub;
-
-std_msgs__msg__String sub_msg;
-
 std_msgs__msg__Int32 pub_int_msg;
 int pub_int_value;
-std_msgs__msg__Int32 sub_int_msg;
 int pub_string_value;
+
+std_msgs__msg__String sub_msg;
+std_msgs__msg__Int32 sub_int_msg;
+
 
 /***************************** CALLBACKS ***********************************/
 
@@ -120,10 +122,6 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
 
 }
 
-// continue here: new test case where two input data is available
-// but not in single spin_some call.
-// if timer is not executed  - no data is received
-
 void my_string_subscriber_callback(const void * msgin)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
@@ -194,153 +192,127 @@ void my_timer_int_callback(rcl_timer_t * timer, int64_t last_call_time)
 /******************** MAIN PROGRAM ****************************************/
 int main(int argc, const char * argv[])
 {
-  rcl_context_t context = rcl_get_zero_initialized_context();
-  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_allocator_t allocator = rcl_get_default_allocator();
+  rclc_support_t support;
   rcl_ret_t rc;
 
   // create init_options
-  rc = rcl_init_options_init(&init_options, allocator);
+  rc = rclc_support_init(&support, argc, argv, &allocator);
   if (rc != RCL_RET_OK) {
-    printf("Error rcl_init_options_init.\n");
-    return -1;
-  }
-
-  // create context
-  rc = rcl_init(argc, argv, &init_options, &context);
-  if (rc != RCL_RET_OK) {
-    printf("Error in rcl_init.\n");
+    printf("Error rclc_support_init.\n");
     return -1;
   }
 
   // create rcl_node
   rcl_node_t my_node = rcl_get_zero_initialized_node();
-  rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rc = rcl_node_init(&my_node, "node_0", "executor_examples", &context, &node_ops);
+  rc = rclc_node_init_default(&my_node, "node_0", "executor_examples", &support);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_node_init\n");
+    printf("Error in rclc_node_init_default\n");
     return -1;
   }
 
-  // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
-  // my_pub is global, so that the timer callback can access this publisher.
+  // create a publisher 1
+  // - topic name: 'topic_0' 
+  // - message type: std_msg::msg::String
   const char * topic_name = "topic_0";
   const rosidl_message_type_support_t * my_type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
-  rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
-  rc = rcl_publisher_init(
+  
+  rc = rclc_publisher_init_default(
     &my_pub,
     &my_node,
     my_type_support,
-    topic_name,
-    &pub_options);
+    topic_name);
   if (RCL_RET_OK != rc) {
-    printf("Error in rcl_publisher_init %s.\n", topic_name);
+    printf("Error in rclc_publisher_init_default %s.\n", topic_name);
     return -1;
   }
-
-  // create a timer, which will call the publisher every 'period' ms in the 'my_timer_string_callback'
-  rcl_clock_t clock;
-  rc = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  if (rc != RCL_RET_OK) {
-    printf("Error in rcl_clock_init.\n");
-    return -1;
-  }
+  
+  // create timer 1
+  // - publishes 'my_pub' every 'timer_timeout' ms 
   rcl_timer_t my_string_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 100;
-  rc = rcl_timer_init(
+  rc = rclc_timer_init_default(
     &my_string_timer,
-    &clock,
-    &context,
+    &support,
     RCL_MS_TO_NS(timer_timeout),
-    my_timer_string_callback,
-    allocator);
+    my_timer_string_callback);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init.\n");
+    printf("Error in rclc_timer_init_default.\n");
     return -1;
   } else {
     printf("Created timer 'my_string_timer' with timeout %d ms.\n", timer_timeout);
   }
 
-  // create a publisher to publish topic 'topic_1' with type std_msg::msg::Int
-  // my_pub_int is global, so that the timer callback can access this publisher.
+  // create publisher 2
+  // - topic name: 'topic_1' 
+  // - message type: std_msg::msg::Int
   const char * topic_name_1 = "topic_1";
   const rosidl_message_type_support_t * my_int_type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  rcl_publisher_options_t my_int_pub_options = rcl_publisher_get_default_options();
-  rc = rcl_publisher_init(
+  rc = rclc_publisher_init_default(
     &my_int_pub,
     &my_node,
     my_int_type_support,
-    topic_name_1,
-    &my_int_pub_options);
+    topic_name_1);
   if (RCL_RET_OK != rc) {
-    printf("Error in rcl_publisher_init %s.\n", topic_name_1);
+    printf("Error in rclc_publisher_init_default %s.\n", topic_name_1);
     return -1;
   }
 
-  // create a timer, which will call my_int_pub every 'period' ms in the 'my_timer_string_callback'
+  // create timer 2
+  // - publishes 'my_int_pub' every 'timer_int_timeout' ms 
   rcl_timer_t my_int_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_int_timeout = 10 * timer_timeout;
-  rc = rcl_timer_init(
+  rc = rclc_timer_init_default(
     &my_int_timer,
-    &clock,
-    &context,
+    &support,
     RCL_MS_TO_NS(timer_int_timeout),
-    my_timer_int_callback,
-    allocator);
+    my_timer_int_callback);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init.\n");
+    printf("Error in rclc_timer_init_default.\n");
     return -1;
   } else {
-    printf("Created 'my_int_timer' with timeout %d ms.\n", timer_int_timeout);
+    printf("Created timer with timeout %d ms.\n", timer_int_timeout);
   }
-
-  // assign message to publisher
+  
+  // initialized messages and counter variables
+  // the string publisher message 'pub_msg' is assigned in the callback
   std_msgs__msg__Int32__init(&pub_int_msg);
   pub_int_value = 0;
   pub_string_value = 0;
 
-  // create subscription
+  // create subscription 1 
   rcl_subscription_t my_string_sub = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
-  my_subscription_options.qos.depth = 0; // qos: last is best = register semantics
-  rc = rcl_subscription_init(
+  rc = rclc_subscription_init_default(
     &my_string_sub,
     &my_node,
     my_type_support,
-    topic_name,
-    &my_subscription_options);
-
+    topic_name);
   if (rc != RCL_RET_OK) {
     printf("Failed to create subscriber %s.\n", topic_name);
     return -1;
   } else {
     printf("Created subscriber %s:\n", topic_name);
   }
-
-  // one string message for subscriber
+  // initialize subscription message
   std_msgs__msg__String__init(&sub_msg);
 
 
-  // create int subscription
+  // create subscription 2 
   rcl_subscription_t my_int_sub = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t my_int_subscription_options = rcl_subscription_get_default_options();
-  rc = rcl_subscription_init(
+  rc = rclc_subscription_init_default(
     &my_int_sub,
     &my_node,
     my_int_type_support,
-    topic_name_1,
-    &my_int_subscription_options);
-
+    topic_name_1);
   if (rc != RCL_RET_OK) {
     printf("Failed to create subscriber %s.\n", topic_name_1);
     return -1;
   } else {
     printf("Created subscriber %s:\n", topic_name_1);
   }
-
-  // one string message for subscriber
+  // initialize subscription message
   std_msgs__msg__Int32__init(&sub_int_msg);
 
   ////////////////////////////////////////////////////////////////////////////
@@ -354,7 +326,7 @@ int main(int argc, const char * argv[])
   unsigned int num_handles_pub = 2;
   printf("Executor_pub: number of DDS handles: %u\n", num_handles_pub);
   executor_pub = rclc_executor_get_zero_initialized_executor();
-  rclc_executor_init(&executor_pub, &context, num_handles_pub, &allocator);
+  rclc_executor_init(&executor_pub, &support.context, num_handles_pub, &allocator);
   unsigned int rcl_wait_timeout = 1000;   // rcl_wait timeout in ms
   rc = rclc_executor_set_timeout(&executor_pub, RCL_MS_TO_NS(rcl_wait_timeout));
   if (rc != RCL_RET_OK) {
@@ -374,7 +346,7 @@ int main(int argc, const char * argv[])
   unsigned int num_handles_sub = 2;
   printf("Executor_sub: number of DDS handles: %u\n", num_handles_sub);
   executor_sub = rclc_executor_get_zero_initialized_executor();
-  rclc_executor_init(&executor_sub, &context, num_handles_sub, &allocator);
+  rclc_executor_init(&executor_sub, &support.context, num_handles_sub, &allocator);
   rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
@@ -415,37 +387,21 @@ int main(int argc, const char * argv[])
     rclc_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
   }
 
-
-// example with two executors
-// with one - publishing and subscribing i cannot
-// differentiate the case in which
-// two topics are received and I wait for the next round of spin_some
-// because the publisher is always ready
-
-// setup executor_1
-// publishes my_pub (1s rate) and my_int_pub (2s rate)
-// trigger function ANY
-
-// setup executor_2
-// subscribes to my_string_sub and my_int_sub
-// (1) trigger function AND
-// (2) trigger function OR
-// expected output:
-//   (1) see output at 2s rate and same number of callback calls
-//   (2) see output at 1s rate and my_string_sub twice as many as my_sub_int
-//       messages
-
   // clean up
   rc = rclc_executor_fini(&executor_pub);
-  rc = rclc_executor_fini(&executor_sub);
+  rc += rclc_executor_fini(&executor_sub);
   rc += rcl_publisher_fini(&my_pub, &my_node);
-  rc += rcl_timer_fini(&my_string_timer);
   rc += rcl_publisher_fini(&my_int_pub, &my_node);
+  rc += rcl_timer_fini(&my_string_timer);
   rc += rcl_timer_fini(&my_int_timer);
   rc += rcl_subscription_fini(&my_string_sub, &my_node);
   rc += rcl_subscription_fini(&my_int_sub, &my_node);
   rc += rcl_node_fini(&my_node);
-  rc += rcl_init_options_fini(&init_options);
+  rc += rclc_support_fini(&support);
+
+  std_msgs__msg__Int32__fini(&pub_int_msg);
+  std_msgs__msg__String__fini(&sub_msg);
+  std_msgs__msg__Int32__fini(&sub_int_msg);
 
   if (rc != RCL_RET_OK) {
     printf("Error while cleaning up!\n");

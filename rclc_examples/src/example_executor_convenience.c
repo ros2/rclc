@@ -15,8 +15,8 @@
 
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
-#include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <rclc/rclc.h>
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
@@ -166,6 +166,7 @@ int main(int argc, const char * argv[])
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
+  
   std_msgs__msg__String__fini(&pub_msg);
   std_msgs__msg__String__fini(&sub_msg);
 

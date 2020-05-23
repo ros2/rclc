@@ -16,9 +16,9 @@ The reduction of code lines for configuring the necessary RCL objects for RCLC-E
 ## Example RCLC-Executor using RCL objects directly
 **Step 1** Setup ROS 2 Workspace
 
-Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/eloquent`, setup the ROS2 environment by:
+Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
 ```C
-~$ source /opt/ros/eloquent/setup.bash
+~$ source /opt/ros/ROSDISTRO/setup.bash
 ```
 
 **Step 2** Build the package
