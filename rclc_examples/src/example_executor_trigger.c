@@ -331,11 +331,7 @@ int main(int argc, const char * argv[])
   printf("Executor_pub: number of DDS handles: %u\n", num_handles_pub);
   executor_pub = rclc_executor_get_zero_initialized_executor();
   rclc_executor_init(&executor_pub, &support.context, num_handles_pub, &allocator);
-  unsigned int rcl_wait_timeout = 1000;   // rcl_wait timeout in ms
-  rc = rclc_executor_set_timeout(&executor_pub, RCL_MS_TO_NS(rcl_wait_timeout));
-  if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_set_timeout.");
-  }
+
   rc = rclc_executor_add_timer(&executor_pub, &my_string_timer);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_timer 'my_string_timer'.\n");
@@ -351,7 +347,6 @@ int main(int argc, const char * argv[])
   printf("Executor_sub: number of DDS handles: %u\n", num_handles_sub);
   executor_sub = rclc_executor_get_zero_initialized_executor();
   rclc_executor_init(&executor_sub, &support.context, num_handles_sub, &allocator);
-  rc = rclc_executor_set_timeout(&executor_sub, RCL_MS_TO_NS(rcl_wait_timeout));
 
   // add subscription to executor
   rc = rclc_executor_add_subscription(
