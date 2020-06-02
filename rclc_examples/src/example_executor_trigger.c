@@ -76,11 +76,7 @@ bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  if (timer1 || timer2) {
-    return true;
-  } else {
-    return false;
-  }
+  return (timer1 || timer2);
 }
 
 
@@ -114,11 +110,7 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  if (sub1 && sub2) {
-    return true;
-  } else {
-    return false;
-  }
+  return (sub1 && sub2);
 
 }
 
@@ -144,6 +136,7 @@ void my_int_subscriber_callback(const void * msgin)
 }
 
 #define UNUSED(x) (void)x;
+
 void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
