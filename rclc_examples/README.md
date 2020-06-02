@@ -18,7 +18,7 @@ The reduction of code lines for configuring the necessary RCL objects for RCLC-E
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
 ```C
-~$ source /opt/ros/ROSDISTRO/setup.bash
+~$ source /opt/ros/$ROSDISTRO/setup.bash
 ```
 
 **Step 2** Build the package
