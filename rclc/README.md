@@ -530,6 +530,7 @@ The rclc package also provides a number of convenience functions, which make it 
 
 Convenience functions:
 - rclc_support_init()
+- rclc_support_init_with_options()
 - rclc_support_fini()
 - rclc_node_init_default()
 - rclc_publisher_init_default()

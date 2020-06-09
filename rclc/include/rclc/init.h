@@ -51,6 +51,34 @@ rclc_support_init(
   char const * const * argv,
   rcl_allocator_t * allocator);
 
+/**
+ *  Initializes rcl and creates some support data structures.
+ *  Initializes clock as RCL_STEADY_TIME.
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes (in RCL)
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] support a zero-initialized rclc_support_t
+ * \param[in] argc number of args of main
+ * \param[in] argv array of arguments of main
+ * \param[in] init_options custom initial options
+ * \param[in] allocator allocator for allocating memory
+ * \return `RCL_RET_OK` if RCL was initialized successfully
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ * \return `RCL_RET_ERROR` in case of failure
+ */
+rcl_ret_t
+rclc_support_init_with_options(
+  rclc_support_t * support,
+  int argc,
+  char const * const * argv,
+  rcl_init_options_t * init_options,
+  rcl_allocator_t * allocator);
+
 
 /**
  *  De-allocates the rclc_support_t object.
