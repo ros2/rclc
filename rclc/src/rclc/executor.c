@@ -713,7 +713,7 @@ bool rclc_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int si
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
-  UNUSED(obj)
+  UNUSED(obj);
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
       if (handles[i].data_available == false) {
@@ -729,7 +729,7 @@ bool rclc_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int si
 bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
-  UNUSED(obj)
+  UNUSED(obj);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
@@ -777,8 +777,8 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
 
 bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
-  UNUSED(handles)
-  UNUSED(size)
-  UNUSED(obj)
+  UNUSED(handles);
+  UNUSED(size);
+  UNUSED(obj);
   return true;
 }

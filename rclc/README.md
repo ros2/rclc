@@ -620,7 +620,7 @@ void my_subscriber_callback(const void * msgin)
 **Step 3:** <a name="Step3"> </a> Define a timer callback `my_timer_callback`.
 
 ```C
-#define UNUSED(x) (void)x;
+#define UNUSED(x) (void)x
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
