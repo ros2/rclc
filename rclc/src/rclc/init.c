@@ -29,6 +29,10 @@ rclc_support_init(
   char const * const * argv,
   rcl_allocator_t * allocator)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
