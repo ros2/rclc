@@ -76,7 +76,7 @@ bool pub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  return (timer1 || timer2);
+  return timer1 || timer2;
 }
 
 
@@ -110,7 +110,7 @@ bool sub_trigger(rclc_executor_handle_t * handles, unsigned int size, void * obj
     }
   }
   //printf("\n");
-  return (sub1 && sub2);
+  return sub1 && sub2;
 
 }
 
@@ -205,12 +205,12 @@ int main(int argc, const char * argv[])
   }
 
   // create a publisher 1
-  // - topic name: 'topic_0' 
+  // - topic name: 'topic_0'
   // - message type: std_msg::msg::String
   const char * topic_name = "topic_0";
   const rosidl_message_type_support_t * my_type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
-  
+
   rc = rclc_publisher_init_default(
     &my_string_pub,
     &my_node,
@@ -220,9 +220,9 @@ int main(int argc, const char * argv[])
     printf("Error in rclc_publisher_init_default %s.\n", topic_name);
     return -1;
   }
-  
+
   // create timer 1
-  // - publishes 'my_string_pub' every 'timer_timeout' ms 
+  // - publishes 'my_string_pub' every 'timer_timeout' ms
   rcl_timer_t my_string_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 100;
   rc = rclc_timer_init_default(
@@ -238,7 +238,7 @@ int main(int argc, const char * argv[])
   }
 
   // create publisher 2
-  // - topic name: 'topic_1' 
+  // - topic name: 'topic_1'
   // - message type: std_msg::msg::Int
   const char * topic_name_1 = "topic_1";
   const rosidl_message_type_support_t * my_int_type_support =
@@ -254,7 +254,7 @@ int main(int argc, const char * argv[])
   }
 
   // create timer 2
-  // - publishes 'my_int_pub' every 'timer_int_timeout' ms 
+  // - publishes 'my_int_pub' every 'timer_int_timeout' ms
   rcl_timer_t my_int_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_int_timeout = 10 * timer_timeout;
   rc = rclc_timer_init_default(
@@ -268,14 +268,14 @@ int main(int argc, const char * argv[])
   } else {
     printf("Created timer with timeout %d ms.\n", timer_int_timeout);
   }
-  
+
   // initialized messages and counter variables
   // the string publisher message 'pub_msg' is assigned in the callback
   std_msgs__msg__Int32__init(&int_pub_msg);
   int_pub_value = 0;
   string_pub_value = 0;
 
-  // create subscription 1 
+  // create subscription 1
   rcl_subscription_t my_string_sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
   my_subscription_options.qos.depth = 0; // qos: last is best = register semantics
@@ -296,7 +296,7 @@ int main(int argc, const char * argv[])
   std_msgs__msg__String__init(&string_sub_msg);
 
 
-  // create subscription 2 
+  // create subscription 2
   rcl_subscription_t my_int_sub = rcl_get_zero_initialized_subscription();
   rc = rclc_subscription_init_default(
     &my_int_sub,

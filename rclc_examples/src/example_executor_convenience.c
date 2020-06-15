@@ -166,7 +166,7 @@ int main(int argc, const char * argv[])
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
-  
+
   std_msgs__msg__String__fini(&pub_msg);
   std_msgs__msg__String__fini(&sub_msg);
 
