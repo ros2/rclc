@@ -24,6 +24,7 @@ extern "C"
 #include <rcl/subscription.h>
 #include <rclc/types.h>
 #include <rclc/init.h>
+
 /**
  *  Creates an rcl subscription.
  *
@@ -44,6 +45,31 @@ extern "C"
  */
 rcl_ret_t
 rclc_subscription_init_default(
+  rcl_subscription_t * subscription,
+  rcl_node_t * node,
+  const rosidl_message_type_support_t * type_support,
+  const char * topic_name);
+
+/**
+ *  Creates an rcl subscription with quality of service option best effort 
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes (in RCL)
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] subscription -  a zero-initialized rcl_subscription_t
+ * \param[in] node the rcl node
+ * \param[in] type_support the message data type
+ * \param[in] topic_name the name of subscribed topic
+ * \return `RCL_RET_OK` if successful
+ * \return `RCL_ERROR` (or other error code) if an error occurred
+ */
+rcl_ret_t
+rclc_subscription_init_best_effort(
   rcl_subscription_t * subscription,
   rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,

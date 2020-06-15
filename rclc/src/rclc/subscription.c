@@ -47,3 +47,33 @@ rclc_subscription_init_default(
   }
   return rc;
 }
+
+rcl_ret_t
+rclc_subscription_init_best_effort(
+  rcl_subscription_t * subscription,
+  rcl_node_t * node,
+  const rosidl_message_type_support_t * type_support,
+  const char * topic_name)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
+  sub_ops.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  rcl_ret_t rc = rcl_subscription_init(
+    subscription,
+    node,
+    type_support,
+    topic_name,
+    &sub_ops);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(rclc_subscription_init_best_effort, rcl_subscription_init);
+  }
+  return rc;
+}
