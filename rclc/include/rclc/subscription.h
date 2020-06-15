@@ -51,7 +51,7 @@ rclc_subscription_init_default(
   const char * topic_name);
 
 /**
- *  Creates an rcl subscription with quality of service option best effort 
+ *  Creates an rcl subscription with quality of service option best effort
  *
  *  * <hr>
  * Attribute          | Adherence
