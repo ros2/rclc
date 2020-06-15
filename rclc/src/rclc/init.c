@@ -34,10 +34,6 @@ rclc_support_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rc = rcl_init_options_init(&init_options, (*allocator) );
