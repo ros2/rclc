@@ -11,7 +11,7 @@
 #include <lifecycle_msgs/srv/get_available_states.h>
 #include <lifecycle_msgs/srv/get_available_transitions.h>
 
-#include "rclc_lifecycle/lifecycle.h"
+#include "rclc_lifecycle/rclc_lifecycle.h"
 
 rcl_ret_t on_configure() {
   printf("  >>> lifecycle_node: on_configure() callback called.\n");

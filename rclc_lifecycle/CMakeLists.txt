@@ -18,7 +18,7 @@ find_package(rclc REQUIRED)
 
 # create library
 add_library(${PROJECT_NAME}
-  src/rclc_lifecycle/lifecycle.c
+  src/rclc_lifecycle/rclc_lifecycle.c
 )
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
@@ -43,19 +43,32 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
+  find_package(rcl REQUIRED)
+  find_package(rcl_lifecycle REQUIRED)
+  find_package(rclc REQUIRED)
+  find_package(osrf_testing_tools_cpp REQUIRED)
+  find_package(std_msgs REQUIRED)
+  find_package(lifecycle_msgs REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(${PROJECT_NAME}_test test/test_lifecycle.cpp)
+
+  target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
+  target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
+  ament_target_dependencies(${PROJECT_NAME}_test
+    rcl
+    rcl_lifecycle
+    rcutils
+    rosidl_generator_c
+    osrf_testing_tools_cpp
+    std_msgs
+    lifecycle_msgs
+  )
 endif()
 
-#################################################
 # export dependencies
-#################################################
 # specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
