@@ -67,10 +67,15 @@ int main(int argc, char **argv)
   // make it a lifecycle node
   printf("make it a lifecycle node...\n");
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
-  rclc_lifecycle_node_t lifecycle_node = rclc_make_node_a_lifecycle_node(
+  rclc_lifecycle_node_t lifecycle_node;
+  rc = rclc_make_node_a_lifecycle_node(
     &my_node,
     &state_machine_,
     &node_ops);
+  if (rc != RCL_RET_OK) {
+    printf("Error in creating lifecycle node.\n");
+    return -1;
+  }
     
   // register callbacks
   rclc_lifecycle_register_on_configure(&lifecycle_node, &on_configure);

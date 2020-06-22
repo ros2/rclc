@@ -27,6 +27,8 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
 ament_target_dependencies(${PROJECT_NAME}
   rclc
@@ -45,25 +47,18 @@ ament_export_libraries(${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
-  find_package(rcl REQUIRED)
-  find_package(rcl_lifecycle REQUIRED)
-  find_package(rclc REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
-  find_package(std_msgs REQUIRED)
-  find_package(lifecycle_msgs REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  ament_add_gtest(${PROJECT_NAME}_test test/test_lifecycle.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test
+    test/test_lifecycle.cpp)
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
     rcl
     rcl_lifecycle
-    rcutils
-    rosidl_generator_c
-    osrf_testing_tools_cpp
-    std_msgs
+    rclc
     lifecycle_msgs
   )
 endif()

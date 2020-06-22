@@ -16,12 +16,11 @@
 #ifndef RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_
 #define RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_
 
-#include "rclc/node.h"
+#include <rcutils/logging_macros.h>
+#include <rcl/error_handling.h>
 #include <rcl_lifecycle/rcl_lifecycle.h>
 
-#include <rcl/error_handling.h>
-#include <rcutils/logging_macros.h>
-
+#include "rclc/node.h"
 
 typedef struct rclc_lifecycle_callback_map_t
 {
@@ -37,8 +36,9 @@ typedef struct rclc_lifecycle_node_t
   rclc_lifecycle_callback_map_t callbacks;
 } rclc_lifecycle_node_t;
 
-rclc_lifecycle_node_t
+rcl_ret_t
 rclc_make_node_a_lifecycle_node(
+  rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
   const rcl_node_options_t * options);

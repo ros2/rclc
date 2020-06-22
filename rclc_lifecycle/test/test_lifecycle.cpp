@@ -18,14 +18,10 @@
 
 #include <gtest/gtest.h>
 
+extern "C"
+{
 #include "rclc_lifecycle/rclc_lifecycle.h"
-
-#include "rcl/error_handling.h"
-#include "lifecycle_msgs/msg/transition_event.h"
-#include "lifecycle_msgs/srv/change_state.h"
-#include "lifecycle_msgs/srv/get_available_states.h"
-#include "lifecycle_msgs/srv/get_available_transitions.h"
-#include "lifecycle_msgs/srv/get_state.h"
+}
 
 TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_context_t context = rcl_get_zero_initialized_context();
@@ -39,12 +35,17 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
+  rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
 
-  rclc_lifecycle_node_t lifecycle_node = rclc_make_node_a_lifecycle_node(
+  rcl_ret_t res = rclc_make_node_a_lifecycle_node(
+    &lifecycle_node,
     &my_node,
     &state_machine_,
     &node_ops);
 
-  EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine), RCL_RET_OK);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine));
 }

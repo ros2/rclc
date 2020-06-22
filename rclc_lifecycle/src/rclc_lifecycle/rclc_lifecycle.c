@@ -30,14 +30,13 @@
 #include <lifecycle_msgs/srv/get_available_transitions.h>
 
 
-rclc_lifecycle_node_t
+rcl_ret_t
 rclc_make_node_a_lifecycle_node(
+  rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
   const rcl_node_options_t * node_ops)
 {
-  rclc_lifecycle_node_t lifecycle_node;
-
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
     node,
@@ -55,13 +54,13 @@ rclc_make_node_a_lifecycle_node(
     RCUTILS_LOG_ERROR(
       "Unable to initialize state machine: %s",
       rcl_get_error_string().str);
-    return lifecycle_node;
+    return RCL_RET_ERROR;
   }
 
-  lifecycle_node.node = node;
-  lifecycle_node.state_machine = state_machine;
+  lifecycle_node->node = node;
+  lifecycle_node->state_machine = state_machine;
 
-  return lifecycle_node;
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
