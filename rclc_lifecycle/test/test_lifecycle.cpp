@@ -20,10 +20,36 @@
 
 extern "C"
 {
-#include "rclc_lifecycle/rclc_lifecycle.h"
-
 #include <lifecycle_msgs/msg/state.h>
 #include <lifecycle_msgs/msg/transition.h>
+
+#include "rclc_lifecycle/rclc_lifecycle.h"
+}
+
+static int callback_mockup_counter = 0;
+
+rcl_ret_t callback_mockup_0()
+{
+  callback_mockup_counter += 1;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t callback_mockup_1()
+{
+  callback_mockup_counter += 2;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t callback_mockup_2()
+{
+  callback_mockup_counter += 4;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t callback_mockup_3()
+{
+  callback_mockup_counter += 8;
+  return RCL_RET_OK;
 }
 
 TEST(TestRclcLifecycle, lifecycle_node) {
@@ -31,17 +57,17 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
-  rcl_init_options_init(&init_options, allocator);
-  rcl_init(0, nullptr, &init_options, &context);
+  rcl_ret_t res = rcl_init_options_init(&init_options, allocator);
+  res += rcl_init(0, nullptr, &init_options, &context);
 
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
 
-  rcl_ret_t res = rclc_make_node_a_lifecycle_node(
+  res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
     &state_machine_,
@@ -58,17 +84,17 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
-  rcl_init_options_init(&init_options, allocator);
-  rcl_init(0, nullptr, &init_options, &context);
+  rcl_ret_t res = rcl_init_options_init(&init_options, allocator);
+  res += rcl_init(0, nullptr, &init_options, &context);
 
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
 
-  rcl_ret_t res = rclc_make_node_a_lifecycle_node(
+  res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
     &state_machine_,
@@ -113,4 +139,53 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   EXPECT_EQ(
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_node.state_machine->current_state->id);
+}
+
+TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  rcl_ret_t res = rcl_init_options_init(&init_options, allocator);
+  res += rcl_init(0, nullptr, &init_options, &context);
+
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_ops = rcl_node_get_default_options();
+  res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+
+  rclc_lifecycle_node_t lifecycle_node;
+  rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
+
+  res += rclc_make_node_a_lifecycle_node(
+    &lifecycle_node,
+    &my_node,
+    &state_machine_,
+    &node_ops);
+
+  // register callbacks
+  rclc_lifecycle_register_on_configure(&lifecycle_node, &callback_mockup_0);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &callback_mockup_1);
+  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &callback_mockup_2);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &callback_mockup_3);
+
+  // run through the lifecycle
+  res += rclc_lifecycle_change_state(
+    &lifecycle_node,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    true);
+  res += rclc_lifecycle_change_state(
+    &lifecycle_node,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    true);
+  res += rclc_lifecycle_change_state(
+    &lifecycle_node,
+    lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+    true);
+  res += rclc_lifecycle_change_state(
+    &lifecycle_node,
+    lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+    true);
+
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(15, callback_mockup_counter);
 }
