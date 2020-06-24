@@ -19,6 +19,7 @@ extern "C"
 
 #include <stdio.h>
 
+#include <rcl_interfaces/srv/describe_parameters.h>
 #include <rcl_interfaces/srv/get_parameters.h>
 #include <rcl_interfaces/srv/get_parameter_types.h>
 #include <rcl_interfaces/srv/list_parameters.h>
@@ -51,6 +52,7 @@ typedef struct rclc_parameter_client_impl_t
   rcl_client_t set_client;
   rcl_client_t set_atomically_client;
   rcl_client_t list_client;
+  rcl_client_t describe_client;
 
   rcl_subscription_t event_subscription;
 
@@ -69,17 +71,22 @@ typedef struct rclc_parameter_client_impl_t
   rcl_interfaces__srv__ListParameters_Request list_request;
   rcl_interfaces__srv__ListParameters_Response list_response;
 
+  rcl_interfaces__srv__DescribeParameters_Request describe_request;
+  rcl_interfaces__srv__DescribeParameters_Response describe_response;
+
   int64_t get_sequence_number;
   int64_t get_types_sequence_number;
   int64_t set_sequence_number;
   int64_t set_atomically_sequence_number;
   int64_t list_sequence_number;
+  int64_t describe_sequence_number;
 
   size_t wait_set_get_client_index;
   size_t wait_set_get_types_client_index;
   size_t wait_set_set_client_index;
   size_t wait_set_set_atomically_client_index;
   size_t wait_set_list_client_index;
+  size_t wait_set_describe_client_index;
 
   size_t wait_set_event_subscription_index;
 } rclc_parameter_client_impl_t;
@@ -189,11 +196,12 @@ rclc_parameter_client_init(
     NULL ? node_name = options->remote_node_name : rcl_node_get_name(node);
 
   // Initialize all clients in impl storage
-  RCLC_PARAMETER_INITIALIZE_CLIENT(get, GetParameters, "__get_parameters");
-  RCLC_PARAMETER_INITIALIZE_CLIENT(get_types, GetParameterTypes, "__get_parameter_types");
-  RCLC_PARAMETER_INITIALIZE_CLIENT(set, SetParameters, "__set_parameters");
-  RCLC_PARAMETER_INITIALIZE_CLIENT(set_atomically, SetParametersAtomically, "__set_parameters_atomically");
-  RCLC_PARAMETER_INITIALIZE_CLIENT(list, ListParameters, "__list_parameters");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(get, GetParameters, "/get_parameters");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(get_types, GetParameterTypes, "/get_parameter_types");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(set, SetParameters, "/set_parameters");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(set_atomically, SetParametersAtomically, "/set_parameters_atomically");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(list, ListParameters, "/list_parameters");
+  RCLC_PARAMETER_INITIALIZE_CLIENT(describe, DescribeParameters, "/describe_parameters");
 
   const rosidl_message_type_support_t * event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(
     rcl_interfaces, msg, ParameterEvent);
@@ -220,6 +228,9 @@ fail:
     fail_ret = ret;
     fprintf(stderr, "rcl_subscription_fini failed in fail block of rclc_parameter_client_init\n");
   }
+
+fail_describe:
+  RCLC_PARAMETER_CLIENT_FINI(describe, DescribeParameters);
 
 fail_list:
   RCLC_PARAMETER_CLIENT_FINI(list, ListParameters);
@@ -443,6 +454,16 @@ rclc_wait_set_add_parameter_client(
     return ret;
   }
 
+  ret = rcl_wait_set_add_client(
+    wait_set,
+    &parameter_client->impl->describe_client,
+    &parameter_client->impl->wait_set_describe_client_index);
+  if (ret != RCL_RET_OK) {
+    RCL_SET_ERROR_MSG(
+      "Failed to add describe_parameters client to waitset!");
+    return ret;
+  }
+
   ret = rcl_wait_set_add_subscription(
     wait_set,
     &parameter_client->impl->event_subscription,
@@ -469,7 +490,7 @@ rclc_parameter_client_get_pending_action(
   size_t j = 0;
 
   for (i = 0; i < wait_set->size_of_clients; ++i) {
-    for (j = 0; j < RCLC_NUMBER_OF_PARAMETER_ACTIONS; ++j) {
+    for (j = 0; j < RCLC_PARAMETER_NUMBER_OF_SERVICES; ++j) {
       rcl_client_t * client_ptr = NULL;
       *action = j;
       switch (j) {
@@ -487,6 +508,9 @@ rclc_parameter_client_get_pending_action(
           break;
         case RCLC_LIST_PARAMETERS:
           client_ptr = &parameter_client->impl->list_client;
+          break;
+        case RCLC_DESCRIBE_PARAMETERS:
+          client_ptr = &parameter_client->impl->describe_client;
           break;
         default:
           return RCL_RET_ERROR;

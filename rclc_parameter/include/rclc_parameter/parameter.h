@@ -27,14 +27,17 @@ extern "C"
 #include "rcl_interfaces/msg/parameter_event.h"
 #include <rcl_interfaces/msg/detail/parameter_type__functions.h>
 
+#define RCLC_PARAMETER_NUMBER_OF_SERVICES 6
+#define RCLC_PARAMETER_NUMBER_OF_SUBSCRIPTIONS 1
+
 typedef int rclc_param_action_t;
 #define RCLC_GET_PARAMETERS 0
 #define RCLC_GET_PARAMETER_TYPES 1
 #define RCLC_SET_PARAMETERS 2
 #define RCLC_SET_PARAMETERS_ATOMICALLY 3
 #define RCLC_LIST_PARAMETERS 4
-#define RCLC_NUMBER_OF_PARAMETER_ACTIONS 5
-#define RCLC_PARAMETER_ACTION_UNKNOWN 6
+#define RCLC_DESCRIBE_PARAMETERS 5
+#define RCLC_PARAMETER_ACTION_UNKNOWN 7
 
 /// rcl_parameter_client_set_<TYPE> adds the parameter key, value pair to the
 /// pending set_parameters_request

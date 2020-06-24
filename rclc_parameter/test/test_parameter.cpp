@@ -238,7 +238,7 @@ rcl_ret_t prepare_wait_set(
   if (ret != RCL_RET_OK) {
     return ret;
   }
-  ret = rcl_wait_set_resize(wait_set, 1, 0, 0, RCLC_NUMBER_OF_PARAMETER_ACTIONS, RCLC_NUMBER_OF_PARAMETER_ACTIONS, 0);
+  ret = rcl_wait_set_resize(wait_set, 1, 0, 0, RCLC_PARAMETER_NUMBER_OF_SERVICES, RCLC_PARAMETER_NUMBER_OF_SERVICES, 0);
   if (ret != RCL_RET_OK) {
     return ret;
   }

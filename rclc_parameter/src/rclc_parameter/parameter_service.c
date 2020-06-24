@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include <rcl_interfaces/msg/parameter_event.h>
+#include <rcl_interfaces/srv/describe_parameters.h>
 #include <rcl_interfaces/srv/get_parameters.h>
 #include <rcl_interfaces/srv/get_parameter_types.h>
 #include <rcl_interfaces/srv/list_parameters.h>
@@ -34,6 +35,8 @@ extern "C"
 
 #include "rclc_parameter/parameter_service.h"
 
+// TODO (pablogs9): check if list is still used and remove
+
 typedef struct rclc_parameter_service_impl_t
 {
   rclc_parameter_service_options_t options;
@@ -43,6 +46,7 @@ typedef struct rclc_parameter_service_impl_t
   rcl_service_t set_service;
   rcl_service_t set_atomically_service;
   rcl_service_t list_service;
+  rcl_service_t describe_service;
 
   rcl_publisher_t event_publisher;
 
@@ -61,11 +65,15 @@ typedef struct rclc_parameter_service_impl_t
   rcl_interfaces__srv__ListParameters_Request list_request;
   rcl_interfaces__srv__ListParameters_Response list_response;
 
+  rcl_interfaces__srv__DescribeParameters_Request describe_request;
+  rcl_interfaces__srv__DescribeParameters_Response describe_response;
+
   size_t wait_set_get_service_index;
   size_t wait_set_get_types_service_index;
   size_t wait_set_set_service_index;
   size_t wait_set_set_atomilcally_service;
   size_t wait_set_list_service_index;
+  size_t wait_set_describe_service_index;
 } rclc_parameter_service_impl_t;
 
 rclc_parameter_service_options_t
@@ -172,12 +180,12 @@ rclc_parameter_service_init(
     NULL ? node_name = options->remote_node_name : rcl_node_get_name(node);
 
   // Initialize all services in impl storage
-  RCL_PARAMETER_INITIALIZE_SERVICE(get, GetParameters, "__get_parameters");
-  RCL_PARAMETER_INITIALIZE_SERVICE(get_types, GetParameterTypes, "__get_parameter_types");
-  RCL_PARAMETER_INITIALIZE_SERVICE(set, SetParameters, "__set_parameters");
-  RCL_PARAMETER_INITIALIZE_SERVICE(set_atomically, SetParametersAtomically,
-    "__set_parameters_atomically");
-  RCL_PARAMETER_INITIALIZE_SERVICE(list, ListParameters, "__list_parameters");
+  RCL_PARAMETER_INITIALIZE_SERVICE(get, GetParameters, "/get_parameters");
+  RCL_PARAMETER_INITIALIZE_SERVICE(get_types, GetParameterTypes, "/get_parameter_types");
+  RCL_PARAMETER_INITIALIZE_SERVICE(set, SetParameters, "/set_parameters");
+  RCL_PARAMETER_INITIALIZE_SERVICE(set_atomically, SetParametersAtomically, "/set_parameters_atomically");
+  RCL_PARAMETER_INITIALIZE_SERVICE(list, ListParameters, "/list_parameters");
+  RCL_PARAMETER_INITIALIZE_SERVICE(describe, DescribeParameters, "/describe_parameters");
 
   const rosidl_message_type_support_t * event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(
     rcl_interfaces, msg, ParameterEvent);
@@ -205,6 +213,9 @@ fail:
     fail_ret = ret;
     fprintf(stderr, "rcl_publisher_fini failed in fail block of rclc_parameter_service_init\n");
   }
+
+fail_describe:
+  RCL_PARAMETER_SERVICE_FINI(describe, DescribeParameters);
 
 fail_list:
   RCL_PARAMETER_SERVICE_FINI(list, ListParameters);
@@ -294,6 +305,7 @@ DEFINE_RCL_PARAMETER_SERVICE_TAKE_REQUEST(get, rosidl_runtime_c__String__Sequenc
 DEFINE_RCL_PARAMETER_SERVICE_TAKE_REQUEST(get_types, rosidl_runtime_c__String__Sequence, names)
 DEFINE_RCL_PARAMETER_SERVICE_TAKE_REQUEST(set, rcl_interfaces__msg__Parameter__Sequence, parameters)
 DEFINE_RCL_PARAMETER_SERVICE_TAKE_REQUEST(set_atomically, rcl_interfaces__msg__Parameter__Sequence, parameters)
+DEFINE_RCL_PARAMETER_SERVICE_TAKE_REQUEST(describe, rosidl_runtime_c__String__Sequence, names)
 
 rcl_ret_t
 rclc_parameter_service_take_list_request(
@@ -315,7 +327,6 @@ rclc_parameter_service_take_list_request(
 
   return ret;
 }
-
 
 #define DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(VERB, REQUEST_SUBTYPE, SUBFIELD_NAME) \
   rcl_ret_t \
@@ -341,6 +352,7 @@ DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(get_types, rosidl_runtime_c__uint8__S
 DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(set, rcl_interfaces__msg__SetParametersResult__Sequence, results)
 DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(set_atomically, rcl_interfaces__msg__SetParametersResult, result)
 DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(list, rcl_interfaces__msg__ListParametersResult, result)
+DEFINE_RCL_PARAMETER_SERVICE_SEND_RESPONSE(describe, rcl_interfaces__msg__ParameterDescriptor__Sequence, descriptors)
 
 rcl_ret_t
 rclc_parameter_service_publish_event(
@@ -413,6 +425,15 @@ rclc_wait_set_add_parameter_service(
       "Failed to add list_parameters service to waitset!");
     return ret;
   }
+  ret = rcl_wait_set_add_service(
+    wait_set,
+    &parameter_service->impl->describe_service,
+    &parameter_service->impl->wait_set_describe_service_index);
+  if (ret != RCL_RET_OK) {
+    RCL_SET_ERROR_MSG(
+      "Failed to add describe_parameters service to waitset!");
+    return ret;
+  }
 
   return ret;
 }
@@ -430,7 +451,7 @@ rcl_parameter_service_get_pending_action(
   size_t j = 0;
 
   for (i = 0; i < wait_set->size_of_services; ++i) {
-    for (j = 0; j < RCLC_NUMBER_OF_PARAMETER_ACTIONS; ++j) {
+    for (j = 0; j < RCLC_PARAMETER_NUMBER_OF_SERVICES; ++j) {
       rcl_service_t * service_ptr = NULL;
       *action = j;
       switch (j) {
@@ -448,6 +469,9 @@ rcl_parameter_service_get_pending_action(
           break;
         case RCLC_LIST_PARAMETERS:
           service_ptr = &parameter_service->impl->list_service;
+          break;
+        case RCLC_DESCRIBE_PARAMETERS:
+          service_ptr = &parameter_service->impl->describe_service;
           break;
         default:
           *action = RCLC_PARAMETER_ACTION_UNKNOWN;
