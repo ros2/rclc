@@ -13,8 +13,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #ifndef RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_
 #define RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_
+
+#define RCLC_LIFECYCLE_MAX_NUMBER_OF_STATES 100  // highest transition id: 99
 
 #include <rcutils/logging_macros.h>
 #include <rcl/error_handling.h>
@@ -24,8 +27,8 @@
 
 typedef struct rclc_lifecycle_callback_map_t
 {
-  bool goal_states[100];  // highest transition id: 99
-  int (* fun_ptrs[100])(void);
+  bool goal_states[RCLC_LIFECYCLE_MAX_NUMBER_OF_STATES];
+  int (* fun_ptrs[RCLC_LIFECYCLE_MAX_NUMBER_OF_STATES])(void);
 } rclc_lifecycle_callback_map_t;
 
 /// Structure which encapsulates a ROS Lifecycle Node.

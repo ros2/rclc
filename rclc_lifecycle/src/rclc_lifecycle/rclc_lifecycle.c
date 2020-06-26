@@ -35,7 +35,8 @@ rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator
+)
 {
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
@@ -67,7 +68,8 @@ rcl_ret_t
 rclc_lifecycle_change_state(
   rclc_lifecycle_node_t * lifecycle_node,
   unsigned int transition_id,
-  bool publish_update)
+  bool publish_update
+)
 {
   if (rcl_lifecycle_state_machine_is_initialized(lifecycle_node->state_machine) != RCL_RET_OK) {
     RCUTILS_LOG_ERROR(
@@ -90,7 +92,7 @@ rclc_lifecycle_change_state(
 
   // Check for callbacks for this transition
   if (rclc_lifecycle_execute_callback(lifecycle_node, transition_id) == RCL_RET_OK) {
-    // successfull, so transition do according success transition
+    // successful, so transition do according success transition
     switch (transition_id) {
       case lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE:
         return rcl_lifecycle_trigger_transition_by_id(
@@ -176,7 +178,8 @@ rclc_lifecycle_register_callback(
 rcl_ret_t
 rclc_lifecycle_register_on_configure(
   rclc_lifecycle_node_t * node,
-  int (* cb)(void))
+  int (* cb)(void)
+)
 {
   return rclc_lifecycle_register_callback(
     node,
@@ -187,7 +190,8 @@ rclc_lifecycle_register_on_configure(
 rcl_ret_t
 rclc_lifecycle_register_on_activate(
   rclc_lifecycle_node_t * node,
-  int (* cb)(void))
+  int (* cb)(void)
+)
 {
   return rclc_lifecycle_register_callback(
     node,
@@ -198,7 +202,8 @@ rclc_lifecycle_register_on_activate(
 rcl_ret_t
 rclc_lifecycle_register_on_deactivate(
   rclc_lifecycle_node_t * node,
-  int (* cb)(void))
+  int (* cb)(void)
+)
 {
   return rclc_lifecycle_register_callback(
     node,
@@ -209,7 +214,8 @@ rclc_lifecycle_register_on_deactivate(
 rcl_ret_t
 rclc_lifecycle_register_on_cleanup(
   rclc_lifecycle_node_t * node,
-  int (* cb)(void))
+  int (* cb)(void)
+)
 {
   return rclc_lifecycle_register_callback(
     node,
@@ -220,7 +226,8 @@ rclc_lifecycle_register_on_cleanup(
 rcl_ret_t
 rcl_lifecycle_node_fini(
   rclc_lifecycle_node_t * lifecycle_node,
-  rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator
+)
 {
   rcl_ret_t rcl_ret = RCL_RET_OK;
 
@@ -245,7 +252,8 @@ rcl_lifecycle_node_fini(
 rcl_ret_t
 rclc_lifecycle_execute_callback(
   rclc_lifecycle_node_t * lifecycle_node,
-  unsigned int transition_id)
+  unsigned int transition_id
+)
 {
   if (!lifecycle_node->callbacks.goal_states[transition_id]) {
     // no callback, so process, all good
