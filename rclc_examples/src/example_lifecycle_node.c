@@ -33,34 +33,24 @@ rcl_ret_t on_cleanup() {
   return RCL_RET_OK;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char * argv[])
 {
-  rcl_context_t context = rcl_get_zero_initialized_context();
-  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_allocator_t allocator = rcl_get_default_allocator();
+  rclc_support_t support;
   rcl_ret_t rc;
 
   // create init_options
-  rc = rcl_init_options_init(&init_options, allocator);
+  rc = rclc_support_init(&support, argc, argv, &allocator);
   if (rc != RCL_RET_OK) {
-    printf("Error rcl_init_options_init.\n");
-    return -1;
-  }
-
-  // create context
-  rc = rcl_init(argc, argv, &init_options, &context);
-  if (rc != RCL_RET_OK) {
-    printf("Error in rcl_init.\n");
+    printf("Error rclc_support_init.\n");
     return -1;
   }
 
   // create rcl_node
-  printf("creating rcl node...\n");
   rcl_node_t my_node = rcl_get_zero_initialized_node();
-  rcl_node_options_t node_ops = rcl_node_get_default_options();
-  rc = rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_node_init\n");
+    printf("Error in rclc_node_init_default\n");
     return -1;
   }
   
@@ -69,9 +59,10 @@ int main(int argc, char **argv)
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
   rclc_lifecycle_node_t lifecycle_node;
   rc = rclc_make_node_a_lifecycle_node(
+    &lifecycle_node,
     &my_node,
     &state_machine_,
-    &node_ops);
+    &allocator);
   if (rc != RCL_RET_OK) {
     printf("Error in creating lifecycle node.\n");
     return -1;
@@ -132,8 +123,8 @@ int main(int argc, char **argv)
   }
 
   printf("cleaning up...\n");
-  rc = rcl_lifecycle_node_fini(&lifecycle_node, &node_ops);
-  rc += rcl_init_options_fini(&init_options);
+  rc = rcl_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc += rclc_support_fini(&support);
 
   if (rc != RCL_RET_OK) {
     printf("Error while cleaning up!\n");

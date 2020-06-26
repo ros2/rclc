@@ -36,14 +36,14 @@ ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
 add_executable(example_executor_trigger src/example_executor_trigger.c)
 ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
 
-add_executable(lifecycle_node src/lifecycle_node.c)
-ament_target_dependencies(lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
+add_executable(example_lifecycle_node src/example_lifecycle_node.c)
+ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
 
 install(TARGETS
   example_executor
   example_executor_convenience
   example_executor_trigger
-  lifecycle_node
+  example_lifecycle_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -35,7 +35,7 @@ rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  const rcl_node_options_t * node_ops)
+  rcl_allocator_t * allocator)
 {
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
@@ -47,7 +47,7 @@ rclc_make_node_a_lifecycle_node(
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions),
     true,
-    &node_ops->allocator);
+    allocator);
   if (rcl_ret != RCL_RET_OK) {
     // state machine not initialized, return uninitilized
     // @todo(anordman): how/what to return in this case?
@@ -220,7 +220,7 @@ rclc_lifecycle_register_on_cleanup(
 rcl_ret_t
 rcl_lifecycle_node_fini(
   rclc_lifecycle_node_t * lifecycle_node,
-  const rcl_node_options_t * options)
+  rcl_allocator_t * allocator)
 {
   rcl_ret_t rcl_ret = RCL_RET_OK;
 
@@ -228,7 +228,7 @@ rcl_lifecycle_node_fini(
   rcl_ret = rcl_lifecycle_state_machine_fini(
     lifecycle_node->state_machine,
     lifecycle_node->node,
-    &options->allocator);
+    allocator);
   if (rcl_ret != RCL_RET_OK) {
     return RCL_RET_ERROR;
   }

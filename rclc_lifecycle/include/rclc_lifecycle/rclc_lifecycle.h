@@ -41,7 +41,7 @@ rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  const rcl_node_options_t * options);
+  rcl_allocator_t * allocator);
 
 rcl_ret_t
 rclc_lifecycle_change_state(
@@ -83,6 +83,6 @@ rclc_lifecycle_execute_callback(
 rcl_ret_t
 rcl_lifecycle_node_fini(
   rclc_lifecycle_node_t * node,
-  const rcl_node_options_t * options);
+  rcl_allocator_t * allocator);
 
 #endif  // RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_
