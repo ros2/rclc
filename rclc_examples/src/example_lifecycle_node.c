@@ -1,3 +1,19 @@
+// Copyright (c) 2020 - for information on the respective copyright owner
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
+// Copyright 2014 Open Source Robotics Foundation, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include <unistd.h>
 
@@ -13,22 +29,22 @@
 
 #include "rclc_lifecycle/rclc_lifecycle.h"
 
-rcl_ret_t on_configure() {
+rcl_ret_t my_on_configure() {
   printf("  >>> lifecycle_node: on_configure() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t on_activate() {
+rcl_ret_t my_on_activate() {
   printf("  >>> lifecycle_node: on_activate() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t foobar() {
+rcl_ret_t my_on_deactivate() {
   printf("  >>> lifecycle_node: on_deactivate() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t on_cleanup() {
+rcl_ret_t my_on_cleanup() {
   printf("  >>> lifecycle_node: on_cleanup() callback called.\n");
   return RCL_RET_OK;
 }
@@ -69,8 +85,8 @@ int main(int argc, const char * argv[])
   }
     
   // register callbacks
-  rclc_lifecycle_register_on_configure(&lifecycle_node, &on_configure);
-  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &foobar);
+  rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
+  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
  
   printf(" >configuring lifecycle node...\n");
   rc = rclc_lifecycle_change_state(

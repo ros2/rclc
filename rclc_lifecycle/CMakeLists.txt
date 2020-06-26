@@ -20,9 +20,6 @@ find_package(rclc REQUIRED)
 add_library(${PROJECT_NAME}
   src/rclc_lifecycle/rclc_lifecycle.c
 )
-if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
-endif()
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

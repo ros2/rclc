@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for information on the respective copyright owner
+// Copyright (c) 2020 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -25,9 +25,9 @@
 #include <lifecycle_msgs/msg/transition_description.h>
 #include <lifecycle_msgs/msg/transition_event.h>
 #include <lifecycle_msgs/srv/change_state.h>
-#include <lifecycle_msgs/srv/get_state.h>
 #include <lifecycle_msgs/srv/get_available_states.h>
 #include <lifecycle_msgs/srv/get_available_transitions.h>
+#include <lifecycle_msgs/srv/get_state.h>
 
 
 rcl_ret_t

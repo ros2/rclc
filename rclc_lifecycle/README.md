@@ -2,10 +2,7 @@
 
 ## Overview
 
-The rclc_lifecycle package is a [ROS 2](http://www.ros2.org/) package, which provides convenience functions to create ROS Client Library(RCL) data types and an RCLC Lifecycle Node in the C programming language.
-The convenience functions are a thin API layer on top of RCL-layer to bunde an rcl node with the ROS 2 default state machine similar to the rclcpp Lifecycle Node.#
-
-The rclc Lifecycle Node is a ROS 2 Lifecycle Node implemented based on and for the rcl API, for applications written in the C language.
+The rclc_lifecycle package is a [ROS 2](http://www.ros2.org/) package and provides convenience functions to bundle a ROS Client Library (RCL) node with the ROS 2 Node Lifecycle state machine in the C programming language, similar to the [rclcpp Lifecycle Node](https://github.com/ros2/rclcpp/blob/master/rclcpp_lifecycle/include/rclcpp_lifecycle/lifecycle_node.hpp) for C++.
 
 ## API
 
@@ -13,15 +10,19 @@ The API of the RCLC Lifecycle Node can be divided in several phases: Initializat
 
 ### Initialization
 
-Creation of a lifecycle node as a bundle of an rcl node and the rcl state machine.
+Creation of a lifecycle node as a bundle of an rcl node and the rcl Node Lifecycle state machine.
 
 ```C
 #include "rclc_lifecycle/rclc_lifecycle.h"
 
-// rcl node and node options
+rcl_allocator_t allocator = rcl_get_default_allocator();
+rclc_support_t support;
+rcl_ret_t rc;
+
+// create rcl node
+rc = rclc_support_init(&support, argc, argv, &allocator);
 rcl_node_t my_node = rcl_get_zero_initialized_node();
-rcl_node_options_t node_ops = rcl_node_get_default_options();
-...
+rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
 
 // rcl state machine
 rcl_lifecycle_state_machine_t state_machine_ =   
@@ -31,23 +32,24 @@ rcl_lifecycle_state_machine_t state_machine_ =
 // create the lifecycle node
 rclc_lifecycle_node_t lifecycle_node;
 rcl_ret_t rc = rclc_make_node_a_lifecycle_node(
+  &lifecycle_node,
   &my_node,
   &state_machine_,
-  &node_ops);
+  &allocator);
 ```
 
 Optionally create hooks for lifecycle state changes.
 
 ```C
 // declare callback
-rcl_ret_t on_configure() {
+rcl_ret_t my_on_configure() {
   printf("  >>> lifecycle_node: on_configure() callback called.\n");
   return RCL_RET_OK;
 }
 ...
 
 // register callbacks
-rclc_lifecycle_register_on_configure(&lifecycle_node, &on_configure);
+rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
 ```
 
 ### Running
@@ -67,12 +69,14 @@ rc += rclc_lifecycle_change_state(
 ...
 ```
 
+Except for error processing transitions, transitions are usually triggered from outside, e.g., by ROS 2 services.
+
 ### Cleaning Up
 
 To clean everything up, simply do
 
 ```C
-rc += rcl_lifecycle_node_fini(&lifecycle_node, &node_ops);
+rc += rcl_lifecycle_node_fini(&lifecycle_node, &allocator);
 ```
 
 ## Example
