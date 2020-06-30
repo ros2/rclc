@@ -19,8 +19,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
+find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
+find_package(rclc_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 
 include_directories(include)
 
@@ -33,11 +36,14 @@ ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
 add_executable(example_executor_trigger src/example_executor_trigger.c)
 ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
 
+add_executable(example_lifecycle_node src/example_lifecycle_node.c)
+ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
 
 install(TARGETS
   example_executor
   example_executor_convenience
   example_executor_trigger
+  example_lifecycle_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
