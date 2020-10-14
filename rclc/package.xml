@@ -5,7 +5,7 @@
   <version>0.1.1</version>
   <description>The ROS client library in C.</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
-  <maintainer email="julianbermudez@eprosima.com">Julián Bermúdez Ortega</maintainer>
+  <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
 
   <license>Apache License 2.0</license>
 
