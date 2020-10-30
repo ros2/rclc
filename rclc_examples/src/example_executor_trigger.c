@@ -135,12 +135,12 @@ void my_int_subscriber_callback(const void * msgin)
   }
 }
 
-#define UNUSED(x) (void)x
+#define RCLC_UNUSED(x) (void)x
 
 void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
-  UNUSED(last_call_time);
+  RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
 
@@ -167,7 +167,7 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
 void my_timer_int_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
-  UNUSED(last_call_time);
+  RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     int_pub_msg.data = int_pub_value++;

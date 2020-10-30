@@ -620,11 +620,11 @@ void my_subscriber_callback(const void * msgin)
 **Step 3:** <a name="Step3"> </a> Define a timer callback `my_timer_callback`.
 
 ```C
-#define UNUSED(x) (void)x
+#define RCLC_UNUSED(x) (void)x
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
-  UNUSED(last_call_time);
+  RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&my_pub, &pub_msg, NULL);
