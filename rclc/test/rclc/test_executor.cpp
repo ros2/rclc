@@ -241,7 +241,7 @@ void spin_period_callback(const void * msgin)
 {
   rcutils_time_point_value_t now;
   rcl_ret_t rc;
-  RCL_UNUSED(msgin);
+  RCLC_UNUSED(msgin);
 
   rc = rcutils_system_time_now(&now);
   if (rc != RCL_RET_OK) {
@@ -270,7 +270,7 @@ uint64_t test_case_evaluate_spin_period()
 // timer callback
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-  RCL_UNUSED(last_call_time);
+  RCLC_UNUSED(last_call_time);
   // Do timer work...
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {

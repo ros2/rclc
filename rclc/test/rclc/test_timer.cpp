@@ -18,8 +18,8 @@
 
 void my_callback(rcl_timer_t * timer, int64_t last_call)
 {
-  RCL_UNUSED(timer);
-  RCL_UNUSED(last_call);
+  RCLC_UNUSED(timer);
+  RCLC_UNUSED(last_call);
 }
 
 TEST(Test, rclc_timer_init_default) {
