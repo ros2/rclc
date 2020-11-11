@@ -1,0 +1,30 @@
+name: CI RCLC
+
+on:
+    pull_request:
+      branches: 
+        - '**'
+
+jobs:
+
+    rclc_ci:
+        runs-on: ubuntu-20.04
+        container: ros:foxy
+    
+        steps:
+        - uses: actions/checkout@v2
+          with:
+            path: src/rmw-microxrcedds
+
+        - name: Download dependencies
+          run: |
+            git clone -b foxy https://github.com/osrf/osrf_testing_tools_cpp src/osrf_testing_tools_cpp
+      
+        - name: Build
+          run: . /opt/ros/foxy/setup.sh && colcon build 
+
+        - name: Test
+          run: | 
+            . /opt/ros/foxy/setup.sh && . install/local_setup.sh 
+            colcon test
+            colcon test-result

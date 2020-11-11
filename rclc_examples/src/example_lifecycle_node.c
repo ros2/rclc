@@ -29,22 +29,26 @@
 
 #include "rclc_lifecycle/rclc_lifecycle.h"
 
-rcl_ret_t my_on_configure() {
+rcl_ret_t my_on_configure()
+{
   printf("  >>> lifecycle_node: on_configure() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t my_on_activate() {
+rcl_ret_t my_on_activate()
+{
   printf("  >>> lifecycle_node: on_activate() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t my_on_deactivate() {
+rcl_ret_t my_on_deactivate()
+{
   printf("  >>> lifecycle_node: on_deactivate() callback called.\n");
   return RCL_RET_OK;
 }
 
-rcl_ret_t my_on_cleanup() {
+rcl_ret_t my_on_cleanup()
+{
   printf("  >>> lifecycle_node: on_cleanup() callback called.\n");
   return RCL_RET_OK;
 }
@@ -69,7 +73,7 @@ int main(int argc, const char * argv[])
     printf("Error in rclc_node_init_default\n");
     return -1;
   }
-  
+
   // make it a lifecycle node
   printf("make it a lifecycle node...\n");
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -83,11 +87,11 @@ int main(int argc, const char * argv[])
     printf("Error in creating lifecycle node.\n");
     return -1;
   }
-    
+
   // register callbacks
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
- 
+
   printf(" >configuring lifecycle node...\n");
   rc = rclc_lifecycle_change_state(
     &lifecycle_node,
@@ -107,7 +111,7 @@ int main(int argc, const char * argv[])
     printf("Error in TRANSITION_ACTIVATE\n");
     return -1;
   }
- 
+
   printf(" >deactivating lifecycle node...\n");
   rc = rclc_lifecycle_change_state(
     &lifecycle_node,

@@ -63,6 +63,8 @@ rclc_node_init_with_options(
     namespace_, "namespace_ is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node_ops, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t rc = RCL_RET_OK;
   rc = rcl_node_init(
@@ -72,7 +74,7 @@ rclc_node_init_with_options(
     &support->context,
     node_ops);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_node_init_default, rcl_node_init);
+    PRINT_RCLC_ERROR(rclc_node_init_default, rcl_node_init_with_options);
   }
   return rc;
 }

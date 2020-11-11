@@ -64,3 +64,50 @@ TEST(Test, rclc_node_init_default) {
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
 }
+
+TEST(Test, rclc_node_init_with_options) {
+  rclc_support_t support;
+  rcl_ret_t rc;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rc = rclc_support_init(&support, 0, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  const char * my_name = "test_name";
+  const char * my_namespace = "test_namespace";
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+
+  // test with invalid arguments
+  rc = rclc_node_init_with_options(
+    NULL, my_name, my_namespace, &support, &node_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  rc = rclc_node_init_with_options(
+    &node, NULL, my_namespace, &support, &node_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  rc = rclc_node_init_with_options(
+    &node, my_name, NULL, &support, &node_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  rc = rclc_node_init_with_options(
+    &node, my_name, my_namespace, NULL, &node_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+
+  rc = rclc_node_init_with_options(
+    &node, my_name, my_namespace, &support, NULL);
+  rcutils_reset_error();
+
+  // test with valid arguments
+  node_options.domain_id = 4;
+  rc = rclc_node_init_with_options(
+    &node, my_name, my_namespace, &support, &node_options);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  // clean up
+  rc = rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_OK, rc);
+}
