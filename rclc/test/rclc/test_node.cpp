@@ -102,7 +102,6 @@ TEST(Test, rclc_node_init_with_options) {
   rcutils_reset_error();
 
   // test with valid arguments
-  node_options.domain_id = 4;
   rc = rclc_node_init_with_options(
     &node, my_name, my_namespace, &support, &node_options);
   EXPECT_EQ(RCL_RET_OK, rc);
