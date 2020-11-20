@@ -28,8 +28,8 @@
 #endif
 
 
-// default timeout for rcl_wait() is 100ms
-#define DEFAULT_WAIT_TIMEOUT_MS 100000000
+// default timeout for rcl_wait() is 1000ms
+#define DEFAULT_WAIT_TIMEOUT_NS 1000000000
 
 // declarations of helper functions
 /*
@@ -114,7 +114,7 @@ rclc_executor_init(
   executor->index = 0;
   executor->wait_set = rcl_get_zero_initialized_wait_set();
   executor->allocator = allocator;
-  executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
+  executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_NS;
   // allocate memory for the array
   executor->handles =
     executor->allocator->allocate(
@@ -192,7 +192,7 @@ rclc_executor_fini(rclc_executor_t * executor)
         PRINT_RCLC_ERROR(rclc_executor_fini, rcl_wait_set_fini);
       }
     }
-    executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
+    executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_NS;
   } else {
     // Repeated calls to fini or calling fini on a zero initialized executor is ok
   }
