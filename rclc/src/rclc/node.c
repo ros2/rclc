@@ -43,7 +43,9 @@ rclc_node_init_default(
     namespace_,
     support,
     &node_ops);
-
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_WARN(rclc_node_init_default, rclc_node_init_with_options);
+  }
   return rc;
 }
 
@@ -74,7 +76,7 @@ rclc_node_init_with_options(
     &support->context,
     node_ops);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_node_init_default, rcl_node_init_with_options);
+    PRINT_RCLC_WARN(rclc_node_init_with_options, rcl_node_init);
   }
   return rc;
 }

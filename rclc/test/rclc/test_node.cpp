@@ -22,7 +22,7 @@ TEST(Test, rclc_node_init_default) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   EXPECT_EQ(RCL_RET_OK, rc);
-  const char * my_name = "test_name";
+  const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
   rcl_node_t node = rcl_get_zero_initialized_node();
 
@@ -61,6 +61,10 @@ TEST(Test, rclc_node_init_default) {
   rcutils_reset_error();
 
   // clean up
+  rc = rcl_node_fini(&node);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  rcutils_reset_error();
+
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
 }
@@ -71,7 +75,7 @@ TEST(Test, rclc_node_init_with_options) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   EXPECT_EQ(RCL_RET_OK, rc);
-  const char * my_name = "test_name";
+  const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
@@ -107,6 +111,10 @@ TEST(Test, rclc_node_init_with_options) {
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // clean up
+  rc = rcl_node_fini(&node);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  rcutils_reset_error();
+
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
 }

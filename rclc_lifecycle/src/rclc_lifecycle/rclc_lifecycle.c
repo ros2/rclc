@@ -165,8 +165,6 @@ rclc_lifecycle_register_callback(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     lifecycle_node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_state, "goal_state is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
     cb, "callback is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   lifecycle_node->callbacks.goal_states[goal_state] = true;

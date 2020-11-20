@@ -24,10 +24,11 @@ TEST(Test, rclc_publisher_init_default) {
   // preliminary setup
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
-  const char * my_name = "test_name";
+  const char * my_name = "test_pub";
   const char * my_namespace = "test_namespace";
   rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   // test with valid arguments
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -49,6 +50,7 @@ TEST(Test, rclc_publisher_init_default) {
   rc = rclc_publisher_init_default(&publisher, &node, type_support, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
+
   // clean up
   rc = rcl_publisher_fini(&publisher, &node);
   EXPECT_EQ(RCL_RET_OK, rc);
@@ -65,7 +67,7 @@ TEST(Test, rclc_publisher_init_best_effort) {
   // preliminary setup
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
-  const char * my_name = "test_name";
+  const char * my_name = "test_pub_be";
   const char * my_namespace = "test_namespace";
   rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);

@@ -74,9 +74,18 @@ TEST(TestRclcLifecycle, lifecycle_node) {
     &allocator);
 
   EXPECT_EQ(RCL_RET_OK, res);
+
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine));
+
+  // clean up
+  res = rcl_node_fini(&my_node);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_node_options_fini(&node_ops);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, res);
 }
 
 TEST(TestRclcLifecycle, lifecycle_node_transitions) {
@@ -139,6 +148,13 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   EXPECT_EQ(
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_node.state_machine->current_state->id);
+
+  res = rcl_node_fini(&my_node);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_node_options_fini(&node_ops);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, res);
 }
 
 TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
@@ -188,4 +204,11 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
 
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
+
+  res = rcl_node_fini(&my_node);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_node_options_fini(&node_ops);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, res);
 }
