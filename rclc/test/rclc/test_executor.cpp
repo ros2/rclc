@@ -65,7 +65,7 @@ std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 500
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 2000
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
