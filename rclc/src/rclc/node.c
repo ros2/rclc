@@ -37,14 +37,46 @@ rclc_node_init_default(
 
   rcl_ret_t rc = RCL_RET_OK;
   rcl_node_options_t node_ops = rcl_node_get_default_options();
+  rc = rclc_node_init_with_options(
+    node,
+    name,
+    namespace_,
+    support,
+    &node_ops);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_WARN(rclc_node_init_default, rclc_node_init_with_options);
+  }
+  return rc;
+}
+
+rcl_ret_t
+rclc_node_init_with_options(
+  rcl_node_t * node,
+  const char * name,
+  const char * namespace_,
+  rclc_support_t * support,
+  rcl_node_options_t * node_ops)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    name, "name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    namespace_, "namespace_ is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node_ops, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t rc = RCL_RET_OK;
   rc = rcl_node_init(
     node,
     name,
     namespace_,
     &support->context,
-    &node_ops);
+    node_ops);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_node_init_default, rcl_node_init);
+    PRINT_RCLC_WARN(rclc_node_init_with_options, rcl_node_init);
   }
   return rc;
 }

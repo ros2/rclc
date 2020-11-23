@@ -14,10 +14,9 @@
 // limitations under the License.
 
 #include <stdio.h>
-
 #include <std_msgs/msg/string.h>
-#include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <rclc/rclc.h>
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
@@ -40,7 +39,7 @@ void my_subscriber_callback(const void * msgin)
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
-  UNUSED(last_call_time);
+  RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&my_pub, &pub_msg, NULL);
@@ -136,19 +135,11 @@ int main(int argc, const char * argv[])
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
   rclc_executor_t executor;
-
-  // compute total number of subsribers and timers
+  executor = rclc_executor_get_zero_initialized_executor();
+  // total number of handles = #subscriptions + #timers
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
-  executor = rclc_executor_get_zero_initialized_executor();
   rclc_executor_init(&executor, &support.context, num_handles, &allocator);
-
-  // set timeout for rcl_wait()
-  unsigned int rcl_wait_timeout = 1000;   // in ms
-  rc = rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
-  if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_set_timeout.");
-  }
 
   // add subscription to executor
   rc = rclc_executor_add_subscription(
@@ -164,7 +155,7 @@ int main(int argc, const char * argv[])
   }
 
   for (unsigned int i = 0; i < 10; i++) {
-    // timeout specified in ns (here 1s)
+    // timeout specified in nanoseconds (here 1s)
     rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
   }
 
@@ -175,6 +166,7 @@ int main(int argc, const char * argv[])
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
+
   std_msgs__msg__String__fini(&pub_msg);
   std_msgs__msg__String__fini(&sub_msg);
 

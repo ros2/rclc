@@ -28,8 +28,8 @@
 #endif
 
 
-// default timeout for rcl_wait() is 100ms
-#define DEFAULT_WAIT_TIMEOUT_MS 100000000
+// default timeout for rcl_wait() is 1000ms
+#define DEFAULT_WAIT_TIMEOUT_NS 1000000000
 
 // declarations of helper functions
 /*
@@ -114,7 +114,7 @@ rclc_executor_init(
   executor->index = 0;
   executor->wait_set = rcl_get_zero_initialized_wait_set();
   executor->allocator = allocator;
-  executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
+  executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_NS;
   // allocate memory for the array
   executor->handles =
     executor->allocator->allocate(
@@ -192,7 +192,7 @@ rclc_executor_fini(rclc_executor_t * executor)
         PRINT_RCLC_ERROR(rclc_executor_fini, rcl_wait_set_fini);
       }
     }
-    executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
+    executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_NS;
   } else {
     // Repeated calls to fini or calling fini on a zero initialized executor is ok
   }
@@ -616,7 +616,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
   // wait up to 'timeout_ns' to receive notification about which handles reveived
   // new data from DDS queue.
   rc = rcl_wait(&executor->wait_set, timeout_ns);
-  UNUSED(rc);
+  RCLC_UNUSED(rc);
 
   // based on semantics process input data
   switch (executor->data_comm_semantics) {
@@ -668,7 +668,7 @@ rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
 
   if (executor->invocation_time == 0) {
     ret = rcutils_system_time_now(&executor->invocation_time);
-    UNUSED(ret);
+    RCLC_UNUSED(ret);
   }
   ret = rclc_executor_spin_some(executor, executor->timeout_ns);
   if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
@@ -713,7 +713,7 @@ bool rclc_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int si
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
-  UNUSED(obj)
+  RCLC_UNUSED(obj);
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
       if (handles[i].data_available == false) {
@@ -729,7 +729,7 @@ bool rclc_executor_trigger_all(rclc_executor_handle_t * handles, unsigned int si
 bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
-  UNUSED(obj)
+  RCLC_UNUSED(obj);
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
@@ -777,8 +777,8 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
 
 bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
-  UNUSED(handles)
-  UNUSED(size)
-  UNUSED(obj)
+  RCLC_UNUSED(handles);
+  RCLC_UNUSED(size);
+  RCLC_UNUSED(obj);
   return true;
 }

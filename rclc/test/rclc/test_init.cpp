@@ -37,6 +37,35 @@ TEST(Test, rclc_support_init) {
   rcutils_reset_error();
 }
 
+TEST(Test, rclc_support_init_with_options) {
+  rclc_support_t support;
+  rcl_ret_t rc;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+
+  rc = rcl_init_options_init(&init_options, allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  rc = rclc_support_init_with_options(&support, 0, nullptr, &init_options, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  // after rcl_init context should be valid
+  ASSERT_TRUE(rcl_context_is_valid(&support.context));
+  EXPECT_EQ(&allocator, support.allocator);
+  EXPECT_TRUE(rcl_clock_valid(&support.clock));
+  rc = rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  // test invalid arguments
+  rc = rclc_support_init_with_options(nullptr, 0, nullptr, &init_options, &allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+  rc = rclc_support_init_with_options(&support, 0, nullptr, &init_options, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+  rc = rclc_support_init_with_options(&support, 0, nullptr, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  rcutils_reset_error();
+}
+
 
 TEST(Test, rclc_support_fini) {
   rclc_support_t support;
