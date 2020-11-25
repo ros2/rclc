@@ -2,6 +2,10 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.4 (2020-11-25)
+------------------
+* Fixed error in bloom release
+
 0.1.3 (2020-11-23)
 ------------------
 * Aligned version number to rclc repository
