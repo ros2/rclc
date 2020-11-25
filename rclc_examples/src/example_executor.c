@@ -162,7 +162,6 @@ int main(int argc, const char * argv[])
   // compute total number of subsribers and timers
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
-  executor = rclc_executor_get_zero_initialized_executor();
   rclc_executor_init(&executor, &context, num_handles, &allocator);
 
   // set timeout for rcl_wait()

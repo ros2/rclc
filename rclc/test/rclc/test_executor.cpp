@@ -577,7 +577,6 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcl_ret_t rc;
 
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
 
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -608,7 +607,6 @@ TEST_F(TestDefaultExecutor, executor_init) {
 TEST_F(TestDefaultExecutor, executor_fini) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -625,7 +623,6 @@ TEST_F(TestDefaultExecutor, executor_fini) {
 TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
   // test with normal arguemnt and NULL pointers as arguments
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -684,7 +681,6 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
 TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
 
   // insert one handle, add two subscriptions
   rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
@@ -716,7 +712,6 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
 TEST_F(TestDefaultExecutor, executor_add_timer) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -847,7 +842,6 @@ TEST_F(TestDefaultExecutor, executor_add_service) {
 TEST_F(TestDefaultExecutor, executor_spin_some_API) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -903,7 +897,6 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   rclc_executor_t executor;
   // initialize executor for 3 subscriptions in the order sub1, sub2, sub3
   size_t num_subscriptions = 3;
-  executor = rclc_executor_get_zero_initialized_executor();
   ret = rclc_executor_init(&executor, &this->context, num_subscriptions, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   unsigned int expected_msg;
@@ -1058,7 +1051,6 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // by Jan Staschulat, under Apache 2.0 License
   rcl_ret_t ret;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
 
   // initialize result variables
   _executor_results_init();
@@ -1139,7 +1131,6 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   rcl_ret_t ret;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   ret = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   _results_callback_init();
@@ -1243,7 +1234,6 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
 TEST_F(TestDefaultExecutor, spin_period) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
   // initialize executor with 1 handle
   rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -1318,7 +1308,6 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1402,7 +1391,6 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1472,7 +1460,6 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1549,7 +1536,6 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1628,7 +1614,6 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1704,7 +1689,6 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
-  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();

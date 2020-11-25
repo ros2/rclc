@@ -24,18 +24,13 @@ TEST(Test, rclc_node_init_default) {
   EXPECT_EQ(RCL_RET_OK, rc);
   const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_t node;
 
   // test with valid arguments
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // tests with invalid arguments
-
-  // test case: node already initialized
-  rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
-  EXPECT_EQ(RCL_RET_ALREADY_INIT, rc);
-  rcutils_reset_error();
 
   // test case: null pointer for node
   rc = rclc_node_init_default(nullptr, my_name, my_namespace, &support);
@@ -45,7 +40,7 @@ TEST(Test, rclc_node_init_default) {
   // test case: null pointer for name
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
-  node = rcl_get_zero_initialized_node();
+
   rc = rclc_node_init_default(&node, nullptr, my_namespace, &support);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
@@ -77,7 +72,7 @@ TEST(Test, rclc_node_init_with_options) {
   EXPECT_EQ(RCL_RET_OK, rc);
   const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_t node;
   rcl_node_options_t node_options = rcl_node_get_default_options();
 
   // test with invalid arguments

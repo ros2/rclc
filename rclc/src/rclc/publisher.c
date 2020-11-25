@@ -35,6 +35,7 @@ rclc_publisher_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
+  (*publisher) = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
   rcl_ret_t rc = rcl_publisher_init(
     publisher,
@@ -64,6 +65,7 @@ rclc_publisher_init_best_effort(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
+  (*publisher) = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
   pub_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   rcl_ret_t rc = rcl_publisher_init(
