@@ -65,12 +65,12 @@ std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 1000
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 100
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
 // timeout for rcl_wait() when calling spin_some API of executor
-const uint64_t rclc_test_timeout_ns = 1000000000;  // 1s
+const uint64_t rclc_test_timeout_ns = 10000000000;  // 10s
 
 static
 void
