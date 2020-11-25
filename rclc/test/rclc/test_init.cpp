@@ -79,7 +79,7 @@ TEST(Test, rclc_support_fini) {
   rc = rclc_support_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  // calling _fini multiple times gives an error
+  // test calling twice
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();

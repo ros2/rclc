@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for my_handle_counterrmation on the respective copyright owner
+// Copyright (c) 2020 - for my_handle_counterrmation on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -24,11 +24,11 @@ TEST(Test, executor_handle_counters_zero_init) {
   size_t zero = 0;
   rc = rclc_executor_handle_counters_zero_init(&my_handle_counter);
   EXPECT_EQ(rc, RCL_RET_OK);
-  EXPECT_EQ(my_handle_counter.number_of_clients, zero);
-  EXPECT_EQ(my_handle_counter.number_of_guard_conditions, zero);
-  EXPECT_EQ(my_handle_counter.number_of_services, zero);
   EXPECT_EQ(my_handle_counter.number_of_subscriptions, zero);
+  EXPECT_EQ(my_handle_counter.number_of_guard_conditions, zero);
   EXPECT_EQ(my_handle_counter.number_of_timers, zero);
+  EXPECT_EQ(my_handle_counter.number_of_clients, zero);
+  EXPECT_EQ(my_handle_counter.number_of_services, zero);
   EXPECT_EQ(my_handle_counter.number_of_events, zero);
 
   // test null pointer
@@ -46,8 +46,13 @@ TEST(Test, executor_handle_init) {
   EXPECT_EQ(rc, RCL_RET_OK);
   EXPECT_EQ(handle.type, NONE);
   EXPECT_EQ(handle.invocation, ON_NEW_DATA);
+
   EXPECT_EQ(handle.subscription, nullptr);
   EXPECT_EQ(handle.timer, nullptr);
+  EXPECT_EQ(handle.client, nullptr);
+  EXPECT_EQ(handle.service, nullptr);
+  EXPECT_EQ(handle.gc, nullptr);
+
   EXPECT_EQ(handle.data, nullptr);
   EXPECT_EQ(handle.callback, nullptr);
   EXPECT_EQ(handle.index, max_handles);
@@ -88,12 +93,66 @@ TEST(Test, executor_handle_print) {
   rclc_executor_handle_t handle;
   size_t max_handles = 10;
   rc = rclc_executor_handle_init(&handle, max_handles);
-
+  EXPECT_EQ(rc, RCL_RET_OK);
   rc = rclc_executor_handle_print(&handle);
   EXPECT_EQ(rc, RCL_RET_OK);
 
   // test null pointer
   rc = rclc_executor_handle_print(nullptr);
   EXPECT_EQ(rc, RCL_RET_INVALID_ARGUMENT);
+  rcutils_reset_error();
+}
+
+TEST(Test, executor_handle_get_ptr) {
+  rcl_ret_t rc;
+
+  rclc_executor_handle_t handle;
+  size_t max_handles = 10;
+  rc = rclc_executor_handle_init(&handle, max_handles);
+  EXPECT_EQ(rc, RCL_RET_OK);
+  rcutils_reset_error();
+  // test null pointer
+  rcl_subscription_t sub;
+  rcl_timer_t timer;
+  rcl_client_t client;
+  rcl_service_t service;
+  rcl_guard_condition_t gc;
+  void * ptr;
+  ptr = rclc_executor_handle_get_ptr(nullptr);
+  EXPECT_EQ(ptr, nullptr);
+
+  sub = rcl_get_zero_initialized_subscription();
+  handle.type = SUBSCRIPTION;
+  handle.subscription = &sub;
+  ptr = rclc_executor_handle_get_ptr(&handle);
+  EXPECT_EQ(ptr, &sub);
+  rcutils_reset_error();
+
+  timer = rcl_get_zero_initialized_timer();
+  handle.type = TIMER;
+  handle.timer = &timer;
+  ptr = rclc_executor_handle_get_ptr(&handle);
+  EXPECT_EQ(ptr, &timer);
+  rcutils_reset_error();
+
+  client = rcl_get_zero_initialized_client();
+  handle.type = CLIENT;
+  handle.client = &client;
+  ptr = rclc_executor_handle_get_ptr(&handle);
+  EXPECT_EQ(ptr, &client);
+  rcutils_reset_error();
+
+  service = rcl_get_zero_initialized_service();
+  handle.type = SERVICE;
+  handle.service = &service;
+  ptr = rclc_executor_handle_get_ptr(&handle);
+  EXPECT_EQ(ptr, &service);
+  rcutils_reset_error();
+
+  gc = rcl_get_zero_initialized_guard_condition();
+  handle.type = GUARD_CONDITION;
+  handle.gc = &gc;
+  ptr = rclc_executor_handle_get_ptr(&handle);
+  EXPECT_EQ(ptr, &gc);
   rcutils_reset_error();
 }

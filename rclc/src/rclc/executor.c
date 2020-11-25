@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for information on the respective copyright owner
+// Copyright (c) 2020 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -246,7 +246,6 @@ rclc_executor_add_subscription(
   return ret;
 }
 
-
 rcl_ret_t
 rclc_executor_add_timer(
   rclc_executor_t * executor,
@@ -282,19 +281,250 @@ rclc_executor_add_timer(
       return ret;
     }
   }
-
   executor->info.number_of_timers++;
-
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a timer.");
   return ret;
 }
 
+rcl_ret_t
+rclc_executor_add_client(
+  rclc_executor_t * executor,
+  rcl_client_t * client,
+  void * response_msg,
+  rclc_client_callback_t callback)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    rcl_ret_t ret = RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return ret;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = CLIENT;
+  executor->handles[executor->index].client = client;
+  executor->handles[executor->index].data = response_msg;
+  executor->handles[executor->index].client_callback = callback;
+  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
+  executor->handles[executor->index].invocation = ON_NEW_DATA;  // i.e. when request came in
+  executor->handles[executor->index].initialized = true;
+
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_client function.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_clients++;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a client.");
+  return ret;
+}
+
+rcl_ret_t
+rclc_executor_add_client_with_request_id(
+  rclc_executor_t * executor,
+  rcl_client_t * client,
+  void * response_msg,
+  rclc_client_callback_with_request_id_t callback)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    rcl_ret_t ret = RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return ret;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = CLIENT;
+  executor->handles[executor->index].client = client;
+  executor->handles[executor->index].data = response_msg;
+  executor->handles[executor->index].client_callback_with_reqid = callback;
+  executor->handles[executor->index].callback_type = CB_WITH_REQUEST_ID;
+  executor->handles[executor->index].invocation = ON_NEW_DATA;  // i.e. when request came in
+  executor->handles[executor->index].initialized = true;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_client function.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_clients++;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a client.");
+  return ret;
+}
+
+rcl_ret_t
+rclc_executor_add_service(
+  rclc_executor_t * executor,
+  rcl_service_t * service,
+  void * request_msg,
+  void * response_msg,
+  rclc_service_callback_t callback)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(request_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    rcl_ret_t ret = RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return ret;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = SERVICE;
+  executor->handles[executor->index].service = service;
+  executor->handles[executor->index].data = request_msg;
+  // TODO(jst3si) new type with req and resp message in data field.
+  executor->handles[executor->index].data_response_msg = response_msg;
+  executor->handles[executor->index].service_callback = callback;
+  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
+  executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
+  executor->handles[executor->index].initialized = true;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_service function.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_services++;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a service.");
+  return ret;
+}
+
+rcl_ret_t
+rclc_executor_add_service_with_request_id(
+  rclc_executor_t * executor,
+  rcl_service_t * service,
+  void * request_msg,
+  void * response_msg,
+  rclc_service_callback_with_request_id_t callback)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(request_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    rcl_ret_t ret = RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return ret;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = SERVICE;
+  executor->handles[executor->index].service = service;
+  executor->handles[executor->index].data = request_msg;
+  // TODO(jst3si) new type with req and resp message in data field.
+  executor->handles[executor->index].data_response_msg = response_msg;
+  executor->handles[executor->index].service_callback_with_reqid = callback;
+  executor->handles[executor->index].callback_type = CB_WITH_REQUEST_ID;
+  executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
+  executor->handles[executor->index].initialized = true;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_service function.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_services++;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a service.");
+  return ret;
+}
+
+rcl_ret_t
+rclc_executor_add_guard_condition(
+  rclc_executor_t * executor,
+  rcl_guard_condition_t * gc,
+  rclc_gc_callback_t callback)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(gc, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    ret = RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return ret;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = GUARD_CONDITION;
+  executor->handles[executor->index].gc = gc;
+  executor->handles[executor->index].gc_callback = callback;
+  executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
+  executor->handles[executor->index].initialized = true;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_guard_condition function.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_guard_conditions++;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a guard_condition.");
+  return ret;
+}
 /***
  * operates on handle executor->handles[i]
  * - evaluates the status bit in the wait_set for this handle
  * - if new message is available or timer is ready, assigns executor->handles[i].data_available = true
  */
-
 
 // todo refactor parameters: (rclc_executor_handle_t *, rcl_wait_set_t * wait_set)
 
@@ -333,9 +563,27 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
       }
       break;
 
+    case SERVICE:
+      if (wait_set->services[handle->index]) {
+        handle->data_available = true;
+      }
+      break;
+
+    case CLIENT:
+      if (wait_set->clients[handle->index]) {
+        handle->data_available = true;
+      }
+      break;
+
+    case GUARD_CONDITION:
+      if (wait_set->guard_conditions[handle->index]) {
+        handle->data_available = true;
+      }
+      break;
+
     default:
       RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+        ROS_PACKAGE_NAME, "Error in _rclc_check_for_new_data:wait_set unknwon handle type: %d",
         handle->type);
       return RCL_RET_ERROR;
   }    // switch-case
@@ -361,9 +609,9 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           handle->subscription, handle->data, &messageInfo,
           NULL);
         if (rc != RCL_RET_OK) {
-          // it is documented, that rcl_take might return this error with successfull rcl_wait
+          // rcl_take might return this error even with successfull rcl_wait
           if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
-            PRINT_RCLC_ERROR(rclc_read_input_data, rcl_take);
+            PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
           return rc;
@@ -376,9 +624,43 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
       // notification, that timer is ready already done in _rclc_evaluate_data_availability()
       break;
 
+    case SERVICE:
+      if (wait_set->services[handle->index]) {
+        rc = rcl_take_request(
+          handle->service, &handle->req_id, handle->data);
+        if (rc != RCL_RET_OK) {
+          // rcl_take_request might return this error even with successfull rcl_wait
+          if (rc != RCL_RET_SERVICE_TAKE_FAILED) {
+            PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take_request);
+            RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+          }
+          return rc;
+        }
+      }
+      break;
+
+    case CLIENT:
+      if (wait_set->clients[handle->index]) {
+        rc = rcl_take_response(
+          handle->client, &handle->req_id, handle->data);
+        if (rc != RCL_RET_OK) {
+          // rcl_take_response might return this error even with successfull rcl_wait
+          if (rc != RCL_RET_CLIENT_TAKE_FAILED) {
+            PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take_response);
+            RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+          }
+          return rc;
+        }
+      }
+      break;
+
+    case GUARD_CONDITION:
+      // nothing to do
+      break;
+
     default:
       RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Error:wait_set unknwon handle type: %d",
+        ROS_PACKAGE_NAME, "Error in _rclc_take_new_data:wait_set unknwon handle type: %d",
         handle->type);
       return RCL_RET_ERROR;
   }    // switch-case
@@ -411,7 +693,6 @@ _rclc_execute(rclc_executor_handle_t * handle)
     invoke_callback = true;
   }
 
-  // printf("execute: handles[%d] :  %d\n", i, invoke_callback);  // debug(jst3si)
   // execute callback
   if (invoke_callback) {
     switch (handle->type) {
@@ -431,12 +712,39 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         break;
 
+      case SERVICE:
+        if (handle->callback_type == CB_WITHOUT_REQUEST_ID) {
+          handle->service_callback(handle->data, handle->data_response_msg);
+        } else if (handle->callback_type == CB_WITH_REQUEST_ID) {
+          handle->service_callback_with_reqid(
+            handle->data, &handle->req_id,
+            handle->data_response_msg);
+        }
+        rc = rcl_send_response(handle->service, &handle->req_id, handle->data_response_msg);
+        if (rc != RCL_RET_OK) {
+          PRINT_RCLC_ERROR(rclc_execute, rcl_send_response);
+          return rc;
+        }
+        break;
+
+      case CLIENT:
+        if (handle->callback_type == CB_WITHOUT_REQUEST_ID) {
+          handle->client_callback(handle->data);
+        } else if (handle->callback_type == CB_WITH_REQUEST_ID) {
+          handle->client_callback_with_reqid(handle->data, &handle->req_id);
+        }
+        break;
+
+      case GUARD_CONDITION:
+        handle->gc_callback();
+        break;
+
       default:
         RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Execute callback: unknwon handle type: %d",
+          ROS_PACKAGE_NAME, "Error in _rclc_execute: unknwon handle type: %d",
           handle->type);
         return RCL_RET_ERROR;
-    }    // switch-case
+    }   // switch-case
   }
 
   // corresponding callback of this handle has been called => reset data_available flag here
@@ -604,11 +912,58 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         }
         break;
 
+      case SERVICE:
+        // add service to wait_set and save index
+        rc = rcl_wait_set_add_service(
+          &executor->wait_set, executor->handles[i].service,
+          &executor->handles[i].index);
+        if (rc == RCL_RET_OK) {
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME, "Service added to wait_set_service[%ld]",
+            executor->handles[i].index);
+        } else {
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_service);
+          return rc;
+        }
+        break;
+
+
+      case CLIENT:
+        // add client to wait_set and save index
+        rc = rcl_wait_set_add_client(
+          &executor->wait_set, executor->handles[i].client,
+          &executor->handles[i].index);
+        if (rc == RCL_RET_OK) {
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME, "Client added to wait_set_client[%ld]",
+            executor->handles[i].index);
+        } else {
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_client);
+          return rc;
+        }
+        break;
+
+      case GUARD_CONDITION:
+        // add guard_condition to wait_set and save index
+        rc = rcl_wait_set_add_guard_condition(
+          &executor->wait_set, executor->handles[i].gc,
+          &executor->handles[i].index);
+        if (rc == RCL_RET_OK) {
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME, "Guard_condition added to wait_set_client[%ld]",
+            executor->handles[i].index);
+        } else {
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_guard_condition);
+          return rc;
+        }
+        break;
+
+
       default:
         RCUTILS_LOG_DEBUG_NAMED(
           ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
           executor->handles[i].type);
-        PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_unknown_handle);
+        PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_unknown_handle);
         return RCL_RET_ERROR;
     }
   }
