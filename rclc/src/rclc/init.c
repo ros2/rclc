@@ -88,12 +88,20 @@ rclc_support_fini(rclc_support_t * support)
   rcl_ret_t rc;
   rc = rcl_init_options_fini(&support->init_options);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_WARN(rclc_init_fini, rcl_init_options_fini);
+    PRINT_RCLC_WARN(rclc_support_fini, rcl_init_options_fini);
     return rc;
   }
   rc = rcl_clock_fini(&support->clock);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_WARN(rclc_init_fini, rcl_clock_fini);
+    PRINT_RCLC_WARN(rclc_support_fini, rcl_clock_fini);
+  }
+  rc = rcl_shutdown(&support->context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_WARN(rclc_support_fini, rcl_shutdown);
+  }
+  rc = rcl_context_fini(&support->context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_WARN(rclc_support_fini, rcl_context_fini);
   }
   return rc;
 }
