@@ -1501,7 +1501,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   // ------------------------- test case setup ---------------------------------------------
 
   const std::chrono::milliseconds ci_job_time =
-    std::chrono::milliseconds(1000);
+    std::chrono::milliseconds(3000);
 
   // first round
   _results_callback_init();
