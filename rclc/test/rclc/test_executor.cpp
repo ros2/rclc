@@ -108,6 +108,7 @@ _results_callback_init()
 {
   _results_callback_counters_init();
   _results_callback_values_init();
+  _executor_results_init();
 }
 
 static
@@ -216,6 +217,7 @@ _executor_results_compare(unsigned int * array)
     if (msg == NULL) { \
       printf("Test CB " #NUM ": msg is NULL\n"); \
     } else { \
+      printf("callback_" #NUM " was called\n"); \
       _cb ## NUM ## _int_value = msg->data; \
     } \
     _cb ## NUM ## _cnt++; \
