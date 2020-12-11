@@ -218,7 +218,7 @@ _executor_results_compare(unsigned int * array)
     if (msg == NULL) { \
       printf("Test CB " #NUM ": msg is NULL\n"); \
     } else { \
-      printf("callback_" #NUM " was called\n"); \
+      printf("callback_" #NUM " received %d\n", msg->data); \
       _cb ## NUM ## _int_value = msg->data; \
     } \
     _cb ## NUM ## _cnt++; \
