@@ -77,7 +77,7 @@ static unsigned int gc1_cnt = 0;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 100
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 1000
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
@@ -1498,8 +1498,8 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 7;
-  //rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
-  //EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
+  rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
