@@ -250,7 +250,7 @@ void int32_callback4(const void * msgin)
       printf("Error in int32_callback4: could not publish!\n");
     }
     printf("cb4: published %d\n", _pub_int_msg_ptr->data);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
 
@@ -1319,6 +1319,9 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
     &int32_callback4, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
+
+  subscription2_int_msg.data = 77;
+
   rc = rclc_executor_add_subscription(
     &executor, &subscription2, &subscription2_int_msg,
     &int32_callback5, ON_NEW_DATA);

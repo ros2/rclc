@@ -540,6 +540,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
   switch (handle->type) {
     case SUBSCRIPTION:
       if (wait_set->subscriptions[handle->index]) {
+        printf("DEBUG: check_for_new_data: msg available\n");
         handle->data_available = true;
       }
       break;
@@ -606,6 +607,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
     case SUBSCRIPTION:
       if (wait_set->subscriptions[handle->index]) {
         rmw_message_info_t messageInfo;
+        printf("DEBUG:rcl_take \n");
         rc = rcl_take(
           handle->subscription, handle->data, &messageInfo,
           NULL);
