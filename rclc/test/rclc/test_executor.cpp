@@ -1135,6 +1135,10 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // check total number of received messages
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2) << "cb1 msg does not match";
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
+  
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, update_wait_set) {
@@ -1247,6 +1251,10 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ((unsigned int)1, _cb2_cnt);
   EXPECT_EQ((unsigned int)1, _cb1_int_value);
   EXPECT_EQ((unsigned int)2, _cb2_int_value);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 
@@ -1282,6 +1290,10 @@ TEST_F(TestDefaultExecutor, spin_period) {
   uint64_t delta = 5000000;  // 5 ms interval
   EXPECT_LE(duration, spin_period + delta);
   EXPECT_LE(spin_period - delta, duration);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
@@ -1364,6 +1376,9 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, semantics_LET) {
@@ -1450,6 +1465,9 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_one) {
@@ -1535,6 +1553,10 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_any) {
@@ -1613,6 +1635,10 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_all) {
@@ -1691,6 +1717,10 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_always) {
@@ -1762,6 +1792,10 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 3);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, executor_test_service) {
