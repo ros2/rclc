@@ -77,12 +77,12 @@ static unsigned int gc1_cnt = 0;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 1000
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 200
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
 // timeout for rcl_wait() when calling spin_some API of executor
-const uint64_t rclc_test_timeout_ns = 10000000000;  // 10s
+const uint64_t rclc_test_timeout_ns = 1000000000;  // 1s
 
 static
 void
@@ -253,7 +253,7 @@ void int32_callback4(const void * msgin)
       printf("Error in int32_callback4: could not publish!\n");
     }
     printf("cb4: published %d\n", _pub_int_msg_ptr->data);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));  // 10s
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));  // 1s
   }
 }
 
@@ -876,8 +876,9 @@ TEST_F(TestDefaultExecutor, pub_sub_example) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;  // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
@@ -946,14 +947,15 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;   // 100ms
   // process subscriptions
   for (unsigned int i = 0; i < 100; i++) {
     // Assumption: messages for all sub1, sub2 and sub3 are available
-    _wait_for_msg(&this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
 
     ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
@@ -996,11 +998,11 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   // process subscriptions. Assumption: messages for all sub1, sub2 and sub3 are available
   for (unsigned int i = 0; i < 100; i++) {
     // wait until messages are received
-    _wait_for_msg(&this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
     ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
     if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
@@ -1092,33 +1094,43 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub2 did not publish!";
 
+/*
   // wait until messages are received
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;  // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
   _wait_for_msg(
-    &this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub2, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
-
+*/
   // initialize result variables
   _cb1_cnt = 0;
   _cb2_cnt = 0;
 
   // running the executor
-  unsigned int max_iterations = 2;
-  for (unsigned int i = 0; i < max_iterations; i++) {
-    ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-    if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
-      // valid return values
-    } else {
-      // any other error
-      EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
-    }
+  std::this_thread::sleep_for(rclc_test_sleep_time);
+
+  ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
+  }
+
+  uint64_t reduced_timeout_ns = 1000000;  // 1ms
+  ret = rclc_executor_spin_some(&executor, reduced_timeout_ns);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
   }
   // check total number of received messages
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2) << "cb1 msg does not match";
@@ -1168,19 +1180,22 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
 
+/*
   // wait until messages are received
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;   // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
   _wait_for_msg(
-    &this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub2, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
-
+*/
+  std::this_thread::sleep_for(rclc_test_sleep_time);
   ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
     // valid return values
@@ -1721,6 +1736,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0);
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0) << " expected: A not called";
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << " expected: B called";
+
   // second round
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
