@@ -250,7 +250,7 @@ void int32_callback4(const void * msgin)
       printf("Error in int32_callback4: could not publish!\n");
     }
     printf("cb4: published %d\n", _pub_int_msg_ptr->data);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000)); // 10s
   }
 }
 
