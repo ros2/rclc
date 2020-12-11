@@ -42,7 +42,7 @@ Please notice the following issues/limitations:
 
 ## Bloom Release Status of Code Repository ros2/rclc
 
-Bloom release status of packages in repository [github.com/ros2/rclc/](https://github.com/ros2/rclc) for different architectures and releases.
+Bloom release status of all packages in repository [github.com/ros2/rclc/](https://github.com/ros2/rclc) for different architectures and releases.
 
 |Package | Release | amd64 | arm64 | armhf |
 |:--     |  :--    |  :--  |  :--  | :--   |
