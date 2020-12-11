@@ -77,7 +77,7 @@ static unsigned int gc1_cnt = 0;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 500
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 1000
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
@@ -253,7 +253,7 @@ void int32_callback4(const void * msgin)
       printf("Error in int32_callback4: could not publish!\n");
     }
     printf("cb4: published %d\n", _pub_int_msg_ptr->data);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));  // 1s
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));  // 2s
   }
 }
 
