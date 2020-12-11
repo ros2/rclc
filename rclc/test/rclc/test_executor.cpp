@@ -1135,10 +1135,10 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // check total number of received messages
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2) << "cb1 msg does not match";
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
-  
+
   // tear down
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  ret = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, update_wait_set) {
@@ -1253,8 +1253,8 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ((unsigned int)2, _cb2_int_value);
 
   // tear down
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  ret = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 
