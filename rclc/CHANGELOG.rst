@@ -1,6 +1,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+0.1.5 (2020-12-11)
+------------------
+* Added support for services,clients and guard_conditions to rclc executor
+* Added table for bloom release status in README file
 
 0.1.4 (2020-11-25)
 ------------------
