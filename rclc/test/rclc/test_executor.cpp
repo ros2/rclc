@@ -1498,8 +1498,8 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 7;
-  rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
+  //rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
+  //EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
