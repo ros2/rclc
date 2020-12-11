@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.5 (2020-12-11)
+------------------
+* Added support for services,clients and guard_conditions to rclc executor
+
 0.1.4 (2020-11-25)
 ------------------
 * Fixed error in bloom release

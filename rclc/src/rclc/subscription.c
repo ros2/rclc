@@ -35,6 +35,7 @@ rclc_subscription_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
+  (*subscription) = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_opt = rcl_subscription_get_default_options();
   rcl_ret_t rc = rcl_subscription_init(
     subscription,
@@ -64,6 +65,7 @@ rclc_subscription_init_best_effort(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
+  (*subscription) = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_opt = rcl_subscription_get_default_options();
   sub_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   rcl_ret_t rc = rcl_subscription_init(

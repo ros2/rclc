@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for handle_countersrmation on the respective copyright owner
+// Copyright (c) 2020 - for handle_countersrmation on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -38,13 +38,28 @@ rclc_executor_handle_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
   handle->type = NONE;
   handle->invocation = ON_NEW_DATA;
+  // Note, the pointer to subscription, timer, service, client, gc is a union
+  // and a single NULL assignment should be sufficient.
   handle->subscription = NULL;
   handle->timer = NULL;
+  handle->service = NULL;
+  handle->client = NULL;
+  handle->gc = NULL;
+
   handle->data = NULL;
+  handle->data_response_msg = NULL;
+
   handle->callback = NULL;
+  // because of union structure:
+  //   handle->service_callback == NULL;
+  //   handle->client_callback == NULL;
+  //   handle->gc_callback == NULL
+  //   ...
+
   handle->index = max_handles;
   handle->initialized = false;
   handle->data_available = false;
+  handle->callback_type = CB_UNDEFINED;
   return RCL_RET_OK;
 }
 
@@ -78,6 +93,15 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
     case TIMER:
       typeName = "Timer";
       break;
+    case CLIENT:
+      typeName = "Client";
+      break;
+    case SERVICE:
+      typeName = "Service";
+      break;
+    case GUARD_CONDITION:
+      typeName = "GuardCondition";
+      break;
     default:
       typeName = "Unknown";
   }
@@ -102,6 +126,15 @@ rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle)
       break;
     case TIMER:
       ptr = handle->timer;
+      break;
+    case CLIENT:
+      ptr = handle->client;
+      break;
+    case SERVICE:
+      ptr = handle->service;
+      break;
+    case GUARD_CONDITION:
+      ptr = handle->gc;
       break;
     default:
       ptr = NULL;
