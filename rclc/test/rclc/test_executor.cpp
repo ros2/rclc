@@ -77,7 +77,7 @@ static unsigned int gc1_cnt = 0;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 200
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 500
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
