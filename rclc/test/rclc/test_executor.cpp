@@ -104,6 +104,18 @@ _results_callback_values_init()
 
 static
 void
+_executor_results_init(void)
+{
+  for (unsigned int i = 0; i < TC_SPIN_SOME_MAX_MSGS; i++) {
+    _executor_results[i] = 0;
+  }
+  _executor_results_i = 0;
+
+  _results_callback_counters_init();
+}
+
+static
+void
 _results_callback_init()
 {
   _results_callback_counters_init();
@@ -131,17 +143,6 @@ _results_callback_num_received()
   return _cb1_cnt + _cb2_cnt + _cb3_cnt;
 }
 
-static
-void
-_executor_results_init(void)
-{
-  for (unsigned int i = 0; i < TC_SPIN_SOME_MAX_MSGS; i++) {
-    _executor_results[i] = 0;
-  }
-  _executor_results_i = 0;
-
-  _results_callback_counters_init();
-}
 
 /// preserves the order of received data
 /// message values are stored in an array (left to right)
@@ -252,7 +253,7 @@ void int32_callback4(const void * msgin)
       printf("Error in int32_callback4: could not publish!\n");
     }
     printf("cb4: published %d\n", _pub_int_msg_ptr->data);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000)); // 10s
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));  // 10s
   }
 }
 

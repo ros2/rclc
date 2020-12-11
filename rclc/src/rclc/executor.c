@@ -1105,6 +1105,7 @@ bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int si
 bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int size, void * obj)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(handles, "handles is NULL", return false);
+  printf("rclc_executor_trigger_one ");
   // did not use (i<size && handles[i].initialized) as loop-condition
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
@@ -1113,7 +1114,10 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
         switch (handles[i].type) {
           case SUBSCRIPTION:
             if (handles[i].subscription == obj) {
+              printf(" TRUE\n");
               return true;
+            } else {
+              printf(" FALSE\n");
             }
             break;
           case TIMER:
