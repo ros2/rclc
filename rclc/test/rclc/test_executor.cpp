@@ -60,7 +60,7 @@ static unsigned int _cb3_cnt = 0;
 static unsigned int _cb3_int_value = 0;
 // callback for testing data communication semantics
 static unsigned int _cb5_cnt = 0;
-static unsigned int _cb5_int_value = 0;
+static int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
@@ -249,6 +249,7 @@ void int32_callback4(const void * msgin)
     if (rc != RCL_RET_OK) {
       printf("Error in int32_callback4: could not publish!\n");
     }
+    printf("cb4: published %d\n", _pub_int_msg_ptr->data);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 }
@@ -261,7 +262,7 @@ void int32_callback5(const void * msgin)
   if (msg == NULL) {
     printf("(int32_callback5): msg is NULL\n");
   } else {
-    // printf("cb5 msg: %d\n", msg->data);
+    printf("cb5 msg: %d\n", msg->data);
     _cb5_int_value = msg->data;
   }
 }
@@ -1337,8 +1338,8 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   // test result
-  EXPECT_EQ(_cb5_int_value, (unsigned int) 2) <<
-    " expect value 2: Value from callback of int32_callback4 should be received.";
+  EXPECT_EQ(_cb5_int_value, 2) <<
+    " expect value 2: Value from rcl_publish in int32_callback4 should have be received.";
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
@@ -1423,7 +1424,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   // test result
   EXPECT_EQ(
     _cb5_int_value,
-    (unsigned int) 1) <<
+    1) <<
     " expect value 1: first value of 'pub1' publisher should have been received.";
 
   // clean-up
