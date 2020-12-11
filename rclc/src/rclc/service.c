@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for information on the respective copyright owner
+// Copyright (c) 2020 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -14,68 +14,68 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rclc/publisher.h"
+#include "rclc/service.h"
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
 
 rcl_ret_t
-rclc_publisher_init_default(
-  rcl_publisher_t * publisher,
+rclc_service_init_default(
+  rcl_service_t * service,
   const rcl_node_t * node,
-  const rosidl_message_type_support_t * type_support,
-  const char * topic_name)
+  const rosidl_service_type_support_t * type_support,
+  const char * service_name)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher, "publisher is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  (*publisher) = rcl_get_zero_initialized_publisher();
-  rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
-  rcl_ret_t rc = rcl_publisher_init(
-    publisher,
+  (*service) = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_ret_t rc = rcl_service_init(
+    service,
     node,
     type_support,
-    topic_name,
-    &pub_opt);
+    service_name,
+    &service_options);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_publisher_init_default, rcl_publisher_init);
+    PRINT_RCLC_ERROR(rclc_service_init_default, rcl_service_init);
   }
   return rc;
 }
 
 rcl_ret_t
-rclc_publisher_init_best_effort(
-  rcl_publisher_t * publisher,
+rclc_service_init_best_effort(
+  rcl_service_t * service,
   const rcl_node_t * node,
-  const rosidl_message_type_support_t * type_support,
-  const char * topic_name)
+  const rosidl_service_type_support_t * type_support,
+  const char * service_name)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher, "publisher is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  (*publisher) = rcl_get_zero_initialized_publisher();
-  rcl_publisher_options_t pub_opt = rcl_publisher_get_default_options();
-  pub_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  rcl_ret_t rc = rcl_publisher_init(
-    publisher,
+  (*service) = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_opt = rcl_service_get_default_options();
+  service_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  rcl_ret_t rc = rcl_service_init(
+    service,
     node,
     type_support,
-    topic_name,
-    &pub_opt);
+    service_name,
+    &service_opt);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_publisher_init_best_effort, rcl_publisher_init);
+    PRINT_RCLC_ERROR(rclc_service_init_best_effort, rcl_service_init);
   }
   return rc;
 }

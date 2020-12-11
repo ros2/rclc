@@ -1,5 +1,5 @@
-// Copyright (c) 2018 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rcl_executor.
+// Copyright (c) 2020 - for information on the respective copyright owner
+// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -162,7 +162,6 @@ int main(int argc, const char * argv[])
   // compute total number of subsribers and timers
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
-  executor = rclc_executor_get_zero_initialized_executor();
   rclc_executor_init(&executor, &context, num_handles, &allocator);
 
   // set timeout for rcl_wait()

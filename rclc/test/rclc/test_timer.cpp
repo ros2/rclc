@@ -31,12 +31,12 @@ TEST(Test, rclc_timer_init_default) {
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   const char * my_name = "test_name";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_t node;
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
 
   // test with valid arguments
 
-  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  rcl_timer_t timer;
   rc = rclc_timer_init_default(&timer, &support, 10000000, my_callback);
   EXPECT_EQ(RCL_RET_OK, rc);
 

@@ -36,6 +36,7 @@ rclc_node_init_default(
     support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t rc = RCL_RET_OK;
+  (*node) = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   rc = rclc_node_init_with_options(
     node,
@@ -69,6 +70,7 @@ rclc_node_init_with_options(
     node_ops, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t rc = RCL_RET_OK;
+  (*node) = rcl_get_zero_initialized_node();
   rc = rcl_node_init(
     node,
     name,

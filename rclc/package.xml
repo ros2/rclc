@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>rclc</name>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
   <description>The ROS client library in C.</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
@@ -13,6 +13,8 @@
   <author email="william@osrfoundation.org">William Woodall</author>
  
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+
 
   <build_depend>rcl</build_depend>
   <build_depend>rcutils</build_depend>
@@ -30,6 +32,8 @@
   <test_depend>launch_testing</test_depend>
   <test_depend>osrf_testing_tools_cpp</test_depend>
   <test_depend>std_msgs</test_depend>
+  <test_depend>test_msgs</test_depend>
+  <test_depend>example_interfaces</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

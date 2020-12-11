@@ -51,6 +51,8 @@ add_library(${PROJECT_NAME}
   src/rclc/init.c
   src/rclc/publisher.c
   src/rclc/subscription.c
+  src/rclc/client.c
+  src/rclc/service.c
   src/rclc/timer.c
   src/rclc/node.c
   src/rclc/executor_handle.c
@@ -94,6 +96,8 @@ if(BUILD_TESTING)
   set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
   find_package(osrf_testing_tools_cpp REQUIRED)
   find_package(std_msgs REQUIRED)
+  find_package(example_interfaces REQUIRED)
+
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
@@ -101,6 +105,8 @@ if(BUILD_TESTING)
     test/rclc/test_node.cpp
     test/rclc/test_publisher.cpp
     test/rclc/test_subscription.cpp
+    test/rclc/test_client.cpp
+    test/rclc/test_service.cpp
     test/rclc/test_timer.cpp
     test/rclc/test_executor_handle.cpp
     test/rclc/test_executor.cpp
@@ -114,6 +120,8 @@ if(BUILD_TESTING)
     rosidl_generator_c
     osrf_testing_tools_cpp
     std_msgs
+    test_msgs
+    example_interfaces
   )
 endif()
 
