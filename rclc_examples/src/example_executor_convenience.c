@@ -1,5 +1,5 @@
-// Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// Copyright (c) 2018 - for information on the respective copyright owner
+// see the NOTICE file and/or the repository https://github.com/micro-ROS/rcl_executor.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node;
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&my_node, "node_0", "executor_examples", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -92,7 +92,7 @@ int main(int argc, const char * argv[])
   }
 
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
-  rcl_timer_t my_timer;
+  rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 1000;
   rc = rclc_timer_init_default(
     &my_timer,

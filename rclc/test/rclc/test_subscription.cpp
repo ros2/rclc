@@ -26,12 +26,12 @@ TEST(Test, rclc_subscription_init_default) {
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   const char * my_name = "test_name";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node;
+  rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
 
   // test with valid arguments
 
-  rcl_subscription_t subscription;
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   const rosidl_message_type_support_t * type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
   rc = rclc_subscription_init_default(&subscription, &node, type_support, "topic1");
@@ -69,12 +69,12 @@ TEST(Test, rclc_subscription_init_best_effort) {
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   const char * my_name = "test_name";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node;
+  rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
 
   // test with valid arguments
 
-  rcl_subscription_t subscription;
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   const rosidl_message_type_support_t * type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
   rc = rclc_subscription_init_best_effort(&subscription, &node, type_support, "topic1");

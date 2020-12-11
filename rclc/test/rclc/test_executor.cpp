@@ -1,4 +1,4 @@
-// Copyright (c) 2020 - for information on the respective copyright owner
+// Copyright (c) 2019 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 // Copyright 2014 Open Source Robotics Foundation, Inc.
 //
@@ -14,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <std_msgs/msg/int32.h>
-#include <example_interfaces/srv/add_two_ints.h>
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -64,17 +63,6 @@ static unsigned int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
-// client/server test
-static unsigned int srv1_cnt = 0;
-static unsigned int srv1_value = 0;
-static unsigned int srv1_id = 0;
-static unsigned int cli1_cnt = 0;
-static unsigned int cli1_value = 0;
-static unsigned int cli1_id = 0;
-
-// guard condition test
-static unsigned int gc1_cnt = 0;
-
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
 #define RCLC_UNIT_TEST_SLEEP_TIME_MS 100
@@ -108,19 +96,6 @@ _results_callback_init()
 {
   _results_callback_counters_init();
   _results_callback_values_init();
-}
-
-static
-void
-_results_initialize_service_client()
-{
-  srv1_cnt = 0;
-  srv1_value = 0;
-  srv1_id = 0;
-
-  cli1_cnt = 0;
-  cli1_value = 0;
-  cli1_id = 0;
 }
 
 static
@@ -264,59 +239,6 @@ void int32_callback5(const void * msgin)
     // printf("cb5 msg: %d\n", msg->data);
     _cb5_int_value = msg->data;
   }
-}
-
-
-void service_callback(const void * req_msg, void * resp_msg)
-{
-  srv1_cnt++;
-  printf("received service request\n");
-  const example_interfaces__srv__AddTwoInts_Request * req =
-    (const example_interfaces__srv__AddTwoInts_Request *) req_msg;
-  srv1_value = req->a;
-
-  example_interfaces__srv__AddTwoInts_Response * resp =
-    reinterpret_cast<example_interfaces__srv__AddTwoInts_Response *>(resp_msg);
-  resp->sum = req->a + req->b;
-}
-
-void service_callback_with_reqid(const void * req_msg, rmw_request_id_t * id, void * resp_msg)
-{
-  srv1_cnt++;
-  printf("received service request\n");
-  const example_interfaces__srv__AddTwoInts_Request * req =
-    (const example_interfaces__srv__AddTwoInts_Request *) req_msg;
-  srv1_value = req->a;
-  srv1_id = id->sequence_number;
-
-  example_interfaces__srv__AddTwoInts_Response * resp =
-    reinterpret_cast<example_interfaces__srv__AddTwoInts_Response *>(resp_msg);
-  resp->sum = req->a + req->b;
-}
-
-void client_callback(const void * req_msg)
-{
-  cli1_cnt++;
-  printf("client_callback: received response\n");
-  const example_interfaces__srv__AddTwoInts_Response * resp =
-    (const example_interfaces__srv__AddTwoInts_Response *) req_msg;
-  cli1_value = resp->sum;
-}
-
-void client_callback_with_reqid(const void * req_msg, rmw_request_id_t * id)
-{
-  cli1_cnt++;
-  printf("client_callback: received response\n");
-  const example_interfaces__srv__AddTwoInts_Response * resp =
-    (const example_interfaces__srv__AddTwoInts_Response *) req_msg;
-  cli1_value = resp->sum;
-  cli1_id = id->sequence_number;
-}
-
-void gc_callback()
-{
-  gc1_cnt++;
-  printf("guard_condition signaled\n");
 }
 
 // callback for unit test 'spin_period'
@@ -577,6 +499,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcl_ret_t rc;
 
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
 
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -607,6 +530,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
 TEST_F(TestDefaultExecutor, executor_fini) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -623,6 +547,7 @@ TEST_F(TestDefaultExecutor, executor_fini) {
 TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
   // test with normal arguemnt and NULL pointers as arguments
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -681,6 +606,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
 TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
 
   // insert one handle, add two subscriptions
   rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
@@ -712,6 +638,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
 TEST_F(TestDefaultExecutor, executor_add_timer) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -727,121 +654,10 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
-TEST_F(TestDefaultExecutor, executor_add_client) {
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  const char * client_name = "/addtwoints";
-  rcl_client_options_t client_options = rcl_client_get_default_options();
-  rcl_client_t client = rcl_get_zero_initialized_client();
-  const rosidl_service_type_support_t * client_type_support =
-    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
-  rc = rcl_client_init(&client, &this->node, client_type_support, client_name, &client_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  example_interfaces__srv__AddTwoInts_Response res;
-  example_interfaces__srv__AddTwoInts_Response__init(&res);
-
-  size_t number_of_clients = 0;
-  EXPECT_EQ(executor.info.number_of_clients, number_of_clients) << "should be 0";
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 0) << "should be 0 ";
-
-  rc = rclc_executor_add_client(&executor, &client, &res, &client_callback);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  number_of_clients = 1;
-  EXPECT_EQ(executor.info.number_of_clients, number_of_clients) << " should be 1";
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 0) << "should be 0 ";
-
-  // failure test cases
-  rc = rclc_executor_add_client(NULL, &client, &res, &client_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_client(&executor, NULL, &res, &client_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_client(&executor, &client, NULL, &client_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_client(&executor, &client, &res, NULL);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  // tear down
-  rc = rcl_client_fini(&client, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
-TEST_F(TestDefaultExecutor, executor_add_service) {
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-
-  const char * service_name = "/addtwoints";
-  rcl_service_options_t service_options = rcl_service_get_default_options();
-  rcl_service_t service = rcl_get_zero_initialized_service();
-  const rosidl_service_type_support_t * service_type_support =
-    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
-  rc =
-    rcl_service_init(&service, &this->node, service_type_support, service_name, &service_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  example_interfaces__srv__AddTwoInts_Request req;
-  example_interfaces__srv__AddTwoInts_Request__init(&req);
-
-  example_interfaces__srv__AddTwoInts_Response resp;
-  example_interfaces__srv__AddTwoInts_Response__init(&resp);
-
-  size_t number_of_services = 0;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, number_of_services) << "should be 0";
-
-  rc = rclc_executor_add_service(&executor, &service, &req, &resp, &service_callback);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 1);
-
-  // failure test cases
-  rc = rclc_executor_add_service(NULL, &service, &req, &resp, &service_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_service(&executor, NULL, &req, &resp, &service_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_service(&executor, &service, NULL, &resp, &service_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_service(&executor, &service, &req, NULL, &service_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  rc = rclc_executor_add_service(&executor, &service, &req, &resp, NULL);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-
-  // tear down
-  rc = rcl_service_fini(&service, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
-
 TEST_F(TestDefaultExecutor, executor_spin_some_API) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -897,6 +713,7 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   rclc_executor_t executor;
   // initialize executor for 3 subscriptions in the order sub1, sub2, sub3
   size_t num_subscriptions = 3;
+  executor = rclc_executor_get_zero_initialized_executor();
   ret = rclc_executor_init(&executor, &this->context, num_subscriptions, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   unsigned int expected_msg;
@@ -1051,6 +868,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // by Jan Staschulat, under Apache 2.0 License
   rcl_ret_t ret;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
 
   // initialize result variables
   _executor_results_init();
@@ -1131,6 +949,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   rcl_ret_t ret;
   rclc_executor_t executor;
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   ret = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   _results_callback_init();
@@ -1234,6 +1053,7 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
 TEST_F(TestDefaultExecutor, spin_period) {
   rcl_ret_t rc;
   rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
   // initialize executor with 1 handle
   rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -1308,6 +1128,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1391,6 +1212,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_reset_error();
 
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1460,6 +1282,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1536,6 +1359,7 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1614,6 +1438,7 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1689,6 +1514,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   rcl_ret_t rc;
   rclc_executor_t executor;
   // initialize executor with 2 handles
+  executor = rclc_executor_get_zero_initialized_executor();
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1736,245 +1562,4 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 3);
-}
-
-TEST_F(TestDefaultExecutor, executor_test_service) {
-  // This unit test tests, if a request from a client is received by the executor
-  // and the corresponding service callback is called
-  // the value of the request message is checked.
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  const char * service_name = "addtwoints";
-  rcl_service_options_t service_options = rcl_service_get_default_options();
-  rcl_service_t service = rcl_get_zero_initialized_service();
-  const rosidl_service_type_support_t * service_type_support =
-    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
-  rc =
-    rcl_service_init(&service, &this->node, service_type_support, service_name, &service_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  example_interfaces__srv__AddTwoInts_Request req;
-  example_interfaces__srv__AddTwoInts_Request__init(&req);
-  example_interfaces__srv__AddTwoInts_Response resp;
-  example_interfaces__srv__AddTwoInts_Response__init(&resp);
-
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 0);
-
-  rc = rclc_executor_add_service(&executor, &service, &req, &resp, &service_callback);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 1);
-
-  // Creating client and options
-  rcl_client_options_t client_options = rcl_client_get_default_options();
-  rcl_client_t client = rcl_get_zero_initialized_client();
-  rc = rcl_client_init(&client, &this->node, service_type_support, service_name, &client_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // client messages
-  example_interfaces__srv__AddTwoInts_Request cli_req;
-  example_interfaces__srv__AddTwoInts_Request__init(&cli_req);
-  example_interfaces__srv__AddTwoInts_Response cli_resp;
-  example_interfaces__srv__AddTwoInts_Response__init(&cli_resp);
-
-  // add client to executor
-  rc = rclc_executor_add_client(&executor, &client, &cli_resp, client_callback);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 1);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 1);
-
-  // send client request
-  int64_t seq;
-  cli_req.a = 1;
-  cli_req.b = 2;
-  rc = rcl_send_request(&client, &cli_req, &seq);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(seq, (int64_t) 1);  // sequence id = 1
-
-  // initialize test results
-  _results_initialize_service_client();
-  EXPECT_EQ(srv1_cnt, (unsigned int) 0);
-  EXPECT_EQ(srv1_value, (unsigned int) 0);
-
-  // spin executor, which will
-  // - receive request from client
-  // - call service_callback function
-  // - send response message to client
-  std::this_thread::sleep_for(rclc_test_sleep_time);
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-
-  EXPECT_EQ(srv1_cnt, (unsigned int) 1);  // check that service callback was called
-  EXPECT_EQ(srv1_value, (unsigned int) 1);  // check value of 'a' in request message
-
-  // spin executor, which will
-  // - receive response message from server
-  // - call client_callback
-  std::this_thread::sleep_for(rclc_test_sleep_time);
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-
-  EXPECT_EQ(cli1_cnt, (unsigned int) 1);  // check that client callback was called
-  EXPECT_EQ(cli1_value, (unsigned int) 3);  // check value of 'sum' in response message
-
-  // tear down
-  rc = rcl_service_fini(&service, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rcl_client_fini(&client, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
-TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
-  // This unit test tests, if a request from a client is received by the executor
-  // and the corresponding service callback is called
-  // the value of the request message is checked.
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  const char * service_name = "addtwoints";
-  rcl_service_options_t service_options = rcl_service_get_default_options();
-  rcl_service_t service = rcl_get_zero_initialized_service();
-  const rosidl_service_type_support_t * service_type_support =
-    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
-  rc =
-    rcl_service_init(&service, &this->node, service_type_support, service_name, &service_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  example_interfaces__srv__AddTwoInts_Request req;
-  example_interfaces__srv__AddTwoInts_Request__init(&req);
-  example_interfaces__srv__AddTwoInts_Response resp;
-  example_interfaces__srv__AddTwoInts_Response__init(&resp);
-
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 0);
-
-  rc = rclc_executor_add_service_with_request_id(
-    &executor, &service, &req, &resp,
-    &service_callback_with_reqid);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 1);
-
-  // Creating client and options
-  rcl_client_options_t client_options = rcl_client_get_default_options();
-  rcl_client_t client = rcl_get_zero_initialized_client();
-  rc = rcl_client_init(&client, &this->node, service_type_support, service_name, &client_options);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // client messages
-  example_interfaces__srv__AddTwoInts_Request cli_req;
-  example_interfaces__srv__AddTwoInts_Request__init(&cli_req);
-  example_interfaces__srv__AddTwoInts_Response cli_resp;
-  example_interfaces__srv__AddTwoInts_Response__init(&cli_resp);
-
-  // add client to executor
-  rc = rclc_executor_add_client_with_request_id(
-    &executor, &client, &cli_resp,
-    client_callback_with_reqid);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_clients, (size_t) 1);
-  EXPECT_EQ(executor.info.number_of_services, (size_t) 1);
-
-  // send client request
-  int64_t seq;
-  cli_req.a = 1;
-  cli_req.b = 2;
-  rc = rcl_send_request(&client, &cli_req, &seq);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(seq, (int64_t) 1);  // sequence id = 1
-
-  // initialize test results
-  _results_initialize_service_client();
-  EXPECT_EQ(srv1_cnt, (unsigned int) 0);
-  EXPECT_EQ(srv1_value, (unsigned int) 0);
-  EXPECT_EQ(srv1_id, (unsigned int) 0);
-
-  // spin executor, which will
-  // - receive request from client
-  // - call service_callback function
-  // - send response message to client
-  std::this_thread::sleep_for(rclc_test_sleep_time);
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-
-  EXPECT_EQ(srv1_cnt, (unsigned int) 1);  // check that service callback was called
-  EXPECT_EQ(srv1_value, (unsigned int) 1);  // check value of 'a' in request message
-  EXPECT_EQ(srv1_id, (unsigned int) 1);  // check sequence id
-
-  // spin executor, which will
-  // - receive response message from server
-  // - call client_callback
-  std::this_thread::sleep_for(rclc_test_sleep_time);
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-
-  EXPECT_EQ(cli1_cnt, (unsigned int) 1);  // check that client callback was called
-  EXPECT_EQ(cli1_value, (unsigned int) 3);  // check value of 'sum' in response message
-  EXPECT_EQ(cli1_id, (unsigned int) 1);  // check sequence id
-
-  // tear down
-  rc = rcl_service_fini(&service, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rcl_client_fini(&client, &this->node);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
-TEST_F(TestDefaultExecutor, executor_test_guard_condition) {
-  // Test guard_condition.
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // initialize guard condition
-  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
-  rc = rcl_guard_condition_init(
-    &guard_cond, &this->context, rcl_guard_condition_get_default_options());
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // add gc to executor - with invalid arguments
-  rc = rclc_executor_add_guard_condition(NULL, &guard_cond, &gc_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 0);
-
-  rc = rclc_executor_add_guard_condition(&executor, NULL, &gc_callback);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 0);
-
-  rc = rclc_executor_add_guard_condition(&executor, &guard_cond, NULL);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 0);
-
-  // add gc to executor - valid arguments
-  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 0);
-  rc = rclc_executor_add_guard_condition(&executor, &guard_cond, &gc_callback);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 1);
-
-  // trigger guard condition
-  rc = rcl_trigger_guard_condition(&guard_cond);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // spin once - expect that guard condition callback is called
-  gc1_cnt = 0;
-  EXPECT_EQ(gc1_cnt, (unsigned int) 0);
-  std::this_thread::sleep_for(rclc_test_sleep_time);
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-  EXPECT_EQ(gc1_cnt, (unsigned int) 1);
-
-  // tear down
-  rc = rcl_guard_condition_fini(&guard_cond);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }

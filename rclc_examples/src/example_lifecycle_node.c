@@ -67,7 +67,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node;
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");

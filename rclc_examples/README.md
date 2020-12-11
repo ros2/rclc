@@ -6,8 +6,6 @@ The rclc_examples package provides examples for using the RCLC-Exector and conve
 - [example_executor.c](src/example_executor.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
 - [example_executor_convenience.c](src/example_executor_convenience.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
 - [example_executor_trigger.c](src/example_executor_trigger.c) demonstrates the trigger condition of the RCLC-Executor.
-- [example_service_node.c](src/example_service_node.c) implements a service node with the RCLC-Executor.
-- [example_client_node.c](src/example_client_node.c) implements a client node with RCLC-Executor.
 
 The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with RCL objects compared to using the convenience functions is about 24%:
 - example_executor.c: 92 LoC (lines 56-148)
@@ -180,29 +178,3 @@ Callback 1: Hello World! 19 <---
 Callback 2: 1               <---
 ```
 The results show, that the callbacks are triggered together, only when the integer message `topic_1` was published and received. At that moment the current string message of the `topic_0` is processed as well.
-
-## Example Service/client with RCLC-Executor
-
-**Step 1, Step 2**
-To setup ROS2 workspace and build the package refer to Step 1 and Step 2 in the [Example RCLC-Executor](#example-rclc-executor).
-
-**Step 3**
-Open two Terminal windows and source the ROS 2 distribution/install/setup.bash and rclc repository/install/local_setup.bash.
-
-window 1: start service node
-```C
-$ ros2 run rclc_examples example_service_node
-INFO: rcl_wait timeout 10 ms
-Service request value: 24 + 42. Seq 1
-Received service response 24 + 42 = 66. Seq 1
-```C
-
-window 2: start client node
-```C
-~$ ros2 run rclc_examples example_client_node
-Send service request 24 + 42. Seq 1
-INFO: rcl_wait timeout 10 ms
-```C
-
-A request message is sent from the client node to the service node and answered.
-
