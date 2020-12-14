@@ -1524,7 +1524,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   // ------------------------- test case setup ---------------------------------------------
 
   const std::chrono::milliseconds ci_job_time =
-    std::chrono::milliseconds(3000);
+    std::chrono::milliseconds(1000);
 
   // first round
   _results_callback_init();
@@ -1532,7 +1532,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   printf("pub1 3\n");
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
-  std::this_thread::sleep_for(rclc_test_sleep_time + ci_job_time);
+  std::this_thread::sleep_for(ci_job_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
@@ -1540,11 +1540,11 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
   this->pub2_msg.data = 787;
-  std::this_thread::sleep_for(rclc_test_sleep_time + ci_job_time);
+  std::this_thread::sleep_for(ci_job_time);
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   printf("pub2 787\n");
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
-  std::this_thread::sleep_for(rclc_test_sleep_time + ci_job_time);
+  std::this_thread::sleep_for(ci_job_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
@@ -1553,6 +1553,7 @@ TEST_F(TestDefaultExecutor, trigger_one) {
 
   // third round
   this->pub1_msg.data = 11;
+  std::this_thread::sleep_for(ci_job_time);
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   printf("pub1 11\n");
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
