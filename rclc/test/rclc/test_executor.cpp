@@ -82,7 +82,7 @@ const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
 // timeout for rcl_wait() when calling spin_some API of executor
-const uint64_t rclc_test_timeout_ns = 10000000000;  // 10s
+const uint64_t rclc_test_timeout_ns = 1000000000;  // 1s
 
 static
 void
@@ -1089,12 +1089,14 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   ///////////////////////////////////////////////////////////////////////////////////
   /////////// test case 1 : publish one data for each publisher
   ///////////////////////////////////////////////////////////////////////////////////
+  this->pub1_msg.data = 1;
+  this->pub2_msg.data = 2;
   ret = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub1 did not publish!";
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub2 did not publish!";
 
-/*
+
   // wait until messages are received
   bool success = false;
   unsigned int tries;
@@ -1108,13 +1110,13 @@ TEST_F(TestDefaultExecutor, invocation_type) {
     &this->sub2, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
-*/
+
   // initialize result variables
   _cb1_cnt = 0;
   _cb2_cnt = 0;
 
   // running the executor
-  std::this_thread::sleep_for(rclc_test_sleep_time);
+  // std::this_thread::sleep_for(rclc_test_sleep_time);
 
   ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
@@ -1123,6 +1125,9 @@ TEST_F(TestDefaultExecutor, invocation_type) {
     // any other error
     EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
   }
+  // check total number of received messages
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1) << "cb1 msg does not match";
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
 
   uint64_t reduced_timeout_ns = 1000000;  // 1ms
   ret = rclc_executor_spin_some(&executor, reduced_timeout_ns);
