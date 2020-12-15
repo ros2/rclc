@@ -607,7 +607,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
     case SUBSCRIPTION:
       if (wait_set->subscriptions[handle->index]) {
         rmw_message_info_t messageInfo;
-        printf("DEBUG:rcl_take sub [%d] topic=%s\n", handle->index, 
+        printf("DEBUG:rcl_take sub [%ld] topic=%s\n", handle->index,
           rcl_subscription_get_topic_name(handle->subscription));
         rc = rcl_take(
           handle->subscription, handle->data, &messageInfo,
