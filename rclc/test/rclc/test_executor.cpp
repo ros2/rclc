@@ -1351,7 +1351,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   // use member variable this->sub1 as subscription 1
   // create subscription 2 with last-is-best semantics
 
-
+  // create own topic for this use-case.
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
