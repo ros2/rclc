@@ -1349,7 +1349,9 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   std_msgs__msg__Int32 subscription2_int_msg;
   std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
-  subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
+  unsigned int my_seed = time(NULL);
+  subscription2_int_msg.data = 1000 + rand_r(&my_seed) % 100;
+  printf("sub2 init value %d\n", subscription2_int_msg.data);
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
     this->pub1_topic_name, &subscription_options2);
@@ -1441,7 +1443,9 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   std_msgs__msg__Int32 subscription2_int_msg;
   std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
-  subscription2_int_msg.data = 1101;  // values first two digits=TC, last two digits=value
+  unsigned int my_seed = time(NULL);
+  subscription2_int_msg.data = 1000 + rand_r(&my_seed) % 100;
+  printf("sub2 init value %d\n", subscription2_int_msg.data);
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
     this->pub1_topic_name, &subscription_options2);
