@@ -290,8 +290,10 @@ void int32_callback4(const void * msgin)
   if (msg == NULL) {
     printf("Test CB: msg NULL\n");
   } else {
-    _pub_int_msg_ptr->data = 1002;
+    printf("cb4: received %d\n", msg->data);
+    _pub_int_msg_ptr->data = msg->data + 1;
     rc = rcl_publish(_pub_int_ptr, _pub_int_msg_ptr, NULL);
+    printf("cb4: published %d\n", _pub_int_msg_ptr->data);
     if (rc != RCL_RET_OK) {
       printf("Error in int32_callback4: could not publish!\n");
     }
