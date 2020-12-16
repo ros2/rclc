@@ -565,12 +565,12 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_context_fini(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std_msgs__msg__Int32__init(&this->pub1_msg);
-    std_msgs__msg__Int32__init(&this->pub2_msg);
-    std_msgs__msg__Int32__init(&pub3_msg);
-    std_msgs__msg__Int32__init(&this->pub1_msg);
-    std_msgs__msg__Int32__init(&this->pub2_msg);
-    std_msgs__msg__Int32__init(&pub3_msg);
+    std_msgs__msg__Int32__fini(&this->pub1_msg);
+    std_msgs__msg__Int32__fini(&this->pub2_msg);
+    std_msgs__msg__Int32__fini(&pub3_msg);
+    std_msgs__msg__Int32__fini(&this->pub1_msg);
+    std_msgs__msg__Int32__fini(&this->pub2_msg);
+    std_msgs__msg__Int32__fini(&pub3_msg);
   }
 };
 
