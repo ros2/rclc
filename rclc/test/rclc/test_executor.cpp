@@ -212,6 +212,48 @@ _executor_results_compare(unsigned int * array)
   return true;
 }
 
+void
+_wait_for_msg(
+  rcl_subscription_t * subscription,
+  rcl_context_t * context_ptr,
+  size_t max_tries,
+  int64_t timeout_ms,
+  unsigned int * tries,
+  bool * success)
+{
+  (*tries) = 0;
+  (*success) = false;
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t rc = rcl_wait_set_init(
+    &wait_set, 1, 0, 0, 0, 0, 0, context_ptr,
+    rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t rc = rcl_wait_set_fini(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  });
+
+  do {
+    (*tries)++;
+    rc = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    rc = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
+    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    rc = rcl_wait(&wait_set, RCL_MS_TO_NS(timeout_ms));
+    if (rc == RCL_RET_TIMEOUT) {
+      continue;
+    }
+    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
+      if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
+        (*success) = true;
+        return;
+      }
+    }
+  } while ( (*tries) < max_tries);
+}
+
 // definition of callbacks
 #define INT_CALLBACK_DEFINITION(NUM) \
   void int32_callback_ ## NUM(const void * msgin) \
@@ -248,12 +290,13 @@ void int32_callback4(const void * msgin)
   if (msg == NULL) {
     printf("Test CB: msg NULL\n");
   } else {
-    _pub_int_msg_ptr->data = 2;
+    _pub_int_msg_ptr->data = 1002;
     rc = rcl_publish(_pub_int_ptr, _pub_int_msg_ptr, NULL);
     if (rc != RCL_RET_OK) {
       printf("Error in int32_callback4: could not publish!\n");
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // wait some time (CI-build jobs need more time)
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
 }
 
@@ -394,47 +437,6 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   EXPECT_TRUE(rcl_subscription_is_valid(&this->SUB)); \
   rcl_reset_error();
 
-void
-_wait_for_msg(
-  rcl_subscription_t * subscription,
-  rcl_context_t * context_ptr,
-  size_t max_tries,
-  int64_t timeout_ms,
-  unsigned int * tries,
-  bool * success)
-{
-  (*tries) = 0;
-  (*success) = false;
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t rc = rcl_wait_set_init(
-    &wait_set, 1, 0, 0, 0, 0, 0, context_ptr,
-    rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t rc = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  });
-
-  do {
-    (*tries)++;
-    rc = rcl_wait_set_clear(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-    rc = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
-    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-    rc = rcl_wait(&wait_set, RCL_MS_TO_NS(timeout_ms));
-    if (rc == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-    for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
-      if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
-        (*success) = true;
-        return;
-      }
-    }
-  } while ( (*tries) < max_tries);
-}
 
 class TestDefaultExecutor : public ::testing::Test
 {
@@ -1334,7 +1336,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
   subscription_options2.qos.depth = 0;  // qos: last is best
-  subscription2_int_msg.data = 1001;  // values first two digits=TC, last two digits=value
+  subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
     this->pub1_topic_name, &subscription_options2);
@@ -1364,16 +1366,16 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   _pub_int_msg_ptr = &this->pub1_msg;
   // ------------------------- test case setup ------------------------
   rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
-  this->pub1_msg.data = 1;
+  this->pub1_msg.data = 1001;
   _cb5_int_value = 0;  // received value in subscription2
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1(tc) did not publish!";
 
-  std::this_thread::sleep_for(rclc_test_sleep_time);
+  // std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   // test result
-  EXPECT_EQ(_cb5_int_value, 2) <<
-    " expect value 2: Value from rcl_publish in int32_callback4 should have been received.";
+  EXPECT_EQ(_cb5_int_value, 1002) <<
+    " expect value 1002: Value from rcl_publish in int32_callback4 should have been received.";
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
