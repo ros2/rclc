@@ -1373,7 +1373,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1(tc) did not publish!";
 
-  std::this_thread::sleep_for(10 * rclc_test_sleep_time);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   // test result
   EXPECT_EQ(_cb5_int_value, 1002) <<
