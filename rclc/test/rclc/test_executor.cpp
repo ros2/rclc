@@ -1337,6 +1337,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
+  std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
   subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
   rc = rcl_subscription_init(
@@ -1382,6 +1383,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  std_msgs__msg__Int32__fini(&subscription2_int_msg);
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
