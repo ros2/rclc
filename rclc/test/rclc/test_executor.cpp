@@ -310,7 +310,7 @@ void int32_callback5(const void * msgin)
   if (msg == NULL) {
     printf("(int32_callback5): msg is NULL\n");
   } else {
-    // printf("cb5 msg: %d\n", msg->data);
+    printf("cb5 received: %d\n", msg->data);
     _cb5_int_value = msg->data;
   }
 }
