@@ -63,6 +63,8 @@ static unsigned int _cb5_cnt = 0;
 static int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
+rcl_subscription_t * sub2_int_ptr;
+rcl_context_t * context_ptr;
 
 // client/server test
 static unsigned int srv1_cnt = 0;
@@ -299,6 +301,14 @@ void int32_callback4(const void * msgin)
     }
     // wait some time (CI-build jobs need more time)
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    bool success = false;
+    unsigned int tries = 0;
+    unsigned int max_tries = 100;
+    _wait_for_msg(
+      sub2_int_ptr, context_ptr, max_tries, rclc_test_short_timeout_ns, &tries,
+      &success);
+    printf("cb4: tries: %u %ld ms\n", tries, (tries * (rclc_test_short_timeout_ns / 1000 / 1000)) );
+    ASSERT_TRUE(success);
   }
 }
 
@@ -1339,13 +1349,16 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   std_msgs__msg__Int32 subscription2_int_msg;
   std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
-  // subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
+  subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
     this->pub1_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
   rcl_reset_error();
+  // save pointers for callback 'int32_callback4'
+  sub2_int_ptr = &subscription2;
+  context_ptr = &this->context;
 
   // initialize executor with 2 handles
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
@@ -1364,7 +1377,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
-  // create global pointer to this publisher to access it from callback 'int32_callback4'
+  // save pointers for callback 'int32_callback4'
   _pub_int_ptr = &this->pub1;
   _pub_int_msg_ptr = &this->pub1_msg;
   // ------------------------- test case setup ------------------------
@@ -1426,6 +1439,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
+  std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
   subscription2_int_msg.data = 1101;  // values first two digits=TC, last two digits=value
   rc = rcl_subscription_init(
@@ -1434,6 +1448,9 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
   rcl_reset_error();
+  // save pointers for callback 'int32_callback4'
+  sub2_int_ptr = &subscription2;
+  context_ptr = &this->context;
 
   // initialize executor with 2 handles
   rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
@@ -1474,7 +1491,7 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
+  std_msgs__msg__Int32__fini(&subscription2_int_msg);
   // tear down
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
