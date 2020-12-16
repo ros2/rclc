@@ -1339,7 +1339,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   std_msgs__msg__Int32 subscription2_int_msg;
   std_msgs__msg__Int32__init(&subscription2_int_msg);
   subscription_options2.qos.depth = 0;  // qos: last is best
-  subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
+  //subscription2_int_msg.data = 1007;  // values first two digits=TC, last two digits=value
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
     this->pub1_topic_name, &subscription_options2);
