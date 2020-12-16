@@ -563,6 +563,12 @@ public:
   void TearDown()
   {
     rcl_ret_t rc;
+    rc = rcl_publisher_fini(&this->pub1, &this->node);
+    EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    rc = rcl_publisher_fini(&this->pub2, &this->node);
+    EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    rc = rcl_publisher_fini(&this->pub3, &this->node);
+    EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
     rc = rcl_subscription_fini(&this->sub1, &this->node);
     EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
     rc = rcl_subscription_fini(&this->sub2, &this->node);
@@ -581,10 +587,10 @@ public:
     EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
     std_msgs__msg__Int32__fini(&this->pub1_msg);
     std_msgs__msg__Int32__fini(&this->pub2_msg);
-    std_msgs__msg__Int32__fini(&pub3_msg);
-    std_msgs__msg__Int32__fini(&this->pub1_msg);
-    std_msgs__msg__Int32__fini(&this->pub2_msg);
-    std_msgs__msg__Int32__fini(&pub3_msg);
+    std_msgs__msg__Int32__fini(&this->pub3_msg);
+    std_msgs__msg__Int32__fini(&this->sub1_msg);
+    std_msgs__msg__Int32__fini(&this->sub2_msg);
+    std_msgs__msg__Int32__fini(&this->sub3_msg);
   }
 };
 
@@ -1344,6 +1350,8 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   // use member variable this->pub1 as publisher
   // use member variable this->sub1 as subscription 1
   // create subscription 2 with last-is-best semantics
+
+
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
