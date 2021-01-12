@@ -1352,6 +1352,8 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   // create subscription 2 with last-is-best semantics
 
   // create own topic for this use-case.
+
+
   rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
   std_msgs__msg__Int32 subscription2_int_msg;
@@ -1360,9 +1362,26 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   unsigned int my_seed = time(NULL);
   subscription2_int_msg.data = 1000 + rand_r(&my_seed) % 100;
   printf("sub2 init value %d\n", subscription2_int_msg.data);
+
+  // overwriting topic name for pub1 and sub1
+  rc = rcl_publisher_fini(&this->pub1, &this->node);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  const char * tc_topic_name = "TC_semantics_RCLCPP";
+  rc = rcl_publisher_init(
+    &this->pub1, &this->node, this->pub1_type_support,
+    tc_topic_name, &this->pub1_options);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  rc = rcl_subscription_fini(&this->sub1, &this->node);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rcl_subscription_init(
+    &this->sub1, &this->node, this->pub1_type_support,
+    tc_topic_name, &sub1_options);
+  ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
   rc = rcl_subscription_init(
     &subscription2, &this->node, this->pub1_type_support,
-    this->pub1_topic_name, &subscription_options2);
+    tc_topic_name, &subscription_options2);
   ASSERT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
   rcl_reset_error();
