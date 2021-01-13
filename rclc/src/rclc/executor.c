@@ -1138,3 +1138,140 @@ bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int
   RCLC_UNUSED(obj);
   return true;
 }
+
+/* 
+Reservation based scheduling for NuttX
+
+- real-time scheduling for embedded ROS 2 applications
+- exploiting NuttX sporadic server API in rclc Executor
+- experiment on Olimex-board with NuttX real-time operating system
+
+- limitations:
+   - no trigger
+   - no LET semantics
+   - only subscription 
+   - sporadic server: one thread for each subscription 
+    (reservation based scheduling: one thread for multiple subscriptions - later)
+
+- evaluation (real-time guarantees)
+   - test case: ping-pong example
+
+- evaluation (performance)
+  - performance without real-time scheduling
+  - performance overhead with threading and wait_set modifications
+
+
+rclc_real_time_scheduling_setup(rclc_executor_t *e)
+{
+  // n threads, n number of handles
+  // one guard_condition (one for all threads)
+  // lock 1
+  // lock 2
+  // n condition_variables (to signal that data is available)
+  // n data exchange objects (which contains the message (subscription))
+
+  // initialization
+  thread_ready = false;
+}
+
+typedef enum
+{
+  RCLC_THREAD_READY,
+  RCLC_THREAD_BUSY
+} rclc_executor_thread_state_t;
+
+// extend with ...
+struct rclc_executor_t {
+  rcl_guard_condition_t gc_threads;
+  lock_t thread_gc_lock;
+
+  bool thread_ready;
+  lock_t thread_ready_lock;
+
+}
+
+// extend with ...
+struct rclc_handle {
+  pthread_t thread;
+  rclc_executor_thread_state_t thread_state;
+
+}
+
+bool wait_set_has_changed(rclc_executor_t *e)
+{
+  bool changed = false;
+  lock(thread_ready_lock);
+  changed = e->thread_ready;
+  e->thread_ready = false;
+  unlock(thread_ready_lock);
+  
+  return changed;
+}
+
+void rclc_change_wait_set(rclc_executor_t *e)
+{
+  lock(thread_ready_lock);
+  e->thread_state_changed = false; // renaming !
+  unlock(thread_ready_lock);
+  
+  return changed;
+}
+
+
+bool rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e)
+{
+  // add subscription only if its worker_thread is ready
+  // use locks!
+
+  for( h[i] in handles)
+  {
+    if (h[i].thread_ready)
+    {
+      rcl_wait_set_add_subscription( ws, h[i])
+    }
+  }
+}
+
+void rclc_exector_spin_thread(rclc_executor_t *e)
+{
+  while ( rcl_ok() )
+  {
+    if (wait_set_has_changed(e))
+    {
+      rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e);
+    }
+
+    rcl_wait(ws, timeout);
+
+    for( handle h[i] in wait_set ws)
+    {
+      // take data from DDS and store in pre-allocated message
+      rcl_take(h[i], h[i].msg);
+
+      // notify worker_thread
+      // pre-condition: it is ready and is waiting on thin condition
+
+      //thread will get busy
+      // can I avoid this lock
+      // assignment before notify the thread
+      // then the worker_thread and executor thread never access
+      // this variable at the same time!
+      // - rclc_executor acccesses only when worker_thread is waiting
+      // - worker_thread is accessing only when executor does not have 
+      //   this subscription in the wait_set
+      h[i].thread_state = RCLC_THREAD_BUSY;
+
+      lock(h[i].notify_worker_thread);
+      condition_varialbe_set( h[i].cv_notify;
+      h[i].new_data = true;
+      unlock(h[i].notify_worker_thread);
+    }
+  }
+}
+
+worker_thread()
+{
+
+}
+
+*/
