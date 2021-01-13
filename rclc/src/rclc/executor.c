@@ -1185,8 +1185,8 @@ struct rclc_executor_t {
   rcl_guard_condition_t gc_threads;
   lock_t thread_gc_lock;
 
-  bool thread_ready;
-  lock_t thread_ready_lock;
+  bool thread_state_changed;
+  lock_t thread_state_changed_lock;
 
 }
 
@@ -1200,19 +1200,19 @@ struct rclc_handle {
 bool wait_set_has_changed(rclc_executor_t *e)
 {
   bool changed = false;
-  lock(thread_ready_lock);
-  changed = e->thread_ready;
-  e->thread_ready = false;
-  unlock(thread_ready_lock);
+  lock(thread_state_changed_lock);
+  changed = e->thread_state_changed;
+  e->thread_state_changed = false;
+  unlock(thread_state_changed_lock);
   
   return changed;
 }
 
 void rclc_change_wait_set(rclc_executor_t *e)
 {
-  lock(thread_ready_lock);
-  e->thread_state_changed = false; // renaming !
-  unlock(thread_ready_lock);
+  lock(thread_state_changed_lock);
+  e->thread_state_changed = true; // renaming !
+  unlock(thread_state_changed_lock);
   
   return changed;
 }
@@ -1262,16 +1262,44 @@ void rclc_exector_spin_thread(rclc_executor_t *e)
       h[i].thread_state = RCLC_THREAD_BUSY;
 
       lock(h[i].notify_worker_thread);
-      condition_varialbe_set( h[i].cv_notify;
+      condition_varialbe_set( h[i].cv_notify);
       h[i].new_data = true;
       unlock(h[i].notify_worker_thread);
     }
   }
 }
 
-worker_thread()
+worker_thread(rclc_executor_t *e, unsigned int handle)
 {
+  while(1)
+  {
+    // while loop around  - spurious wake-up
+    while(e->handles[handle].new_data == false){
+      cond_wait(e->handles[handle].cv_notify);
+    }
 
+    // execute callback
+    e->handles[i].cb(e->handles[i].msg)
+
+    // update thread status of this handle
+    lock(e->handles[i].thread_ready_lock);
+    e->handles[i].thread_ready = false;
+    un_lock(e->handles[i].thread_ready_lock);
+
+
+
+    // wake up rcl_wait()
+    rcl_guard_condition_signal(e->gc_threads);
+    
+  // here in between executor_thread might 
+  // come out of rcl_wait() and process wait_set changed 
+  // --> error because this change of thread-state is not
+  //     available yet.
+
+    // this thread is ready again
+    rclc_change_wait_set(rclc_executor_t *e);
+
+  }
 }
 
 */
