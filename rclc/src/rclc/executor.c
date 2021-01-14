@@ -1197,7 +1197,7 @@ struct rclc_handle {
 
 }
 
-bool wait_set_has_changed(rclc_executor_t *e)
+bool has_any_worker_thread_state_changed(rclc_executor_t *e)
 {
   bool changed = false;
   lock(thread_state_changed_lock);
@@ -1208,13 +1208,20 @@ bool wait_set_has_changed(rclc_executor_t *e)
   return changed;
 }
 
-void rclc_change_wait_set(rclc_executor_t *e)
+void change_worker_thread_state_change(rclc_executor_t *e, index, thread_state_t new_state)
 {
+
   lock(thread_state_changed_lock);
-  e->thread_state_changed = true; // renaming !
-  unlock(thread_state_changed_lock);
+  e->handles[index].thread_state = new_state;
   
-  return changed;
+  e->any_thread_state_changed = true; 
+
+  if (new_state == READY)
+  {
+    rcl_guard_condition_signal(e->gc_threads);
+  }
+
+  unlock(thread_state_changed_lock);
 }
 
 
@@ -1225,7 +1232,7 @@ bool rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e)
 
   for( h[i] in handles)
   {
-    if (h[i].thread_ready)
+    if (h[i].thread_state== RCLC_THREAD_READY)
     {
       rcl_wait_set_add_subscription( ws, h[i])
     }
@@ -1236,9 +1243,9 @@ void rclc_exector_spin_thread(rclc_executor_t *e)
 {
   while ( rcl_ok() )
   {
-    if (wait_set_has_changed(e))
+    if ( has_any_worker_thread_state_changed(e) )
     {
-      rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e);
+      rebuild_wait_set(rcl_wait_set_t * ws, rclc_executor_t e);
     }
 
     rcl_wait(ws, timeout);
@@ -1248,56 +1255,30 @@ void rclc_exector_spin_thread(rclc_executor_t *e)
       // take data from DDS and store in pre-allocated message
       rcl_take(h[i], h[i].msg);
 
-      // notify worker_thread
-      // pre-condition: it is ready and is waiting on thin condition
-
-      //thread will get busy
-      // can I avoid this lock
-      // assignment before notify the thread
-      // then the worker_thread and executor thread never access
-      // this variable at the same time!
-      // - rclc_executor acccesses only when worker_thread is waiting
-      // - worker_thread is accessing only when executor does not have 
-      //   this subscription in the wait_set
-      h[i].thread_state = RCLC_THREAD_BUSY;
+      change_worker_thread_state_change(e, i, BUSY)
 
       lock(h[i].notify_worker_thread);
       condition_varialbe_set( h[i].cv_notify);
-      h[i].new_data = true;
       unlock(h[i].notify_worker_thread);
     }
   }
 }
 
-worker_thread(rclc_executor_t *e, unsigned int handle)
+
+worker_thread(rclc_executor_t *e, unsigned int index)
 {
   while(1)
   {
     // while loop around  - spurious wake-up
-    while(e->handles[handle].new_data == false){
-      cond_wait(e->handles[handle].cv_notify);
+    while(e->handles[index].thread_state = READY){
+      cond_wait(e->handles[index].cv_notify);
     }
 
     // execute callback
     e->handles[i].cb(e->handles[i].msg)
 
-    // update thread status of this handle
-    lock(e->handles[i].thread_ready_lock);
-    e->handles[i].thread_ready = false;
-    un_lock(e->handles[i].thread_ready_lock);
-
-
-
-    // wake up rcl_wait()
-    rcl_guard_condition_signal(e->gc_threads);
-    
-  // here in between executor_thread might 
-  // come out of rcl_wait() and process wait_set changed 
-  // --> error because this change of thread-state is not
-  //     available yet.
-
     // this thread is ready again
-    rclc_change_wait_set(rclc_executor_t *e);
+    change_worker_thread_state_change(e, i, READY);
 
   }
 }
