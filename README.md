@@ -17,6 +17,13 @@ The software is not ready for production use. It has neither been developed nor 
 
 Source your ROS2 `distribution` with `source /opt/ros/distribution/setup.bash`. Clone the repository into a ROS2 workspace (e.g. `~/ros2_ws/`) and build the packages using `colcon build` from the [Colcon Command Line Tools](https://colcon.readthedocs.io/en/released/). To test the RCLC package run `colcon test` or if you have multiple repositories in this workspace `colcon test --packages-select rclc`. For correct installation of the `rclc`-package do a `source ~/ros2_ws/install/local_setup.bash`. Then you are ready to run the examples in the `rclc_examples` package.
 
+The following repositories might not be in the default ROS 2 distribution: osrf_testing_tools_cpp and test_msgs. In this case install them manually (DISTRO beeing the name of your ROS 2 distribution):
+
+```C
+ sudo apt-get install ros-DISTRO-osrf-testing-tools-cpp
+ sudo apt-get install ros-DISTRO-test-msgs
+```
+
 ## License
 
 rclc is open-sourced under the Apache-2.0 license. See the [LICENSE](LICENSE) file for details.
@@ -42,7 +49,7 @@ Please notice the following issues/limitations:
 
 ## Bloom Release Status of Code Repository ros2/rclc
 
-Bloom release status of packages in repository [github.com/ros2/rclc/](https://github.com/ros2/rclc) for different architectures and releases.
+Bloom release status of all packages in repository [github.com/ros2/rclc/](https://github.com/ros2/rclc) for different architectures and releases.
 
 |Package | Release | amd64 | arm64 | armhf |
 |:--     |  :--    |  :--  |  :--  | :--   |

@@ -1112,6 +1112,7 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
           case SUBSCRIPTION:
             if (handles[i].subscription == obj) {
               return true;
+            } else {
             }
             break;
           case TIMER:

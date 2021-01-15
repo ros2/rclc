@@ -60,7 +60,7 @@ static unsigned int _cb3_cnt = 0;
 static unsigned int _cb3_int_value = 0;
 // callback for testing data communication semantics
 static unsigned int _cb5_cnt = 0;
-static unsigned int _cb5_int_value = 0;
+static int _cb5_int_value = 0;
 rcl_publisher_t * _pub_int_ptr;
 std_msgs__msg__Int32 * _pub_int_msg_ptr;
 
@@ -77,12 +77,12 @@ static unsigned int gc1_cnt = 0;
 
 // sleep time beween publish and receive in DDS middleware
 // to allow enough time on CI jobs (in milliseconds)
-#define RCLC_UNIT_TEST_SLEEP_TIME_MS 100
+#define RCLC_UNIT_TEST_SLEEP_TIME_MS 1000
 const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
 // timeout for rcl_wait() when calling spin_some API of executor
-const uint64_t rclc_test_timeout_ns = 10000000000;  // 10s
+const uint64_t rclc_test_timeout_ns = 1000000000;  // 1s
 
 static
 void
@@ -104,10 +104,23 @@ _results_callback_values_init()
 
 static
 void
+_executor_results_init(void)
+{
+  for (unsigned int i = 0; i < TC_SPIN_SOME_MAX_MSGS; i++) {
+    _executor_results[i] = 0;
+  }
+  _executor_results_i = 0;
+
+  _results_callback_counters_init();
+}
+
+static
+void
 _results_callback_init()
 {
   _results_callback_counters_init();
   _results_callback_values_init();
+  _executor_results_init();
 }
 
 static
@@ -130,17 +143,6 @@ _results_callback_num_received()
   return _cb1_cnt + _cb2_cnt + _cb3_cnt;
 }
 
-static
-void
-_executor_results_init(void)
-{
-  for (unsigned int i = 0; i < TC_SPIN_SOME_MAX_MSGS; i++) {
-    _executor_results[i] = 0;
-  }
-  _executor_results_i = 0;
-
-  _results_callback_counters_init();
-}
 
 /// preserves the order of received data
 /// message values are stored in an array (left to right)
@@ -249,7 +251,7 @@ void int32_callback4(const void * msgin)
     if (rc != RCL_RET_OK) {
       printf("Error in int32_callback4: could not publish!\n");
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));  // 2s
   }
 }
 
@@ -261,7 +263,6 @@ void int32_callback5(const void * msgin)
   if (msg == NULL) {
     printf("(int32_callback5): msg is NULL\n");
   } else {
-    // printf("cb5 msg: %d\n", msg->data);
     _cb5_int_value = msg->data;
   }
 }
@@ -561,12 +562,12 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_context_fini(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std_msgs__msg__Int32__init(&this->pub1_msg);
-    std_msgs__msg__Int32__init(&this->pub2_msg);
-    std_msgs__msg__Int32__init(&pub3_msg);
-    std_msgs__msg__Int32__init(&this->pub1_msg);
-    std_msgs__msg__Int32__init(&this->pub2_msg);
-    std_msgs__msg__Int32__init(&pub3_msg);
+    std_msgs__msg__Int32__fini(&this->pub1_msg);
+    std_msgs__msg__Int32__fini(&this->pub2_msg);
+    std_msgs__msg__Int32__fini(&pub3_msg);
+    std_msgs__msg__Int32__fini(&this->pub1_msg);
+    std_msgs__msg__Int32__fini(&this->pub2_msg);
+    std_msgs__msg__Int32__fini(&pub3_msg);
   }
 };
 
@@ -872,8 +873,9 @@ TEST_F(TestDefaultExecutor, pub_sub_example) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;  // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   // printf("Number of tries to access DDS-queue: %u\n", tries);
   ASSERT_TRUE(success);
@@ -942,14 +944,15 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;   // 100ms
   // process subscriptions
   for (unsigned int i = 0; i < 100; i++) {
     // Assumption: messages for all sub1, sub2 and sub3 are available
-    _wait_for_msg(&this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
 
     ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
@@ -992,11 +995,11 @@ TEST_F(TestDefaultExecutor, spin_some_sequential_execution) {
   // process subscriptions. Assumption: messages for all sub1, sub2 and sub3 are available
   for (unsigned int i = 0; i < 100; i++) {
     // wait until messages are received
-    _wait_for_msg(&this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub1, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub2, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
-    _wait_for_msg(&this->sub3, &this->context, max_tries, rclc_test_timeout_ns, &tries, &success);
+    _wait_for_msg(&this->sub3, &this->context, max_tries, timeout_ns, &tries, &success);
     ASSERT_TRUE(success);
     ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
     if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
@@ -1083,21 +1086,25 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   ///////////////////////////////////////////////////////////////////////////////////
   /////////// test case 1 : publish one data for each publisher
   ///////////////////////////////////////////////////////////////////////////////////
+  this->pub1_msg.data = 1;
+  this->pub2_msg.data = 2;
   ret = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub1 did not publish!";
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " this->pub2 did not publish!";
 
+
   // wait until messages are received
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;  // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
   _wait_for_msg(
-    &this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub2, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
 
@@ -1106,19 +1113,34 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   _cb2_cnt = 0;
 
   // running the executor
-  unsigned int max_iterations = 2;
-  for (unsigned int i = 0; i < max_iterations; i++) {
-    ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
-    if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
-      // valid return values
-    } else {
-      // any other error
-      EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
-    }
+  // std::this_thread::sleep_for(rclc_test_sleep_time);
+
+  ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
+  }
+  // check total number of received messages
+  EXPECT_EQ(_cb1_cnt, (unsigned int) 1) << "cb1 msg does not match";
+  EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
+
+  uint64_t reduced_timeout_ns = 1000000;  // 1ms
+  ret = rclc_executor_spin_some(&executor, reduced_timeout_ns);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
   }
   // check total number of received messages
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2) << "cb1 msg does not match";
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
+
+  // tear down
+  ret = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, update_wait_set) {
@@ -1164,19 +1186,22 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   ret = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
 
+/*
   // wait until messages are received
   bool success = false;
   unsigned int tries;
   unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;   // 100ms
   _wait_for_msg(
-    &this->sub1, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub1, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
   _wait_for_msg(
-    &this->sub2, &this->context, max_tries, rclc_test_timeout_ns, &tries,
+    &this->sub2, &this->context, max_tries, timeout_ns, &tries,
     &success);
   ASSERT_TRUE(success);
-
+*/
+  std::this_thread::sleep_for(rclc_test_sleep_time);
   ret = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
     // valid return values
@@ -1228,6 +1253,10 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ((unsigned int)1, _cb2_cnt);
   EXPECT_EQ((unsigned int)1, _cb1_int_value);
   EXPECT_EQ((unsigned int)2, _cb2_int_value);
+
+  // tear down
+  ret = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 
@@ -1263,6 +1292,10 @@ TEST_F(TestDefaultExecutor, spin_period) {
   uint64_t delta = 5000000;  // 5 ms interval
   EXPECT_LE(duration, spin_period + delta);
   EXPECT_LE(spin_period - delta, duration);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
@@ -1318,6 +1351,9 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
     &int32_callback4, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
+
+  subscription2_int_msg.data = 77;
+
   rc = rclc_executor_add_subscription(
     &executor, &subscription2, &subscription2_int_msg,
     &int32_callback5, ON_NEW_DATA);
@@ -1337,11 +1373,14 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   // test result
-  EXPECT_EQ(_cb5_int_value, (unsigned int) 2) <<
-    " expect value 2: Value from callback of int32_callback4 should be received.";
+  EXPECT_EQ(_cb5_int_value, 2) <<
+    " expect value 2: Value from rcl_publish in int32_callback4 should have be received.";
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, semantics_LET) {
@@ -1423,11 +1462,14 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   // test result
   EXPECT_EQ(
     _cb5_int_value,
-    (unsigned int) 1) <<
+    1) <<
     " expect value 1: first value of 'pub1' publisher should have been received.";
 
   // clean-up
   rc = rcl_subscription_fini(&subscription2, &this->node);
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_one) {
@@ -1478,22 +1520,26 @@ TEST_F(TestDefaultExecutor, trigger_one) {
   rcutils_reset_error();
   // ------------------------- test case setup ---------------------------------------------
 
+  const std::chrono::milliseconds ci_job_time =
+    std::chrono::milliseconds(1000);
+
   // first round
   _results_callback_init();
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
-  std::this_thread::sleep_for(rclc_test_sleep_time);
+  std::this_thread::sleep_for(ci_job_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
-  this->pub2_msg.data = 7;
+  this->pub2_msg.data = 787;
+  std::this_thread::sleep_for(ci_job_time);
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
-  std::this_thread::sleep_for(rclc_test_sleep_time);
+  std::this_thread::sleep_for(ci_job_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A not called";
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
@@ -1502,14 +1548,19 @@ TEST_F(TestDefaultExecutor, trigger_one) {
 
   // third round
   this->pub1_msg.data = 11;
+  std::this_thread::sleep_for(ci_job_time);
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub1 did not publish!";
-  std::this_thread::sleep_for(rclc_test_sleep_time);
+  std::this_thread::sleep_for(rclc_test_sleep_time + ci_job_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 11) << " expected: A called";
-  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 787) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_any) {
@@ -1588,6 +1639,10 @@ TEST_F(TestDefaultExecutor, trigger_any) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 2);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_all) {
@@ -1644,13 +1699,13 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
   // second round
-  this->pub2_msg.data = 7;
+  this->pub2_msg.data = 76;
   rc = rcl_publish(&this->pub2, &this->pub2_msg, nullptr);
   EXPECT_EQ(RCL_RET_OK, rc) << " pub2 did not publish!";
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 3) << " expected: A called";
-  EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
+  EXPECT_EQ(_cb2_int_value, (unsigned int) 76) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
 
@@ -1666,6 +1721,10 @@ TEST_F(TestDefaultExecutor, trigger_all) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0) << " expected: B not called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, trigger_always) {
@@ -1714,6 +1773,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 0);
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0) << " expected: A not called";
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << " expected: B called";
+
   // second round
   this->pub1_msg.data = 3;
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
@@ -1736,6 +1796,10 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 7) << " expected: B called";
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 3);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
 TEST_F(TestDefaultExecutor, executor_test_service) {
