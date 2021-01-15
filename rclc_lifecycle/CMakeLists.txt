@@ -7,7 +7,7 @@ if(NOT CMAKE_C_STANDARD)
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
@@ -66,6 +66,7 @@ if(BUILD_TESTING)
     rcl_lifecycle
     rclc
     lifecycle_msgs
+    osrf_testing_tools_cpp
   )
 endif()
 
