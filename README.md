@@ -15,9 +15,10 @@ The software is not ready for production use. It has neither been developed nor 
 
 ## Requirements, how to build, test and install
 
-Source your ROS2 `distribution` with `source /opt/ros/distribution/setup.bash`. Clone the repository into a ROS2 workspace (e.g. `~/ros2_ws/`) and build the packages using `colcon build` from the [Colcon Command Line Tools](https://colcon.readthedocs.io/en/released/). To test the RCLC package run `colcon test` or if you have multiple repositories in this workspace `colcon test --packages-select rclc`. For correct installation of the `rclc`-package do a `source ~/ros2_ws/install/local_setup.bash`. Then you are ready to run the examples in the `rclc_examples` package.
+Source your ROS2 `distribution` with `source /opt/ros/distribution/setup.bash`. This will setup the environment variable `$ROS-DISTRO`.
+Clone the repository into a ROS2 workspace (e.g. `~/ros2_ws/`) and build the packages using `colcon build` from the [Colcon Command Line Tools](https://colcon.readthedocs.io/en/released/). To test the RCLC package run `colcon test` or if you have multiple repositories in this workspace `colcon test --packages-select rclc`. For correct installation of the `rclc`-package do a `source ~/ros2_ws/install/local_setup.bash`. Then you are ready to run the examples in the `rclc_examples` package.
 
-The following repositories might not be in the default ROS 2 distribution: osrf_testing_tools_cpp and test_msgs. In this case install them manually (DISTRO beeing the name of your ROS 2 distribution):
+The following repositories might not be in the default ROS 2 distribution: osrf_testing_tools_cpp and test_msgs. In this case install them manually:
 
 ```C
  sudo apt-get install ros-$ROS_DISTRO-osrf-testing-tools-cpp
