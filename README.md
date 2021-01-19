@@ -20,7 +20,7 @@ Source your ROS2 `distribution` with `source /opt/ros/distribution/setup.bash`. 
 The following repositories might not be in the default ROS 2 distribution: osrf_testing_tools_cpp and test_msgs. In this case install them manually (DISTRO beeing the name of your ROS 2 distribution):
 
 ```C
- sudo apt-get install ros-DISTRO-osrf-testing-tools-cpp
+ sudo apt-get install ros-$ROS_DISTRO-osrf-testing-tools-cpp
  sudo apt-get install ros-DISTRO-test-msgs
 ```
 
