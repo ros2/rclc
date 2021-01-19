@@ -1193,6 +1193,13 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
 */
 }
 
+
+void
+rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
+{
+  // start worker thread
+  // call spin-method
+}
 /*
 // extend with ...
 struct rclc_handle {

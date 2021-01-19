@@ -110,6 +110,7 @@ if(BUILD_TESTING)
     test/rclc/test_timer.cpp
     test/rclc/test_executor_handle.cpp
     test/rclc/test_executor.cpp
+    test/rclc/test_executor_multi_threading.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)

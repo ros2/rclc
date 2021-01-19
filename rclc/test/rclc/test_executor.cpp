@@ -82,7 +82,7 @@ const std::chrono::milliseconds rclc_test_sleep_time =
   std::chrono::milliseconds(RCLC_UNIT_TEST_SLEEP_TIME_MS);
 
 // timeout for rcl_wait() when calling spin_some API of executor
-const uint64_t rclc_test_timeout_ns = 10000000000;  // 10s
+const uint64_t rclc_test_timeout_ns = 1000000000;  // 1s
 
 static
 void

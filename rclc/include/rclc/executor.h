@@ -660,6 +660,22 @@ rclc_executor_trigger_one(
  */
 void
 rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
+
+/**
+ * Start multi-threading scheduling for NuttX
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+void
+rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
 #if __cplusplus
 }
 #endif
