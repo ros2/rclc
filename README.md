@@ -21,7 +21,7 @@ The following repositories might not be in the default ROS 2 distribution: osrf_
 
 ```C
  sudo apt-get install ros-$ROS_DISTRO-osrf-testing-tools-cpp
- sudo apt-get install ros-DISTRO-test-msgs
+ sudo apt-get install ros-$ROS_DISTRO-test-msgs
 ```
 
 ## License
