@@ -23,6 +23,7 @@ extern "C"
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <pthread.h>  // for NuttX sporadic scheduling
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
@@ -51,6 +52,16 @@ typedef enum
 /// - application specific struct used in the trigger function
 typedef bool (* rclc_executor_trigger_t)(rclc_executor_handle_t *, unsigned int, void *);
 
+
+///
+/// Implementation for sporadic server scheduler for NuttX
+/// Thread stae can be READY or BUSY
+typedef enum
+{
+  RCLC_THREAD_READY,
+  RCLC_THREAD_BUSY
+} rclc_executor_thread_state_t;
+
 /// Container for RCLC-Executor
 typedef struct
 {
@@ -78,6 +89,19 @@ typedef struct
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
+
+  /// sporadic scheduling for NuttX
+
+  /// synchronization of worker threads to executor
+  rcl_guard_condition_t gc_some_thread_is_ready;
+  bool any_thread_state_changed;
+  pthread_mutex_t thread_state_mutex;
+
+  /// synchronization of DDS messages to worker threads
+  pthread_cond_t new_msg_for_thread_1_cond;
+  pthread_cond_t new_msg_for_thread_2_cond;
+  pthread_mutex_t new_mgs_for_thread_1_mutex;
+  pthread_mutex_t new_mgs_for_thread_2_mutex;
 } rclc_executor_t;
 
 /**
@@ -620,6 +644,22 @@ rclc_executor_trigger_one(
   unsigned int size,
   void * obj);
 
+/**
+ * Initialization of real-time scheduling with sporadic server for
+ * NuttX operating system.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+void
+rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
 #if __cplusplus
 }
 #endif

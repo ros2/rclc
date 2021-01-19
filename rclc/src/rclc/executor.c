@@ -141,6 +141,10 @@ rclc_executor_init(
   // default semantics
   rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
 
+  // new function to set RT-parameters
+  // rclc_executor_set_rt_parameters(executor,params);
+  rclc_executor_real_time_scheduling_init(executor);
+
   return ret;
 }
 
@@ -1139,7 +1143,7 @@ bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int
   return true;
 }
 
-/* 
+/*
 Reservation based scheduling for NuttX
 
 - real-time scheduling for embedded ROS 2 applications
@@ -1149,8 +1153,8 @@ Reservation based scheduling for NuttX
 - limitations:
    - no trigger
    - no LET semantics
-   - only subscription 
-   - sporadic server: one thread for each subscription 
+   - only subscription
+   - sporadic server: one thread for each subscription
     (reservation based scheduling: one thread for multiple subscriptions - later)
 
 - evaluation (real-time guarantees)
@@ -1160,8 +1164,8 @@ Reservation based scheduling for NuttX
   - performance without real-time scheduling
   - performance overhead with threading and wait_set modifications
 
-
-rclc_real_time_scheduling_setup(rclc_executor_t *e)
+*/
+void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
 {
   // n threads, n number of handles
   // one guard_condition (one for all threads)
@@ -1171,25 +1175,25 @@ rclc_real_time_scheduling_setup(rclc_executor_t *e)
   // n data exchange objects (which contains the message (subscription))
 
   // initialization
-  thread_ready = false;
+  e->any_thread_state_changed = false;
+
+  pthread_mutex_init(&e->thread_state_mutex, NULL);
+  pthread_mutex_init(&e->new_mgs_for_thread_1_mutex, NULL);
+  pthread_mutex_init(&e->new_mgs_for_thread_2_mutex, NULL);
+  pthread_cond_init(&e->new_msg_for_thread_1_cond, NULL);
+  pthread_cond_init(&e->new_msg_for_thread_2_cond, NULL);
+  /*
+  rcl_ret_t rc;
+  e->gc_some_thread_is_ready = rcl_get_zero_initialzed_guard_condition();
+  rcl_guard_condition_options_t guard_options = rcl_guard_condition_get_default_options();
+  rc = rcl_guard_condition_init(&e->gc_some_thread_is_ready, context, guard_options);
+  if(rc != RCL_RET_OK) {
+      RCL_ERROR("Could not create Kobuki guard");
+  }
+*/
 }
 
-typedef enum
-{
-  RCLC_THREAD_READY,
-  RCLC_THREAD_BUSY
-} rclc_executor_thread_state_t;
-
-// extend with ...
-struct rclc_executor_t {
-  rcl_guard_condition_t gc_threads;
-  lock_t thread_gc_lock;
-
-  bool thread_state_changed;
-  lock_t thread_state_changed_lock;
-
-}
-
+/*
 // extend with ...
 struct rclc_handle {
   pthread_t thread;
@@ -1197,26 +1201,25 @@ struct rclc_handle {
 
 }
 
-bool has_any_worker_thread_state_changed(rclc_executor_t *e)
+bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t *e)
 {
   bool changed = false;
-  lock(thread_state_changed_lock);
-  changed = e->thread_state_changed;
-  e->thread_state_changed = false;
-  unlock(thread_state_changed_lock);
-  
+  pthread_mutex_lock(&e->thread_state_mutex);
+  changed = e->any_thread_state_changed;
+  e->any_thread_state_changed = false;
+  pthread_mutex_unlock(e->thread_state_mutex);
+
   return changed;
 }
 
-void change_worker_thread_state_change(rclc_executor_t *e, index, thread_state_t new_state)
+void change_worker_thread_state(rclc_executor_t *e, index, } rclc_executor_thread_state_t;
+ new_state)
 {
 
-  lock(thread_state_changed_lock);
+  pthread_mutex_lock(&e->thread_state_mutex);
   e->handles[index].thread_state = new_state;
-  
-  e->any_thread_state_changed = true; 
-
-  if (new_state == READY)
+  e->any_thread_state_changed = true;
+  if (new_state == RCLC_THREAD_READY)
   {
     rcl_guard_condition_signal(e->gc_threads);
   }
@@ -1239,6 +1242,19 @@ bool rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e)
   }
 }
 
+
+// real-time executor feature:
+// - assignment of priority and budget of NuttX threads
+// - dispatching messages to NuttX-threads based on priority and not based how the wait_set was created
+// - reacting as-fast as possible to new message (when thread becomes ready - rcl_wait is interrupted by gc) and wait_set is re-created
+// when user adds subscription X with priority i (X, i);
+(A,1)
+(B,5)
+(C,3)
+
+reorder them according to their priority:
+handle[] =( (B,5) (C,3) (A,1))
+
 void rclc_exector_spin_thread(rclc_executor_t *e)
 {
   while ( rcl_ok() )
@@ -1250,7 +1266,8 @@ void rclc_exector_spin_thread(rclc_executor_t *e)
 
     rcl_wait(ws, timeout);
 
-    for( handle h[i] in wait_set ws)
+
+    for( handle h[i] in wait_set ws)  // prioritized sequential processing
     {
       // take data from DDS and store in pre-allocated message
       rcl_take(h[i], h[i].msg);
@@ -1282,5 +1299,4 @@ worker_thread(rclc_executor_t *e, unsigned int index)
 
   }
 }
-
 */
