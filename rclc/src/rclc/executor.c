@@ -1176,12 +1176,11 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
 
   // initialization
   e->any_thread_state_changed = false;
-
   pthread_mutex_init(&e->thread_state_mutex, NULL);
-  pthread_mutex_init(&e->new_mgs_for_thread_1_mutex, NULL);
-  pthread_mutex_init(&e->new_mgs_for_thread_2_mutex, NULL);
-  pthread_cond_init(&e->new_msg_for_thread_1_cond, NULL);
-  pthread_cond_init(&e->new_msg_for_thread_2_cond, NULL);
+  // for (i in handles)
+  //   e->handles[i].worker_thread_state = RCLC_THREAD_READY;
+  //   pthread_mutex_init(&e->handles[i].new_msg_mutex, NULL);
+  //   pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
   /*
   rcl_ret_t rc;
   e->gc_some_thread_is_ready = rcl_get_zero_initialzed_guard_condition();
@@ -1197,16 +1196,73 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
 void
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
 {
-  // start worker thread
+  for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
+    // start worker thread
+    printf("Starting worker thread %ld", i);
+    // one data structure containing
+    // - pointer to executor
+    // - handle index
+    // result = pthread_create(&e->handles[i].worker_thread,
+    //            NULL, &rclc_worker_thread, e->handles[i].thread_param);
+    // if(result != 0) {
+    //    fprintf(stderr, "Failed to create kobuki thread: %d.\n", result);
+  }
+
   // call spin-method
 }
-/*
-// extend with ...
-struct rclc_handle {
-  pthread_t thread;
-  rclc_executor_thread_state_t thread_state;
 
+static void
+rclc_executor_worker_thread(rclc_executor_worker_thread_param_t * param)
+{
+  printf("worker thread\n");
 }
+/*
+while(1)
+{
+  // while loop around  - spurious wake-up
+  while(e->handles[index].thread_state = READY){
+    cond_wait(e->handles[index].cv_notify);
+  }
+
+  // execute callback
+  e->handles[i].cb(e->handles[i].msg)
+
+  // this thread is ready again
+  change_worker_thread_state_change(e, i, READY);
+}
+*/
+
+void
+rclc_exector_spin_multi_threaded(rclc_executor_t * e)
+{
+  printf("executor thread\n");
+  /*
+  while ( rcl_ok() )
+  {
+    if ( has_any_worker_thread_state_changed(e) )
+    {
+      rebuild_wait_set(rcl_wait_set_t * ws, rclc_executor_t e);
+    }
+
+    rcl_wait(ws, timeout);
+
+
+    for( handle h[i] in wait_set ws)  // prioritized sequential processing
+    {
+      // take data from DDS and store in pre-allocated message
+      rcl_take(h[i], h[i].msg);
+
+      change_worker_thread_state_change(e, i, BUSY)
+
+      lock(h[i].notify_worker_thread);
+      condition_varialbe_set( h[i].cv_notify);
+      unlock(h[i].notify_worker_thread);
+    }
+  }
+  */
+}
+
+/*
 
 bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t *e)
 {
@@ -1262,48 +1318,7 @@ bool rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e)
 reorder them according to their priority:
 handle[] =( (B,5) (C,3) (A,1))
 
-void rclc_exector_spin_thread(rclc_executor_t *e)
-{
-  while ( rcl_ok() )
-  {
-    if ( has_any_worker_thread_state_changed(e) )
-    {
-      rebuild_wait_set(rcl_wait_set_t * ws, rclc_executor_t e);
-    }
-
-    rcl_wait(ws, timeout);
 
 
-    for( handle h[i] in wait_set ws)  // prioritized sequential processing
-    {
-      // take data from DDS and store in pre-allocated message
-      rcl_take(h[i], h[i].msg);
 
-      change_worker_thread_state_change(e, i, BUSY)
-
-      lock(h[i].notify_worker_thread);
-      condition_varialbe_set( h[i].cv_notify);
-      unlock(h[i].notify_worker_thread);
-    }
-  }
-}
-
-
-worker_thread(rclc_executor_t *e, unsigned int index)
-{
-  while(1)
-  {
-    // while loop around  - spurious wake-up
-    while(e->handles[index].thread_state = READY){
-      cond_wait(e->handles[index].cv_notify);
-    }
-
-    // execute callback
-    e->handles[i].cb(e->handles[i].msg)
-
-    // this thread is ready again
-    change_worker_thread_state_change(e, i, READY);
-
-  }
-}
 */

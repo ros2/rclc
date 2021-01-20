@@ -46,21 +46,27 @@ typedef enum
   LET
 } rclc_executor_semantics_t;
 
+/// explicitly list here all variables the worker thread needs access to
+/// handle->new_msg_cond;
+/// handle->new_msg_lock;
+/// handle->callback
+/// handle->data
+/// executor->gc;
+/// executor->thread_state_mutex;
+typedef struct
+{
+  rclc_executor_handle_t * handle;
+  rcl_guard_condition_t * gc;
+  pthread_mutex_t * thread_state_mutex;
+  bool * any_thread_state_changed;
+}
+rclc_executor_worker_thread_param_t;
+
 /// Type definition for trigger function. With the parameters:
 /// - array of executor_handles
 /// - size of array
 /// - application specific struct used in the trigger function
 typedef bool (* rclc_executor_trigger_t)(rclc_executor_handle_t *, unsigned int, void *);
-
-
-///
-/// Implementation for sporadic server scheduler for NuttX
-/// Thread stae can be READY or BUSY
-typedef enum
-{
-  RCLC_THREAD_READY,
-  RCLC_THREAD_BUSY
-} rclc_executor_thread_state_t;
 
 /// Container for RCLC-Executor
 typedef struct
@@ -96,6 +102,10 @@ typedef struct
   rcl_guard_condition_t gc_some_thread_is_ready;
   bool any_thread_state_changed;
   pthread_mutex_t thread_state_mutex;
+
+  /// threads future: make an array[]
+  pthread_t worker_thread_1;
+  pthread_t worker_thread_2;
 
   /// synchronization of DDS messages to worker threads
   pthread_cond_t new_msg_for_thread_1_cond;
@@ -676,6 +686,13 @@ rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
  */
 void
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
+
+static void
+rclc_executor_worker_thread(rclc_executor_worker_thread_param_t * param);
+
+void
+rclc_exector_spin_multi_threaded(rclc_executor_t * e);
+
 #if __cplusplus
 }
 #endif

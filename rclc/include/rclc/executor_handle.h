@@ -52,6 +52,13 @@ typedef enum
   CB_WITH_REQUEST_ID
 } rclc_executor_handle_callback_type_t;
 
+/// Implementation for sporadic server scheduler for NuttX
+typedef enum
+{
+  RCLC_THREAD_NONE,
+  RCLC_THREAD_READY,
+  RCLC_THREAD_BUSY
+} rclc_executor_thread_state_t;
 
 /// Type definition for callback function.
 typedef void (* rclc_callback_t)(const void *);
@@ -139,6 +146,12 @@ typedef struct
   bool data_available;
   /// callback type for service/client
   rclc_executor_handle_callback_type_t callback_type;
+  /// variables for multi-threading
+  /// worker thread
+  pthread_t worker_thread;
+  rclc_executor_thread_state_t worker_thread_state;
+  pthread_cond_t new_msg_cond;
+  pthread_mutex_t new_mgs_mutex;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.

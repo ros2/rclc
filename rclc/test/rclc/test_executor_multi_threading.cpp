@@ -344,7 +344,8 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
-  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+  rclc_executor_start_multi_threading_for_nuttx(&executor);
+  // rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   // test result
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
