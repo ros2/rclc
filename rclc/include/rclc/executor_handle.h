@@ -149,9 +149,11 @@ typedef struct
   /// variables for multi-threading
   /// worker thread
   pthread_t worker_thread;
+  /// worker thread state and its mutex
   rclc_executor_thread_state_t worker_thread_state;
+  /// signaling condition variable and its mutex
   pthread_cond_t new_msg_cond;
-  pthread_mutex_t new_mgs_mutex;
+  pthread_mutex_t new_msg_mutex;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.

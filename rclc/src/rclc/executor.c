@@ -1175,47 +1175,85 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
   // n data exchange objects (which contains the message (subscription))
 
   // initialization
+  // no lock necessary, because no worker_thread has been started
   e->any_thread_state_changed = false;
   pthread_mutex_init(&e->thread_state_mutex, NULL);
-  // for (i in handles)
-  //   e->handles[i].worker_thread_state = RCLC_THREAD_READY;
-  //   pthread_mutex_init(&e->handles[i].new_msg_mutex, NULL);
-  //   pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
-  /*
-  rcl_ret_t rc;
-  e->gc_some_thread_is_ready = rcl_get_zero_initialzed_guard_condition();
-  rcl_guard_condition_options_t guard_options = rcl_guard_condition_get_default_options();
-  rc = rcl_guard_condition_init(&e->gc_some_thread_is_ready, context, guard_options);
-  if(rc != RCL_RET_OK) {
-      RCL_ERROR("Could not create Kobuki guard");
+  for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
+    e->handles[i].worker_thread_state = RCLC_THREAD_READY;
+    pthread_mutex_init(&e->handles[i].new_msg_mutex, NULL);
+    pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
   }
-*/
+
+  rcl_ret_t rc;
+  e->gc_some_thread_is_ready = rcl_get_zero_initialized_guard_condition();
+  rcl_guard_condition_options_t guard_options = rcl_guard_condition_get_default_options();
+  rc = rcl_guard_condition_init(&e->gc_some_thread_is_ready, e->context, guard_options);
+  if (rc != RCL_RET_OK) {
+    RCL_SET_ERROR_MSG("Could not create gc_thread_is_ready guard");
+    PRINT_RCLC_ERROR(rclc_executor_real_time_scheduling_init, rcl_guard_condition_init);
+  }
 }
 
+void * rclc_executor_worker_thread(void * p)
+{
+  rclc_executor_worker_thread_param_t * param = (rclc_executor_worker_thread_param_t *)p;
+
+  printf(
+    "worker thread state_changed %d handle type %d initialized %d\n",
+    (*param->any_thread_state_changed),
+    param->handle->type,
+    param->handle->initialized
+  );
+
+  pthread_mutex_lock(&param->handle->new_msg_mutex);
+  while (param->handle->worker_thread_state == RCLC_THREAD_READY) {
+    pthread_cond_wait(&param->handle->new_msg_cond, &param->handle->new_msg_mutex);
+  }
+
+  param->handle->callback(param->handle->data);
+
+  //update state
+  return p;
+}
 
 void
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
 {
+  rclc_executor_real_time_scheduling_init(e);
+  int result;
+  // allocate memory for param objects
+  rclc_executor_worker_thread_param_t * params = NULL;
+  params = e->allocator->allocate(
+    (e->max_handles * sizeof(rclc_executor_worker_thread_param_t)),
+    e->allocator->state);
+  if (NULL == params) {
+    RCL_SET_ERROR_MSG("Could not allocate memory for 'params'.");
+    PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, allocate);
+  }
+
+  // start worker threads
   for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
-    // start worker thread
     printf("Starting worker thread %ld", i);
-    // one data structure containing
-    // - pointer to executor
-    // - handle index
-    // result = pthread_create(&e->handles[i].worker_thread,
-    //            NULL, &rclc_worker_thread, e->handles[i].thread_param);
-    // if(result != 0) {
-    //    fprintf(stderr, "Failed to create kobuki thread: %d.\n", result);
+    params[i].gc = &e->gc_some_thread_is_ready;
+    params[i].any_thread_state_changed = &e->any_thread_state_changed;
+    params[i].handle = &e->handles[i];
+    params[i].thread_state_mutex = &e->thread_state_mutex;
+    //rclc_executor_worker_thread(&params[i]);
+
+    result = pthread_create(
+      &e->handles[i].worker_thread,
+      NULL, &rclc_executor_worker_thread, &params[i]);
+    if (result != 0) {
+      PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, pthread_create);
+    } else {
+      printf(" ... started  \n");
+    }
   }
 
   // call spin-method
 }
 
-static void
-rclc_executor_worker_thread(rclc_executor_worker_thread_param_t * param)
-{
-  printf("worker thread\n");
-}
+
 /*
 while(1)
 {
@@ -1232,11 +1270,11 @@ while(1)
 }
 */
 
+/*
 void
 rclc_exector_spin_multi_threaded(rclc_executor_t * e)
 {
   printf("executor thread\n");
-  /*
   while ( rcl_ok() )
   {
     if ( has_any_worker_thread_state_changed(e) )
@@ -1259,11 +1297,9 @@ rclc_exector_spin_multi_threaded(rclc_executor_t * e)
       unlock(h[i].notify_worker_thread);
     }
   }
-  */
-}
+*/
 
 /*
-
 bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t *e)
 {
   bool changed = false;
@@ -1317,8 +1353,5 @@ bool rebuild_waitset(rcl_wait_set_t * ws, rclc_executor_t e)
 
 reorder them according to their priority:
 handle[] =( (B,5) (C,3) (A,1))
-
-
-
 
 */

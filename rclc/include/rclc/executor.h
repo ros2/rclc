@@ -103,15 +103,7 @@ typedef struct
   bool any_thread_state_changed;
   pthread_mutex_t thread_state_mutex;
 
-  /// threads future: make an array[]
-  pthread_t worker_thread_1;
-  pthread_t worker_thread_2;
 
-  /// synchronization of DDS messages to worker threads
-  pthread_cond_t new_msg_for_thread_1_cond;
-  pthread_cond_t new_msg_for_thread_2_cond;
-  pthread_mutex_t new_mgs_for_thread_1_mutex;
-  pthread_mutex_t new_mgs_for_thread_2_mutex;
 } rclc_executor_t;
 
 /**
@@ -686,13 +678,6 @@ rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
  */
 void
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
-
-static void
-rclc_executor_worker_thread(rclc_executor_worker_thread_param_t * param);
-
-void
-rclc_exector_spin_multi_threaded(rclc_executor_t * e);
-
 #if __cplusplus
 }
 #endif

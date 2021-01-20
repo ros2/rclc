@@ -50,16 +50,12 @@ rclc_executor_handle_init(
   handle->data_response_msg = NULL;
 
   handle->callback = NULL;
-  // because of union structure:
-  //   handle->service_callback == NULL;
-  //   handle->client_callback == NULL;
-  //   handle->gc_callback == NULL
-  //   ...
 
   handle->index = max_handles;
   handle->initialized = false;
   handle->data_available = false;
   handle->callback_type = CB_UNDEFINED;
+  handle->worker_thread_state = RCLC_THREAD_NONE;
   return RCL_RET_OK;
 }
 
