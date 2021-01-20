@@ -1,6 +1,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+0.1.7 (2021-01-20)
+------------------
+* Corrected corrupted changelog
+
 0.1.6 (2021-01-20)
 ------------------
 * Fixed issues due to Github Action timing delays on cloud build
