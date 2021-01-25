@@ -768,6 +768,11 @@ _rclc_execute(rclc_executor_handle_t * handle)
 
       case SERVICE:
         switch (handle->callback_type) {
+          case CB_WITHOUT_REQUEST_ID:
+            handle->service_callback(
+              handle->data,
+              handle->data_response_msg);
+            break;
           case CB_WITH_REQUEST_ID:
             handle->service_callback_with_reqid(
               handle->data,
@@ -780,10 +785,6 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->data_response_msg,
               handle->service_context);
             break;
-          default:
-            handle->service_callback(
-              handle->data,
-              handle->data_response_msg);
         }
 
         rc = rcl_send_response(handle->service, &handle->req_id, handle->data_response_msg);
@@ -794,7 +795,9 @@ _rclc_execute(rclc_executor_handle_t * handle)
         break;
 
       case CLIENT:
-        if (handle->callback_type == CB_WITHOUT_REQUEST_ID) {
+        if (handle->callback_type == CB_WITHOUT_REQUEST_ID ||
+          handle->callback_type == CB_WITH_CONTEXT)
+        {
           handle->client_callback(handle->data);
         } else if (handle->callback_type == CB_WITH_REQUEST_ID) {
           handle->client_callback_with_reqid(handle->data, &handle->req_id);
