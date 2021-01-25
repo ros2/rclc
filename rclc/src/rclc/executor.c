@@ -141,10 +141,6 @@ rclc_executor_init(
   // default semantics
   rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
 
-  // new function to set RT-parameters
-  // rclc_executor_set_rt_parameters(executor,params);
-  rclc_executor_real_time_scheduling_init(executor);
-
   return ret;
 }
 
@@ -1220,15 +1216,9 @@ Reservation based scheduling for NuttX
 */
 void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
 {
-  // n threads, n number of handles
-  // one guard_condition (one for all threads)
-  // lock 1
-  // lock 2
-  // n condition_variables (to signal that data is available)
-  // n data exchange objects (which contains the message (subscription))
-
-  // initialization
-  // no lock necessary, because no worker_thread has been started
+  // initialization of mutexes and condition variables
+  // init worker_thread_state = READY
+  // lock not necessary, because no worker_thread has been started yet
   e->any_thread_state_changed = true;
   pthread_mutex_init(&e->thread_state_mutex, NULL);
   for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
@@ -1237,6 +1227,7 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
     pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
   }
 
+  // initialization of guard condition
   rcl_ret_t rc;
   e->gc_some_thread_is_ready = rcl_get_zero_initialized_guard_condition();
   rcl_guard_condition_options_t guard_options = rcl_guard_condition_get_default_options();
@@ -1253,10 +1244,11 @@ void rclc_executor_change_worker_thread_state(
   rclc_executor_thread_state_t new_state)
 {
   printf("change thread %ld to state ", p->handle->index);
-  if (new_state == RCLC_THREAD_READY)
-    printf("READY\n"); 
-  else if (new_state == RCLC_THREAD_BUSY)
+  if (new_state == RCLC_THREAD_READY) {
+    printf("READY\n");
+  } else if (new_state == RCLC_THREAD_BUSY) {
     printf("BUSY\n");
+  }
 
   pthread_mutex_lock(p->thread_state_mutex);
   p->handle->worker_thread_state = new_state;
@@ -1268,6 +1260,160 @@ void rclc_executor_change_worker_thread_state(
   pthread_mutex_unlock(p->thread_state_mutex);
 }
 
+static
+bool rclc_executor_worker_thread_is_ready(rclc_executor_t * e, rclc_executor_handle_t * handle)
+{
+  bool thread_is_ready = false;
+  pthread_mutex_lock(&e->thread_state_mutex);
+
+  // assume that the thread state is initialized with RCLC_THREAD_READY
+  // and is not RCLC_THREAD_NONE
+  if (handle->worker_thread_state == RCLC_THREAD_READY) {
+    thread_is_ready = true;
+  }
+
+  pthread_mutex_unlock(&e->thread_state_mutex);
+  return thread_is_ready;
+}
+// TODO(jst3si) split in sub-functions to avoid this duplicate function
+static
+rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
+{
+  rcl_ret_t rc = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "rclc_executor_rebuild_wait_set");
+
+  // initialize wait_set if
+  // (1) this is the first invocation of rclc_executor_spin_*()
+  // (2) rclc_executor_add_* has been called at runtime
+  if (!rcl_wait_set_is_valid(&executor->wait_set)) {
+    // calling wait_set on zero_initialized wait_set multiple times is ok.
+    rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
+    if (rc != RCL_RET_OK) {
+      PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_fini);
+    }
+    // initialize wait_set
+    executor->wait_set = rcl_get_zero_initialized_wait_set();
+    // create sufficient memory space for all handles in the wait_set
+    rc = rcl_wait_set_init(
+      &executor->wait_set, executor->info.number_of_subscriptions,
+      executor->info.number_of_guard_conditions, executor->info.number_of_timers,
+      executor->info.number_of_clients, executor->info.number_of_services,
+      executor->info.number_of_events,
+      executor->context, rcl_get_default_allocator());
+    if (rc != RCL_RET_OK) {
+      PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_init);
+      return rc;
+    }
+  }
+
+  // set rmw fields to NULL
+  rc = rcl_wait_set_clear(&executor->wait_set);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_clear);
+    return rc;
+  }
+
+  // (jst3si) put in a sub-function - for improved readability
+  // only add handles, of which its worker thread is ready, to wait_set
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "wait_set_add_* %d", executor->handles[i].type);
+    if (rclc_executor_worker_thread_is_ready(executor, &executor->handles[i])) {
+      switch (executor->handles[i].type) {
+        case SUBSCRIPTION:
+          // add subscription to wait_set and save index
+          rc = rcl_wait_set_add_subscription(
+            &executor->wait_set, executor->handles[i].subscription,
+            &executor->handles[i].index);
+          if (rc == RCL_RET_OK) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME,
+              "Subscription added to wait_set_subscription[%ld]",
+              executor->handles[i].index);
+            printf("added subscription to wait_set.subscriptions[%ld]\n", executor->handles[i].index);
+          } else {
+            PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_subscription);
+            return rc;
+          }
+          break;
+
+        case TIMER:
+          // add timer to wait_set and save index
+          rc = rcl_wait_set_add_timer(
+            &executor->wait_set, executor->handles[i].timer,
+            &executor->handles[i].index);
+          if (rc == RCL_RET_OK) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
+              executor->handles[i].index);
+          } else {
+            PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_timer);
+            return rc;
+          }
+          break;
+
+        case SERVICE:
+          // add service to wait_set and save index
+          rc = rcl_wait_set_add_service(
+            &executor->wait_set, executor->handles[i].service,
+            &executor->handles[i].index);
+          if (rc == RCL_RET_OK) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Service added to wait_set_service[%ld]",
+              executor->handles[i].index);
+          } else {
+            PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_service);
+            return rc;
+          }
+          break;
+
+
+        case CLIENT:
+          // add client to wait_set and save index
+          rc = rcl_wait_set_add_client(
+            &executor->wait_set, executor->handles[i].client,
+            &executor->handles[i].index);
+          if (rc == RCL_RET_OK) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Client added to wait_set_client[%ld]",
+              executor->handles[i].index);
+          } else {
+            PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_client);
+            return rc;
+          }
+          break;
+
+        case GUARD_CONDITION:
+          // add guard_condition to wait_set and save index
+          rc = rcl_wait_set_add_guard_condition(
+            &executor->wait_set, executor->handles[i].gc,
+            &executor->handles[i].index);
+          if (rc == RCL_RET_OK) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Guard_condition added to wait_set_client[%ld]",
+              executor->handles[i].index);
+          } else {
+            PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_guard_condition);
+            return rc;
+          }
+          break;
+
+
+        default:
+          RCUTILS_LOG_DEBUG_NAMED(
+            ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
+            executor->handles[i].type);
+          PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_unknown_handle);
+          return RCL_RET_ERROR;
+      }
+    } else {
+      // if this handle has not been considered then invalidate its wait_set index.
+      // This is used later to omid this handle for rcl_take and worker_thread notification
+      executor->handles[i].index = executor->max_handles;
+    }
+  }
+  return RCL_RET_OK;
+}
 void * rclc_executor_worker_thread(void * p)
 {
   rclc_executor_worker_thread_param_t * param = (rclc_executor_worker_thread_param_t *)p;
@@ -1289,9 +1435,8 @@ void * rclc_executor_worker_thread(void * p)
     pthread_mutex_unlock(&param->handle->new_msg_mutex);
 
     // execute subscription callback
-    int * int_ptr = (int *)param->handle->data;
-    printf("executing cb %ld, data: %d\n", param->handle->index, (*int_ptr));
-    //param->handle->callback(param->handle->data);
+    printf("executing cb %ld\n", param->handle->index);
+    param->handle->callback(param->handle->data);
 
     //change_worker thread state and signal guard condition
     rclc_executor_change_worker_thread_state(param, RCLC_THREAD_READY);
@@ -1311,17 +1456,17 @@ bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t * e)
   return changed;
 }
 
-
 void
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
 {
   int result;
+  rcl_ret_t rc;
 
+  // initialize mutexes and condition variables
   rclc_executor_real_time_scheduling_init(e);
 
-  // params contains all necessary pointers to data structures which are accessed
+  // 'params' contains all necessary pointers to data structures which are accessed
   // from the executor thread and worker thread.
-
   // allocate memory for params array
   rclc_executor_worker_thread_param_t * params = NULL;
   params = e->allocator->allocate(
@@ -1340,6 +1485,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
     params[i].gc = &e->gc_some_thread_is_ready;
 
     printf("Starting worker thread %ld, handle-index %ld", i, params[i].handle->index);
+    // TODO(jst3si)  assign scheduling attribute
     result = pthread_create(
       &e->handles[i].worker_thread,
       NULL, &rclc_executor_worker_thread, &params[i]);
@@ -1353,34 +1499,58 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   // endless spin-method
   // while (rcl_ok())
   for (int ii = 0; ii < 10; ii++) {
-    for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
-      if (rclc_executor_has_any_worker_thread_state_changed(e)) {
-        printf("thread state changed - re-building wait_set\n");
-        //rebuild_wait_set(rcl_wait_set_t * ws, rclc_executor_t e);
+
+    // update wait_set - only add handles if the corresponding worker thread is READY
+    if (rclc_executor_has_any_worker_thread_state_changed(e)) {
+      printf("rebuilding wait_set\n");
+      rclc_executor_rebuild_wait_set(e);
+    }
+
+
+    // wait for new data from DDS
+    rc = rcl_wait(&e->wait_set, e->timeout_ns);
+    RCLC_UNUSED(rc);
+
+    // take data from DDS and notify worker_thread
+    for (size_t i = 0;
+      (i < e->max_handles && e->handles[i].initialized && (e->handles[i].index < e->max_handles));
+      i++)
+    {
+      //  index==max_handles => handle ignorieren da es nicht im wait_set ist
+      rc = RCL_RET_ERROR;
+      switch (e->handles[i].type) {
+        case SUBSCRIPTION:
+          if (e->wait_set.subscriptions[e->handles[i].index]) {
+            rmw_message_info_t messageInfo;
+            rc = rcl_take(
+              e->handles[i].subscription, e->handles[i].data, &messageInfo,
+              NULL);
+            if (rc != RCL_RET_OK) {
+              // rcl_take might return this error even with successfull rcl_wait
+              if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+                PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take);
+                RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+              }
+              //  report error?
+            }
+          }
+          break;
+        default:
+          printf("unknown handle type for multi-threaded executor\n");
+          break;
       }
-
-      // rcl_wait(ws, timeout);
-      // sleep(1);
-
-      /*
-      for( handle h[i] in wait_set ws)  // prioritized sequential processing
-      {
-        // take data from DDS and store in pre-allocated message
-        rcl_take(h[i], h[i].msg);
+      // only notify thread if rcl_take was called and was successful
+      // implicit handle.worker_thread_state == READY
+      // e->handles[i] and params[i].handle point to the same handle
+      if (rc == RCL_RET_OK) {
+        rclc_executor_change_worker_thread_state(&params[i], RCLC_THREAD_BUSY);
+        pthread_mutex_lock(&params[i].handle->new_msg_mutex);
+        // is it possible to use handle->thread_state_changed?
+        params[i].handle->new_msg_avail = true;
+        printf("signaling thread %ld", i);
+        pthread_cond_signal(&params[i].handle->new_msg_cond);
+        pthread_mutex_unlock(&params[i].handle->new_msg_mutex);
       }
-      */
-
-      rclc_executor_change_worker_thread_state(&params[i], RCLC_THREAD_BUSY);
-
-      pthread_mutex_lock(&params[i].handle->new_msg_mutex);
-      // is it possible to use handle->thread_state_changed?
-      params[i].handle->new_msg_avail = true;
-
-      // take data from DDS -here only value of iteration
-      params[i].handle->data = &ii;
-      printf("signal thread %ld",i);
-      pthread_cond_signal(&params[i].handle->new_msg_cond);
-      pthread_mutex_unlock(&params[i].handle->new_msg_mutex);
     }
   }
 
