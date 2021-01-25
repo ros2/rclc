@@ -309,8 +309,10 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   rclc_executor_t executor;
 
 
-  // initialize executor with 2 handles
-  rc = rclc_executor_init(&executor, &this->context, 2, this->allocator_ptr);
+  // initialize executor with 2 subscriptions
+  int num_handles = 2;
+  num_handles++; // for one guard condition => move to executor itself!
+  rc = rclc_executor_init(&executor, &this->context, num_handles, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
