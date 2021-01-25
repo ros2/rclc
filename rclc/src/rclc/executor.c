@@ -1262,7 +1262,10 @@ void rclc_executor_change_worker_thread_state(
   p->handle->worker_thread_state = new_state;
   (*p->any_thread_state_changed) = true;
   if (new_state == RCLC_THREAD_READY) {
-    // rcl_guard_condition_signal(p->gc);
+    rcl_ret_t rc = rcl_trigger_guard_condition(p->gc);
+    if (rc != RCL_RET_OK) {
+      printf("Error triggering guard condition.\n");
+    }
   }
 
   pthread_mutex_unlock(p->thread_state_mutex);
