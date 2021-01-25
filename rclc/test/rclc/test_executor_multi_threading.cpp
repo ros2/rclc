@@ -314,15 +314,19 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  rclc_executor_sched_param_t sparam_1, sparam_2;
+  sparam_1.priority = 10;
+  sparam_2.priority = 20;
+
   // add subscriptions to executor
-  rc = rclc_executor_add_subscription(
+  rc = rclc_executor_add_subscription_sched(
     &executor, &this->sub1, &this->sub1_msg,
-    &int32_callback_1, ON_NEW_DATA);
+    &int32_callback_1, ON_NEW_DATA, &sparam_1);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-  rc = rclc_executor_add_subscription(
+  rc = rclc_executor_add_subscription_sched(
     &executor, &this->sub2, &this->sub2_msg,
-    &int32_callback_2, ON_NEW_DATA);
+    &int32_callback_2, ON_NEW_DATA, &sparam_2);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 

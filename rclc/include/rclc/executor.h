@@ -55,10 +55,10 @@ typedef enum
 /// executor->thread_state_mutex;
 typedef struct
 {
-  rclc_executor_handle_t * handle;
-  rcl_guard_condition_t * gc;
   pthread_mutex_t * thread_state_mutex;
   bool * any_thread_state_changed;
+  rclc_executor_handle_t * handle;
+  rcl_guard_condition_t * gc;
 }
 rclc_executor_worker_thread_param_t;
 
@@ -237,6 +237,40 @@ rclc_executor_add_subscription(
   void * msg,
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation);
+
+
+/**
+ *  Adds a subscription to an executor with scheduling policy
+ * * An error is returned, if {@link rclc_executor_t.handles} array is full.
+ * * The total number_of_subscriptions field of {@link rclc_executor_t.info}
+ *   is incremented by one.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] subscription pointer to an allocated subscription
+ * \param [in] msg pointer to an allocated message
+ * \param [in] callback    function pointer to a callback
+ * \param [in] invocation  invocation type for the callback (ALWAYS or only ON_NEW_DATA)
+ * \param [in] sched_param scheduling policy for the thread that is executing the callback
+ * \return `RCL_RET_OK` if add-operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
+rcl_ret_t
+rclc_executor_add_subscription_sched(
+  rclc_executor_t * executor,
+  rcl_subscription_t * subscription,
+  void * msg,
+  rclc_callback_t callback,
+  rclc_executor_handle_invocation_t invocation,
+  rclc_executor_sched_param_t * sched_param);
 
 /**
  *  Adds a timer to an executor.

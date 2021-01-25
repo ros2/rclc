@@ -60,6 +60,16 @@ typedef enum
   RCLC_THREAD_BUSY
 } rclc_executor_thread_state_t;
 
+/// scheduling parameter for the thread which will be executing the callback
+typedef struct
+{
+  int priority;
+  /*
+  take the same data as from NuttX sporadic server
+  configuration object
+  */
+} rclc_executor_sched_param_t;
+
 /// Type definition for callback function.
 typedef void (* rclc_callback_t)(const void *);
 
@@ -154,6 +164,9 @@ typedef struct
   /// signaling condition variable and its mutex
   pthread_cond_t new_msg_cond;
   pthread_mutex_t new_msg_mutex;
+  bool new_msg_avail;
+  /// scheduling parameter
+  rclc_executor_sched_param_t * sched_param;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.
