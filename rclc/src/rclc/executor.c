@@ -1206,13 +1206,15 @@ void * rclc_executor_worker_thread(void * p)
   );
 
   pthread_mutex_lock(&param->handle->new_msg_mutex);
-  while (param->handle->worker_thread_state == RCLC_THREAD_READY) {
+  while (param->handle->worker_thread_state != RCLC_THREAD_BUSY) {
     pthread_cond_wait(&param->handle->new_msg_cond, &param->handle->new_msg_mutex);
   }
 
   param->handle->callback(param->handle->data);
 
   //update state
+  // this thread is ready again
+  //change_worker_thread_state_change(e, i, READY);
   return p;
 }
 
@@ -1251,32 +1253,24 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   }
 
   // call spin-method
-}
 
-
-/*
-while(1)
-{
-  // while loop around  - spurious wake-up
-  while(e->handles[index].thread_state = READY){
-    cond_wait(e->handles[index].cv_notify);
-  }
-
-  // execute callback
-  e->handles[i].cb(e->handles[i].msg)
-
-  // this thread is ready again
-  change_worker_thread_state_change(e, i, READY);
-}
-*/
-
-/*
-void
-rclc_exector_spin_multi_threaded(rclc_executor_t * e)
-{
-  printf("executor thread\n");
-  while ( rcl_ok() )
+  int i = 0;
+  while ( i < 10 ) // rcl_ok()
   {
+    i++;
+    // signal handle[0] worker thread
+    // sollte vielleicht neue variable nehmen dirty und thread_state
+    // mit new_msg signaling vermischen!
+
+    // optimieren geht hinterher immernoch
+    pthread_mutex_lock(&params[0]->handle->new_msg_mutex);
+
+      &params[0]->handle->worker_thread_state = RCLC_THREAD_BUSY;
+      &params[0]->handle->data = &i;
+      pthread_cond_signal(&params[0]->handle->new_msg_cond);
+    pthread_mutex_unlock(&params[0]->handle->new_msg_mutex);
+  }
+    /*
     if ( has_any_worker_thread_state_changed(e) )
     {
       rebuild_wait_set(rcl_wait_set_t * ws, rclc_executor_t e);
@@ -1296,8 +1290,9 @@ rclc_exector_spin_multi_threaded(rclc_executor_t * e)
       condition_varialbe_set( h[i].cv_notify);
       unlock(h[i].notify_worker_thread);
     }
+    */
   }
-*/
+  }
 
 /*
 bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t *e)
