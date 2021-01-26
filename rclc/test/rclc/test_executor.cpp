@@ -1907,6 +1907,11 @@ TEST_F(TestDefaultExecutor, executor_test_service) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Request__fini(&req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&resp);
+  example_interfaces__srv__AddTwoInts_Request__fini(&cli_req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&cli_resp);
 }
 
 TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
@@ -2004,6 +2009,11 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Request__fini(&req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&resp);
+  example_interfaces__srv__AddTwoInts_Request__fini(&cli_req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&cli_resp);
 }
 
 TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
@@ -2104,6 +2114,11 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Request__fini(&req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&resp);
+  example_interfaces__srv__AddTwoInts_Request__fini(&cli_req);
+  example_interfaces__srv__AddTwoInts_Response__fini(&cli_resp);
 }
 
 TEST_F(TestDefaultExecutor, executor_test_guard_condition) {
