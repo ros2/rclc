@@ -22,6 +22,7 @@
 #include <rcl_lifecycle/rcl_lifecycle.h>
 #include <rcl_lifecycle/transition_map.h>
 
+#include <std_msgs/msg/string.h>
 #include <lifecycle_msgs/msg/transition_description.h>
 #include <lifecycle_msgs/msg/transition_event.h>
 #include <lifecycle_msgs/srv/change_state.h>
@@ -267,4 +268,53 @@ rclc_lifecycle_execute_callback(
   }
 
   return (*lifecycle_node->callbacks.fun_ptrs[transition_id])();
+}
+
+rcl_ret_t
+rclc_lifecycle_add_get_state_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_get_state,
+    &lifecycle_node->gs_req,
+    &lifecycle_node->gs_res,
+    rclc_lifecycle_get_state_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return -1;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_get_state_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  RCL_UNUSED(req);
+  lifecycle_msgs__srv__GetState_Response * res_in =
+    (lifecycle_msgs__srv__GetState_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rcl_lifecycle_state_machine_t * sm =
+    context_in->lifecycle_node->state_machine;
+
+  res_in->current_state.id = sm->current_state->id;
+  bool success = rosidl_runtime_c__String__assign(
+    &res_in->current_state.label,
+    sm->current_state->label);
+  if (!success) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_get_state_callback,
+      rosidl_runtime_c__String__assign);
+  }
 }

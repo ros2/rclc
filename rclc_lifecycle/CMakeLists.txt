@@ -8,6 +8,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake_ros REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
@@ -40,6 +41,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclc
   rcutils
   rcl_lifecycle
+  std_msgs
   lifecycle_msgs
 )
 
