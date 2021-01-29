@@ -23,7 +23,12 @@
 #include <rcl/error_handling.h>
 #include <rcl_lifecycle/rcl_lifecycle.h>
 
-#include "rclc/node.h"
+#include <lifecycle_msgs/srv/change_state.h>
+#include <lifecycle_msgs/srv/get_state.h>
+#include <lifecycle_msgs/srv/get_available_states.h>
+
+#include <rclc/node.h>
+#include <rclc/executor.h>
 
 typedef struct rclc_lifecycle_callback_map_t
 {
@@ -37,7 +42,21 @@ typedef struct rclc_lifecycle_node_t
   rcl_node_t * node;
   rcl_lifecycle_state_machine_t * state_machine;
   rclc_lifecycle_callback_map_t callbacks;
+  bool publish_transitions;
+
+  lifecycle_msgs__srv__ChangeState_Request cs_req;
+  lifecycle_msgs__srv__ChangeState_Response cs_res;
+  lifecycle_msgs__srv__GetState_Request gs_req;
+  lifecycle_msgs__srv__GetState_Response gs_res;
+  lifecycle_msgs__srv__GetAvailableStates_Request gas_req;
+  lifecycle_msgs__srv__GetAvailableStates_Response gas_res;
 } rclc_lifecycle_node_t;
+
+/// Structure which encapsulates a ROS Lifecycle Node.
+typedef struct rclc_lifecycle_service_context_t
+{
+  rclc_lifecycle_node_t * lifecycle_node;
+} rclc_lifecycle_service_context_t;
 
 rcl_ret_t
 rclc_make_node_a_lifecycle_node(
@@ -87,5 +106,31 @@ rcl_ret_t
 rcl_lifecycle_node_fini(
   rclc_lifecycle_node_t * node,
   rcl_allocator_t * allocator);
+
+/// Lifecycle services
+
+rcl_ret_t
+rclc_lifecycle_add_get_state_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor
+  );
+
+rcl_ret_t
+rclc_lifecycle_add_get_available_states_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor
+  );
+
+void
+rclc_lifecycle_get_state_callback(
+  const void * request,
+  void * response,
+  void * service_context);
+
+void
+rclc_lifecycle_get_available_states_callback(
+  const void * request,
+  void * response,
+  void * service_context);
 
 #endif  // RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_

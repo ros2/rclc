@@ -244,6 +244,14 @@ rcl_lifecycle_node_fini(
     return RCL_RET_ERROR;
   }
 
+  // Cleanup service messages
+  lifecycle_msgs__srv__GetState_Request__fini(&lifecycle_node->gs_req);
+  lifecycle_msgs__srv__GetState_Response__fini(&lifecycle_node->gs_res);
+  lifecycle_msgs__srv__ChangeState_Request__fini(&lifecycle_node->cs_req);
+  lifecycle_msgs__srv__ChangeState_Response__fini(&lifecycle_node->cs_res);
+  lifecycle_msgs__srv__GetAvailableStates_Request__fini(&lifecycle_node->gas_req);
+  lifecycle_msgs__srv__GetAvailableStates_Response__fini(&lifecycle_node->gas_res);
+
   return rcl_ret;
 }
 
