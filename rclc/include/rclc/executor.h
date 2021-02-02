@@ -270,7 +270,7 @@ rclc_executor_add_subscription_sched(
   void * msg,
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation,
-  rclc_executor_sched_param_t * sched_param);
+  struct sched_param * sparam);
 
 /**
  *  Adds a timer to an executor.
@@ -710,7 +710,7 @@ rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
  *
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
-void
+rcl_ret_t
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
 #if __cplusplus
 }

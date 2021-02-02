@@ -166,7 +166,8 @@ typedef struct
   pthread_mutex_t new_msg_mutex;
   bool new_msg_avail;
   /// scheduling parameter
-  rclc_executor_sched_param_t * sched_param;
+  struct sched_param * sparam;
+  pthread_attr_t tattr;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.

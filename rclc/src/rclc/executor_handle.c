@@ -57,7 +57,7 @@ rclc_executor_handle_init(
   handle->callback_type = CB_UNDEFINED;
   handle->worker_thread_state = RCLC_THREAD_NONE;
   handle->new_msg_avail = false;
-  handle->sched_param = NULL;
+  handle->sparam = NULL;
   return RCL_RET_OK;
 }
 

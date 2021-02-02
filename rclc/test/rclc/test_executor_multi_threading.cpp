@@ -316,9 +316,9 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rclc_executor_sched_param_t sparam_1, sparam_2;
-  sparam_1.priority = 10;
-  sparam_2.priority = 20;
+  struct sched_param sparam_1, sparam_2;
+  sparam_1.sched_priority = 10;
+  sparam_2.sched_priority = 20;
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription_sched(
