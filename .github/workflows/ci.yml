@@ -17,13 +17,10 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ foxy, rolling, eloquent, dashing ]
+        ros_distribution: [ foxy, rolling, dashing ]
         include:
           - docker_image: ubuntu:bionic
             ros_distribution: dashing
-
-          - docker_image: ubuntu:bionic
-            ros_distribution: eloquent
 
           - docker_image: ubuntu:focal
             ros_distribution: foxy
