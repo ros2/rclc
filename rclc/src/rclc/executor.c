@@ -1443,8 +1443,17 @@ void * rclc_executor_worker_thread(void * p)
 {
   rclc_executor_worker_thread_param_t * param = (rclc_executor_worker_thread_param_t *)p;
   printf("worker thread started\n");
+  /*
+  while(1){
+    sleep(1);
+    printf("worker-thread %ld.\n",param->handle->index);
+  }
+  */
+
   //endless worker_thread loop
+  /*
   while (1) {
+    printf("worker-thread %ld.\n",param->handle->index);
     pthread_mutex_lock(&param->handle->new_msg_mutex);
     while (!param->handle->new_msg_avail) {
       pthread_cond_wait(&param->handle->new_msg_cond, &param->handle->new_msg_mutex);
@@ -1459,6 +1468,7 @@ void * rclc_executor_worker_thread(void * p)
     //change_worker thread state and signal guard condition
     rclc_executor_change_worker_thread_state(param, RCLC_THREAD_READY);
   }
+*/
   // only for linters
   return p;
 }
@@ -1497,7 +1507,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
     return RCL_RET_ERROR;
   }
 
-/*
+
   // start worker threads for subscriptions
   for (size_t i = 0;
     (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == SUBSCRIPTION);
@@ -1508,7 +1518,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
     params[i].handle = &e->handles[i];
     params[i].gc = &e->gc_some_thread_is_ready;
 
-    printf("Starting worker thread %ld, handle-index %ld\n", i, params[i].handle->index);
+    printf("Creating worker thread %ld ", i);
     pthread_attr_init(&e->handles[i].tattr);
 
     result = pthread_attr_setschedparam(&e->handles[i].tattr, e->handles[i].sparam);
@@ -1523,6 +1533,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
                        pthread_attr_setschedpolicy);
       return RCL_RET_ERROR;
     }
+    
     result = pthread_create(
       &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread, 
       &params[i]);
@@ -1530,27 +1541,26 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
       PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, pthread_create);
       return RCL_RET_ERROR;
     } else {
-      printf(" ... started  \n");
+      printf(" ... started.\n");
     }
   }
-*/
+
   // endless spin-method
   // while (rcl_ok())
   int ii = 0;
   while (rcl_context_is_valid(e->context) ) {
     ii++;
-    printf("while loop %d\n", ii);
+    printf("rebuild wait_set %d\n", ii);
     // update wait_set - only add handles if the corresponding worker thread is READY
     rclc_executor_rebuild_wait_set(e);
 
     printf("rcl_wait %d\n", ii);
     // wait for new data from DDS
     rc = rcl_wait(&e->wait_set, e->timeout_ns);
-    printf("rcl_wait after %d\n", ii);
     if (rc == RCL_RET_OK) {printf("rcl_wait OK\n");}
     if (rc == RCL_RET_TIMEOUT) {printf("rcl_wait TIMEOUT\n");}
     if (rc != RCL_RET_OK && rc != RCL_RET_TIMEOUT) {printf("rcl_wait ERROR\n");}
-    printf("for loop %d\n", ii);
+    printf("rcl_take %d\n", ii);
     // take data from DDS and notify worker_thread
     for (size_t i = 0;
       (i < e->max_handles && e->handles[i].initialized && (e->handles[i].index < e->max_handles));
@@ -1603,7 +1613,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   }
 
   // stop worker threads
-  /*
+  
   for (size_t i = 0;
     (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == SUBSCRIPTION);
     i++)
@@ -1619,7 +1629,6 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
     return RCL_RET_OK;
   else
     return RCL_RET_ERROR;
-  */
 }
 
 /*
