@@ -60,16 +60,6 @@ typedef enum
   RCLC_THREAD_BUSY
 } rclc_executor_thread_state_t;
 
-/// scheduling parameter for the thread which will be executing the callback
-typedef struct
-{
-  int priority;
-  /*
-  take the same data as from NuttX sporadic server
-  configuration object
-  */
-} rclc_executor_sched_param_t;
-
 /// Type definition for callback function.
 typedef void (* rclc_callback_t)(const void *);
 

@@ -114,8 +114,7 @@ rclc_executor_init(
   rcl_ret_t ret = RCL_RET_OK;
   (*executor) = rclc_executor_get_zero_initialized_executor();
   executor->context = context;
-  // plus one handle for guard condition used by multi-threaded executor
-  executor->max_handles = number_of_handles + 1;  
+  executor->max_handles = number_of_handles;  
   executor->index = 0;
   executor->wait_set = rcl_get_zero_initialized_wait_set();
   executor->allocator = allocator;
@@ -1229,8 +1228,8 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
   // init worker_thread_state = READY
   // lock not necessary, because no worker_thread has been started yet
   printf("initialization mutex\n");
-  e->any_thread_state_changed = true;
   pthread_mutex_init(&e->thread_state_mutex, NULL);
+  pthread_mutex_init(&e->micro_ros_mutex, NULL);
   for (size_t i = 0; (i < e->max_handles && e->handles[i].initialized); i++) {
     printf("initialization worker thread object %d\n",i);
     e->handles[i].worker_thread_state = RCLC_THREAD_READY;
@@ -1238,6 +1237,7 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
     pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
   }
 
+/*
   // initialization of guard condition
   printf("initialization guard condition\n");
   rcl_ret_t rc;
@@ -1255,6 +1255,7 @@ void rclc_executor_real_time_scheduling_init(rclc_executor_t * e)
     RCL_SET_ERROR_MSG("Could not add guard condition to executor");
     PRINT_RCLC_ERROR(rclc_executor_real_time_scheduling_init, rclc_executor_add_guard_condition);
   }
+  */
 }
 
 static
@@ -1262,23 +1263,24 @@ void rclc_executor_change_worker_thread_state(
   rclc_executor_worker_thread_param_t * p,
   rclc_executor_thread_state_t new_state)
 {
+  /*
   printf("change thread %ld to state ", p->handle->index);
   if (new_state == RCLC_THREAD_READY) {
     printf("READY\n");
   } else if (new_state == RCLC_THREAD_BUSY) {
     printf("BUSY\n");
   }
-
+  */
   pthread_mutex_lock(p->thread_state_mutex);
   p->handle->worker_thread_state = new_state;
-  (*p->any_thread_state_changed) = true;
+  /*
   if (new_state == RCLC_THREAD_READY) {
     rcl_ret_t rc = rcl_trigger_guard_condition(p->gc);
     if (rc != RCL_RET_OK) {
       printf("Error triggering guard condition.\n");
     }
   }
-
+  */
   pthread_mutex_unlock(p->thread_state_mutex);
 }
 
@@ -1353,9 +1355,9 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
               ROS_PACKAGE_NAME,
               "Subscription added to wait_set_subscription[%ld]",
               executor->handles[i].index);
-            printf(
-              "added subscription to wait_set.subscriptions[%ld]\n",
-              executor->handles[i].index);
+            // printf(
+            //  "added subscription to wait_set.subscriptions[%ld]\n",
+            //  executor->handles[i].index);
           } else {
             PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_subscription);
             return rc;
@@ -1442,46 +1444,39 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
 void * rclc_executor_worker_thread(void * p)
 {
   rclc_executor_worker_thread_param_t * param = (rclc_executor_worker_thread_param_t *)p;
-  printf("worker thread started\n");
-  /*
-  while(1){
-    sleep(1);
-    printf("worker-thread %ld.\n",param->handle->index);
-  }
-  */
+  
+    // print priority
+  struct sched_param sp;
+  int result;
+  result = sched_getparam(0, &sp);
+  if (result < 0)
+  {
+    printf("uros_rbs: sched_getparam failed: %d\n" , result);
+    return;
+  } 
+  printf("worker thread with prio %d\n", sp.sched_priority);
 
-  //endless worker_thread loop
-  /*
+  //endless worker_thread loop  
   while (1) {
-    printf("worker-thread %ld.\n",param->handle->index);
+    // printf("worker-thread %ld.\n",param->handle->index); // not thread-safe access to handle->index!
     pthread_mutex_lock(&param->handle->new_msg_mutex);
     while (!param->handle->new_msg_avail) {
+      // printf("worker thread: idling\n");
       pthread_cond_wait(&param->handle->new_msg_cond, &param->handle->new_msg_mutex);
     }
     param->handle->new_msg_avail = false;
     pthread_mutex_unlock(&param->handle->new_msg_mutex);
 
     // execute subscription callback
-    printf("executing cb handle->index %ld\n", param->handle->index);
+    pthread_mutex_lock(param->micro_ros_mutex);
     param->handle->callback(param->handle->data);
+    pthread_mutex_unlock(param->micro_ros_mutex);
 
     //change_worker thread state and signal guard condition
     rclc_executor_change_worker_thread_state(param, RCLC_THREAD_READY);
   }
-*/
   // only for linters
   return p;
-}
-
-static
-bool rclc_executor_has_any_worker_thread_state_changed(rclc_executor_t * e)
-{
-  bool changed = false;
-  pthread_mutex_lock(&e->thread_state_mutex);
-  changed = e->any_thread_state_changed;
-  e->any_thread_state_changed = false;
-  pthread_mutex_unlock(&e->thread_state_mutex);
-  return changed;
 }
 
 rcl_ret_t
@@ -1493,13 +1488,25 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   // initialize mutexes and condition variables
   rclc_executor_real_time_scheduling_init(e);
 
+  // print priority
+  struct sched_param sp;
+  result = sched_getparam(0, &sp);
+  if (result < 0)
+  {
+    printf("uros_rbs: sched_getparam failed: %d\n" , result);
+    return 1;
+  } else {
+    printf("executor thread prio: %d\n", sp.sched_priority);
+  }
+
   // 'params' contains all necessary pointers to data structures which are accessed
   // from the executor thread and worker thread.
   // allocate memory for params array
+  
   rclc_executor_worker_thread_param_t * params = NULL;
-  printf("allocating memory params\n");
+  printf("allocating memory params size: %d\n", e->max_handles);
   params = e->allocator->allocate(
-    ((e->max_handles - 1) * sizeof(rclc_executor_worker_thread_param_t)),
+    (e->max_handles * sizeof(rclc_executor_worker_thread_param_t)),
     e->allocator->state);
   if (NULL == params) {
     RCL_SET_ERROR_MSG("Could not allocate memory for 'params'.");
@@ -1507,16 +1514,15 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
     return RCL_RET_ERROR;
   }
 
-
   // start worker threads for subscriptions
   for (size_t i = 0;
     (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == SUBSCRIPTION);
     i++)
   {
     params[i].thread_state_mutex = &e->thread_state_mutex;
-    params[i].any_thread_state_changed = &e->any_thread_state_changed;
+    params[i].micro_ros_mutex = &e->micro_ros_mutex;
     params[i].handle = &e->handles[i];
-    params[i].gc = &e->gc_some_thread_is_ready;
+    // params[i].gc = &e->gc_some_thread_is_ready;
 
     printf("Creating worker thread %ld ", i);
     pthread_attr_init(&e->handles[i].tattr);
@@ -1527,13 +1533,26 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
                        pthread_attr_setschedparam);
       return RCL_RET_ERROR;
     }
+    /*
+    result = pthread_attr_setstacksize(&e->handles[i].tattr, 2048); // STM32-E407: 196 kB RAM
+    if (result != 0) {
+      PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, 
+                       pthread_attr_setstacksize);
+      return RCL_RET_ERROR;
+    }
+    
     result = pthread_attr_setschedpolicy(&e->handles[i].tattr, SCHED_FIFO);
     if (result != 0) {
       PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, 
                        pthread_attr_setschedpolicy);
       return RCL_RET_ERROR;
     }
-    
+    */
+
+    //result = pthread_create(
+    //  &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread, 
+    //  &params[i]);
+    // default scheduling parameters: prio:100
     result = pthread_create(
       &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread, 
       &params[i]);
@@ -1546,72 +1565,74 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   }
 
   // endless spin-method
-  // while (rcl_ok())
+  e->timeout_ns = 100000000; // 100ms timeout for rcl_wait
   int ii = 0;
   while (rcl_context_is_valid(e->context) ) {
     ii++;
-    printf("rebuild wait_set %d\n", ii);
-    // update wait_set - only add handles if the corresponding worker thread is READY
+    // printf("rebuild wait_set %d\n", ii);
+    // update wait_set only for subscriptions with a READY worker thread
     rclc_executor_rebuild_wait_set(e);
+    // sleep(1);
+    // printf("executor thread %d\n", ii);
 
-    printf("rcl_wait %d\n", ii);
+    // printf("rcl_wait %d ", ii);
     // wait for new data from DDS
+    pthread_mutex_lock(&e->micro_ros_mutex);
     rc = rcl_wait(&e->wait_set, e->timeout_ns);
-    if (rc == RCL_RET_OK) {printf("rcl_wait OK\n");}
-    if (rc == RCL_RET_TIMEOUT) {printf("rcl_wait TIMEOUT\n");}
-    if (rc != RCL_RET_OK && rc != RCL_RET_TIMEOUT) {printf("rcl_wait ERROR\n");}
-    printf("rcl_take %d\n", ii);
+    pthread_mutex_unlock(&e->micro_ros_mutex);
+    /*
+    if (rc == RCL_RET_OK) {printf("rcl_wait... NEW DATA\n");}
+    if (rc == RCL_RET_TIMEOUT) {printf("rcl_wait... TIMEOUT\n");}
+    if (rc != RCL_RET_OK && rc != RCL_RET_TIMEOUT) {printf("rcl_wait... ERROR\n");}
+    */
     // take data from DDS and notify worker_thread
+    //  index==max_handles => subscription is not in e->wait_set
     for (size_t i = 0;
-      (i < e->max_handles && e->handles[i].initialized && (e->handles[i].index < e->max_handles));
+      (i < e->max_handles && e->handles[i].initialized && (e->handles[i].index != e->max_handles));
       i++)
     {
-      //  index==max_handles => handle ignorieren da es nicht im wait_set ist
+      // printf("in rcl_take loop %ld \n",i);
+      
       rc = RCL_RET_ERROR;
-      switch (e->handles[i].type) {
-        case SUBSCRIPTION:
+      if (e->handles[i].type == SUBSCRIPTION) {
+          // printf("accessing wait_set.subscriptions[%ld] size: %ld\n",
+          //   e->handles[i].index, e->wait_set.size_of_subscriptions);
+          
+          ASSERT(e->handles[i].index < e->wait_set.size_of_subscriptions);
           if (e->wait_set.subscriptions[e->handles[i].index]) {
             rmw_message_info_t messageInfo;
-            printf("rcl_take sub %ld \n", e->handles[i].index);
+            // printf("rcl_take sub %ld \n", e->handles[i].index);
+            pthread_mutex_lock(&e->micro_ros_mutex);  
             rc = rcl_take(
               e->handles[i].subscription, e->handles[i].data, &messageInfo,
               NULL);
+            pthread_mutex_unlock(&e->micro_ros_mutex);
             if (rc != RCL_RET_OK) {
               // rcl_take might return this error even with successfull rcl_wait
               if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
-                PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take);
+                // PRINT_RCLC_ERROR(multi_threaded_executor, rcl_take);
                 RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
               }
-              //  report error?
+              //  report error on RCL_RET_SUBSCRIPTION_TAKE_FAILED?
             }
           }
-          break;
-        case GUARD_CONDITION:
-        printf("rcl_take guard condition\n");
-          if (e->wait_set.guard_conditions[e->handles[i].index]) {
-            printf("guard condition has been fired .\n");
-          }
-          break;
-        default:
-          printf("unknown handle type for multi-threaded executor\n");
-          break;
       }
+      
       // only notify thread if rcl_take was called and was successful
       // implicit handle.worker_thread_state == READY
       // e->handles[i] and params[i].handle point to the same handle
       if (rc == RCL_RET_OK) {
         rclc_executor_change_worker_thread_state(&params[i], RCLC_THREAD_BUSY);
         pthread_mutex_lock(&params[i].handle->new_msg_mutex);
-        // is it possible to use handle->thread_state_changed?
         params[i].handle->new_msg_avail = true;
-        printf(
-          "signaling worker thread %ld: handles[i].index=%ld \n", i, e->handles[i].index);
+        // printf(
+        //  "signaling worker thread %ld: handles[i].index=%ld \n", i, e->handles[i].index);
         pthread_cond_signal(&params[i].handle->new_msg_cond);
         pthread_mutex_unlock(&params[i].handle->new_msg_mutex);
       }
     }
   }
-
+  printf("exited while loop\n");
   // stop worker threads
   
   for (size_t i = 0;
@@ -1625,6 +1646,9 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
       printf("Error stopping thread %ld\n", i);
     }
   }
+
+  free(params);
+  
   if (result == 0)
     return RCL_RET_OK;
   else
