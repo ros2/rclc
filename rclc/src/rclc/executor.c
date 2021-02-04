@@ -1526,6 +1526,15 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
 
     printf("Creating worker thread %ld ", i);
     pthread_attr_init(&e->handles[i].tattr);
+    int sched_policy = SCHED_FIFO;
+    //int sched_policy = SCHED_SPORADIC;
+
+    result = pthread_attr_setschedpolicy(&e->handles[i].tattr, sched_policy);
+    if (result != 0) {
+      PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, 
+                       pthread_attr_setschedpolicy);
+      return RCL_RET_ERROR;
+    }
 
     result = pthread_attr_setschedparam(&e->handles[i].tattr, e->handles[i].sparam);
     if (result != 0) {
@@ -1533,6 +1542,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
                        pthread_attr_setschedparam);
       return RCL_RET_ERROR;
     }
+
     /*
     result = pthread_attr_setstacksize(&e->handles[i].tattr, 2048); // STM32-E407: 196 kB RAM
     if (result != 0) {
@@ -1540,19 +1550,8 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
                        pthread_attr_setstacksize);
       return RCL_RET_ERROR;
     }
-    
-    result = pthread_attr_setschedpolicy(&e->handles[i].tattr, SCHED_FIFO);
-    if (result != 0) {
-      PRINT_RCLC_ERROR(rclc_executor_start_multi_threading_for_nuttx, 
-                       pthread_attr_setschedpolicy);
-      return RCL_RET_ERROR;
-    }
     */
 
-    //result = pthread_create(
-    //  &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread, 
-    //  &params[i]);
-    // default scheduling parameters: prio:100
     result = pthread_create(
       &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread, 
       &params[i]);
@@ -1569,7 +1568,7 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   int ii = 0;
   while (rcl_context_is_valid(e->context) ) {
     ii++;
-    // printf("rebuild wait_set %d\n", ii);
+    printf("round %d\n", ii);
     // update wait_set only for subscriptions with a READY worker thread
     rclc_executor_rebuild_wait_set(e);
     // sleep(1);
