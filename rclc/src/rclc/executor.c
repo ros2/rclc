@@ -1526,8 +1526,8 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
 
     printf("Creating worker thread %ld ", i);
     pthread_attr_init(&e->handles[i].tattr);
-    int sched_policy = SCHED_FIFO;
-    //int sched_policy = SCHED_SPORADIC;
+    // int sched_policy = SCHED_FIFO;
+    int sched_policy = SCHED_SPORADIC;
 
     result = pthread_attr_setschedpolicy(&e->handles[i].tattr, sched_policy);
     if (result != 0) {
