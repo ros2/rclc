@@ -304,10 +304,10 @@ public:
   }
 };
 
+/*
 TEST_F(TestMultiThreadedExecutor, base_line) {
   rcl_ret_t rc;
   rclc_executor_t executor;
-
 
   // initialize executor with 2 subscriptions
   int num_handles = 2;
@@ -360,3 +360,4 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   _executor_results_print();
   rc = rclc_executor_fini(&executor);
 }
+*/

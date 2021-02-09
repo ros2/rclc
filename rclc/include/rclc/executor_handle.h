@@ -60,6 +60,13 @@ typedef enum
   RCLC_THREAD_BUSY
 } rclc_executor_thread_state_t;
 
+/// Scheduling policy (SCHED_FIFO, SCHED_SPORADIC) and sched_param
+typedef struct
+{
+  int policy;
+  struct sched_param param;
+} rclc_executor_sched_parameter_t;
+
 /// Type definition for callback function.
 typedef void (* rclc_callback_t)(const void *);
 
@@ -156,7 +163,7 @@ typedef struct
   pthread_mutex_t new_msg_mutex;
   bool new_msg_avail;
   /// scheduling parameter
-  struct sched_param * sparam;
+  rclc_executor_sched_parameter_t * sparam;
   pthread_attr_t tattr;
 } rclc_executor_handle_t;
 

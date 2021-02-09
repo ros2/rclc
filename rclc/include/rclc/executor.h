@@ -257,7 +257,7 @@ rclc_executor_add_subscription(
  * \param [in] msg pointer to an allocated message
  * \param [in] callback    function pointer to a callback
  * \param [in] invocation  invocation type for the callback (ALWAYS or only ON_NEW_DATA)
- * \param [in] sched_param scheduling policy for the thread that is executing the callback
+ * \param [in] sched_param scheduling parameters for the thread that is executing the callback
  * \return `RCL_RET_OK` if add-operation was successful
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
@@ -269,7 +269,7 @@ rclc_executor_add_subscription_sched(
   void * msg,
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation,
-  struct sched_param * sparam);
+  rclc_executor_sched_parameter_t * param);
 
 /**
  *  Adds a timer to an executor.
@@ -711,6 +711,11 @@ rclc_executor_real_time_scheduling_init(rclc_executor_t * e);
  */
 rcl_ret_t
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
+
+
+
+rcl_ret_t rclc_executor_publish(const rcl_publisher_t * publisher, const void * ros_message, 
+  rmw_publisher_allocation_t * allocation);
 #if __cplusplus
 }
 #endif
