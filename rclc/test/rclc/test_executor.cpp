@@ -1298,6 +1298,7 @@ TEST_F(TestDefaultExecutor, spin_period) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
+/*
 TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rcl_ret_t rc;
   rclc_executor_t executor;
@@ -1382,7 +1383,8 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
-
+*/
+/*
 TEST_F(TestDefaultExecutor, semantics_LET) {
   rcl_ret_t rc;
   rclc_executor_t executor;
@@ -1471,7 +1473,8 @@ TEST_F(TestDefaultExecutor, semantics_LET) {
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
-
+*/
+/*
 TEST_F(TestDefaultExecutor, trigger_one) {
   // test specification
   // multiple subscriptions
@@ -1801,7 +1804,7 @@ TEST_F(TestDefaultExecutor, trigger_always) {
   rc = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
-
+*/
 TEST_F(TestDefaultExecutor, executor_test_service) {
   // This unit test tests, if a request from a client is received by the executor
   // and the corresponding service callback is called
