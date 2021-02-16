@@ -785,6 +785,9 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->data_response_msg,
               handle->service_context);
             break;
+          default:
+            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
+            break;
         }
 
         rc = rcl_send_response(handle->service, &handle->req_id, handle->data_response_msg);
