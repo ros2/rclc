@@ -23,7 +23,9 @@
 #include <rcl_lifecycle/rcl_lifecycle.h>
 #include <rcl_lifecycle/transition_map.h>
 
+#include <rosidl_runtime_c/string_functions.h>
 #include <std_msgs/msg/string.h>
+#include <lifecycle_msgs/msg/state.h>
 #include <lifecycle_msgs/msg/transition_description.h>
 #include <lifecycle_msgs/msg/transition_event.h>
 #include <lifecycle_msgs/srv/change_state.h>
@@ -422,8 +424,8 @@ rclc_lifecycle_change_state_callback(
     PRINT_RCLC_ERROR(
       rclc_lifecycle_change_state_callback,
       rclc_lifecycle_change_state);
-      res_in->success = false;
+    res_in->success = false;
   } else {
-      res_in->success = true;
+    res_in->success = true;
   }
 }

@@ -25,7 +25,7 @@ rcl_node_t my_node = rcl_get_zero_initialized_node();
 rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
 
 // rcl state machine
-rcl_lifecycle_state_machine_t state_machine_ =   
+rcl_lifecycle_state_machine_t state_machine_ =
   rcl_lifecycle_get_zero_initialized_state_machine();
 ...
 
@@ -38,38 +38,28 @@ rcl_ret_t rc = rclc_make_node_a_lifecycle_node(
   &allocator);
 ```
 
-Optionally create hooks for lifecycle state changes.
+Register lifecycle services and optionally create callbacks for state changes. Executor needsto be equipped with 1 handle per node _and_ per service.
 
 ```C
-// declare callback
-rcl_ret_t my_on_configure() {
-  printf("  >>> lifecycle_node: on_configure() callback called.\n");
-  return RCL_RET_OK;
-}
+// Executor
+rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+rclc_executor_init(
+  &executor,
+  &support.context,
+  4,  // 1 for the node + 1 for each lifecycle service
+  &allocator));
 ...
 
-// register callbacks
+// Register lifecycle services
+rclc_lifecycle_add_get_state_service(&lifecycle_node, &executor);
+rclc_lifecycle_add_get_available_states_service(&lifecycle_node, &executor);
+rclc_lifecycle_add_change_state_service(&lifecycle_node, &executor);
+
+// Register lifecycle service callbacks
 rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
-```
-
-### Running
-
-Change states of the lifecycle node, e.g.
-
-```C
-bool publish_transition = true;
-rc += rclc_lifecycle_change_state(
-  &lifecycle_node,
-  lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-  publish_transition);
-rc += rclc_lifecycle_change_state(
-  &lifecycle_node,
-  lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-  publish_transition);
+rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
 ...
 ```
-
-Except for error processing transitions, transitions are usually triggered from outside, e.g., by ROS 2 services.
 
 ### Cleaning Up
 
@@ -85,4 +75,4 @@ An example, how to use the RCLC Lifecycle Node is given in the file `lifecycle_n
 
 ## Limitations
 
-The state machine publishes state changes, however, lifecycle services are not yet exposed via ROS 2 services (tbd).
+* Lifecycle services cannot yet be called via `ros2 lifecycle` CLI, e.g., `ros2 lifecycle set /node configure`. Instead use the `ros2 service` CLI, e.g., `ros2 service call /node/change_state lifecycle_msgs/ChangeState "{transition: {id: 1, label: configure}}"`.

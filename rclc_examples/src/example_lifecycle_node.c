@@ -82,7 +82,7 @@ int main(int argc, const char * argv[])
   }
 
   // make it a lifecycle node
-  printf("make it a lifecycle node...\n");
+  printf("creating lifecycle node...\n");
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
   rclc_lifecycle_node_t lifecycle_node;
   rc = rclc_make_node_a_lifecycle_node(
@@ -95,27 +95,29 @@ int main(int argc, const char * argv[])
     return -1;
   }
 
-  // register callbacks
-  rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
-  rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
-  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
-  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
-
   // Executor
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(
     &executor,
     &support.context,
-    4,  // 1 for the node + 1 for each lifecycle services
+    4,  // 1 for the node + 1 for each lifecycle service
     &allocator));
 
   unsigned int rcl_wait_timeout = 10;         // in ms
   RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
 
   // Register lifecycle services
+  printf("registering lifecycle services...\n");
   RCCHECK(rclc_lifecycle_add_get_state_service(&lifecycle_node, &executor));
   RCCHECK(rclc_lifecycle_add_get_available_states_service(&lifecycle_node, &executor));
   RCCHECK(rclc_lifecycle_add_change_state_service(&lifecycle_node, &executor));
+
+  // Register lifecycle service callbacks
+  printf("registering callbacks...\n");
+  rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
+  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
 
   // Run
   rclc_executor_spin(&executor);

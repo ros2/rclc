@@ -189,19 +189,27 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(1, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(3, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(7, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
     true);
-
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
 
