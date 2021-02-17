@@ -89,9 +89,9 @@ rclc_make_node_a_lifecycle_node(
   lifecycle_msgs__srv__GetAvailableStates_Response__init(&lifecycle_node->gas_res);
   lifecycle_msgs__msg__State__Sequence__init(
     &lifecycle_node->gas_res.available_states,
-    RCLC_LIFECYCLE_MAX_STATES);
+    state_machine->transition_map.states_size);
   lifecycle_node->gas_res.available_states.size = 0;
-  for (size_t i = 0; i < RCLC_LIFECYCLE_MAX_STATES; ++i) {
+  for (size_t i = 0; i < state_machine->transition_map.states_size; ++i) {
     rosidl_runtime_c__String__assign(
       &lifecycle_node->gas_res.available_states.data[i].label,
       (const char *) empty_string);
@@ -392,12 +392,8 @@ rclc_lifecycle_get_available_states_callback(
   rcl_lifecycle_state_machine_t * sm =
     context_in->lifecycle_node->state_machine;
 
-  lifecycle_msgs__srv__GetAvailableStates_Response__init(res_in);
-  lifecycle_msgs__msg__State__Sequence__init(
-    &res_in->available_states,
-    sm->transition_map.states_size);
-
   bool success = true;
+  res_in->available_states.size = sm->transition_map.states_size;
   for (unsigned int i = 0; i < sm->transition_map.states_size; ++i) {
     res_in->available_states.data[i].id = sm->transition_map.states[i].id;
     success &= rosidl_runtime_c__String__assign(

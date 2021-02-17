@@ -6,10 +6,6 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# maximum number of states - should cover all default lifecycle states
-set(RCLC_LIFECYCLE_MAX_STATES 10 CACHE STRING "Set the maximum number of states.")
-add_definitions(-DRCLC_LIFECYCLE_MAX_STATES=${RCLC_LIFECYCLE_MAX_STATES})
-
 # maximum string length - should cover all lifecycle state and transition names
 set(RCLC_LIFECYCLE_MAX_STRING_LENGTH 20 CACHE STRING "Set the maximum length for strings.")
 add_definitions(-DRCLC_LIFECYCLE_MAX_STRING_LENGTH=${RCLC_LIFECYCLE_MAX_STRING_LENGTH})
