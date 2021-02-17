@@ -19,6 +19,7 @@
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
 
+#include <rclc/types.h>
 #include <rcl_lifecycle/rcl_lifecycle.h>
 #include <rcl_lifecycle/transition_map.h>
 
@@ -315,6 +316,64 @@ rclc_lifecycle_get_state_callback(
   if (!success) {
     PRINT_RCLC_ERROR(
       rclc_lifecycle_get_state_callback,
+      rosidl_runtime_c__String__assign);
+  }
+}
+
+rcl_ret_t
+rclc_lifecycle_add_get_available_states_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_get_available_states,
+    &lifecycle_node->gas_req,
+    &lifecycle_node->gas_res,
+    rclc_lifecycle_get_available_states_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return -1;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_get_available_states_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  RCL_UNUSED(req);
+  lifecycle_msgs__srv__GetAvailableStates_Response * res_in =
+    (lifecycle_msgs__srv__GetAvailableStates_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rcl_lifecycle_state_machine_t * sm =
+    context_in->lifecycle_node->state_machine;
+
+  lifecycle_msgs__srv__GetAvailableStates_Response__init(res_in);
+  lifecycle_msgs__msg__State__Sequence__init(
+    &res_in->available_states,
+    sm->transition_map.states_size);
+
+  bool success = true;
+  for (unsigned int i = 0; i < sm->transition_map.states_size; ++i) {
+    res_in->available_states.data[i].id = sm->transition_map.states[i].id;
+    success &= rosidl_runtime_c__String__assign(
+      &res_in->available_states.data[i].label,
+      sm->transition_map.states[i].label);
+  }
+
+  if (!success) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_get_available_states_callback,
       rosidl_runtime_c__String__assign);
   }
 }

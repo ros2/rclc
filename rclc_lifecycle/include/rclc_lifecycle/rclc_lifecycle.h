@@ -112,14 +112,12 @@ rcl_lifecycle_node_fini(
 rcl_ret_t
 rclc_lifecycle_add_get_state_service(
   rclc_lifecycle_node_t * lifecycle_node,
-  rclc_executor_t * executor
-  );
+  rclc_executor_t * executor);
 
 rcl_ret_t
 rclc_lifecycle_add_get_available_states_service(
   rclc_lifecycle_node_t * lifecycle_node,
-  rclc_executor_t * executor
-  );
+  rclc_executor_t * executor);
 
 void
 rclc_lifecycle_get_state_callback(
