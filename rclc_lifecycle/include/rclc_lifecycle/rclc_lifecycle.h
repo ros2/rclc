@@ -119,6 +119,11 @@ rclc_lifecycle_add_get_available_states_service(
   rclc_lifecycle_node_t * lifecycle_node,
   rclc_executor_t * executor);
 
+rcl_ret_t
+rclc_lifecycle_add_change_state_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor);
+
 void
 rclc_lifecycle_get_state_callback(
   const void * request,
@@ -127,6 +132,12 @@ rclc_lifecycle_get_state_callback(
 
 void
 rclc_lifecycle_get_available_states_callback(
+  const void * request,
+  void * response,
+  void * service_context);
+
+void
+rclc_lifecycle_change_state_callback(
   const void * request,
   void * response,
   void * service_context);

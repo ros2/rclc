@@ -377,3 +377,53 @@ rclc_lifecycle_get_available_states_callback(
       rosidl_runtime_c__String__assign);
   }
 }
+
+rcl_ret_t
+rclc_lifecycle_add_change_state_service(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_change_state,
+    &lifecycle_node->cs_req,
+    &lifecycle_node->cs_res,
+    rclc_lifecycle_change_state_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return -1;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_change_state_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  lifecycle_msgs__srv__ChangeState_Request * req_in =
+    (lifecycle_msgs__srv__ChangeState_Request *) req;
+  lifecycle_msgs__srv__ChangeState_Response * res_in =
+    (lifecycle_msgs__srv__ChangeState_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rclc_lifecycle_node_t * ln = context_in->lifecycle_node;
+  rcl_ret_t rc = rclc_lifecycle_change_state(ln, req_in->transition.id, true);
+
+  lifecycle_msgs__srv__ChangeState_Response__init(res_in);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_change_state_callback,
+      rclc_lifecycle_change_state);
+      res_in->success = false;
+  } else {
+      res_in->success = true;
+  }
+}

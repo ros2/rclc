@@ -97,7 +97,9 @@ int main(int argc, const char * argv[])
 
   // register callbacks
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
 
   // Executor
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
@@ -113,13 +115,10 @@ int main(int argc, const char * argv[])
   // Register lifecycle services
   RCCHECK(rclc_lifecycle_add_get_state_service(&lifecycle_node, &executor));
   RCCHECK(rclc_lifecycle_add_get_available_states_service(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_add_change_state_service(&lifecycle_node, &executor));
 
   // Run
-  while (1)
-  {
-    printf("Spinning...\n");
-    rclc_executor_spin(&executor);
-  }
+  rclc_executor_spin(&executor);
 
   // Cleanup
   printf("cleaning up...\n");
