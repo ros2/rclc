@@ -153,7 +153,7 @@ rclc_lifecycle_execute_callback(
 
 RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_lifecycle_node_fini(
+rclc_lifecycle_node_fini(
   rclc_lifecycle_node_t * node,
   rcl_allocator_t * allocator);
 

@@ -11,7 +11,7 @@ The API of the RCLC Lifecycle Node can be divided in several phases: Initializat
 
 ### Initialization
 
-Creation of a lifecycle node as a bundle of an rcl node and the rcl Node Lifecycle state machine.
+Creation of a lifecycle node as a bundle of an rcl node and the rcl Node Lifecycle state machine:  
 
 ```C
 #include "rclc_lifecycle/rclc_lifecycle.h"
@@ -22,7 +22,7 @@ rcl_ret_t rc;
 
 // create rcl node
 rc = rclc_support_init(&support, argc, argv, &allocator);
-rcl_node_t my_node = rcl_get_zero_initialized_node();
+rcl_node_t my_node;
 rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
 
 // rcl state machine
@@ -39,7 +39,7 @@ rcl_ret_t rc = rclc_make_node_a_lifecycle_node(
   &allocator);
 ```
 
-Register lifecycle services and optionally create callbacks for state changes. Executor needsto be equipped with 1 handle per node _and_ per service.
+Register lifecycle services and optionally create callbacks for state changes. Executor needsto be equipped with 1 handle per node _and_ per service:  
 
 ```C
 // Executor
@@ -64,10 +64,11 @@ rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
 
 ### Cleaning Up
 
-To clean everything up, simply do
+To clean everything up, do:  
 
 ```C
 rc += rcl_lifecycle_node_fini(&lifecycle_node, &allocator);
+...
 ```
 
 ## Example
