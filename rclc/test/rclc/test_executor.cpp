@@ -454,53 +454,53 @@ _wait_for_msg(
 class TestDefaultExecutor : public ::testing::Test
 {
 public:
-  rcl_context_t context;
-  rcl_node_t node;
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_node_t node = rcl_get_zero_initialized_node();
 
   // integer publisher 1
-  rcl_publisher_t pub1;
+  rcl_publisher_t pub1 = rcl_get_zero_initialized_publisher();
   const char * pub1_topic_name;
   const rosidl_message_type_support_t * pub1_type_support;
-  rcl_publisher_options_t pub1_options;
+  rcl_publisher_options_t pub1_options = rcl_publisher_get_default_options();
   std_msgs__msg__Int32 pub1_msg;
 
   // integer publisher 2
-  rcl_publisher_t pub2;
+  rcl_publisher_t pub2 = rcl_get_zero_initialized_publisher();
   const char * pub2_topic_name;
   const rosidl_message_type_support_t * pub2_type_support;
-  rcl_publisher_options_t pub2_options;
+  rcl_publisher_options_t pub2_options = rcl_publisher_get_default_options();
   std_msgs__msg__Int32 pub2_msg;
 
   // integer publisher 3
-  rcl_publisher_t pub3;
+  rcl_publisher_t pub3 = rcl_get_zero_initialized_publisher();
   const char * pub3_topic_name;
   const rosidl_message_type_support_t * pub3_type_support;
-  rcl_publisher_options_t pub3_options;
+  rcl_publisher_options_t pub3_options = rcl_publisher_get_default_options();
   std_msgs__msg__Int32 pub3_msg;
 
   // integer subscription 1
-  rcl_subscription_t sub1;
+  rcl_subscription_t sub1 = rcl_get_zero_initialized_subscription();
   const char * sub1_topic_name;
   const rosidl_message_type_support_t * sub1_type_support;
   rcl_subscription_options_t sub1_options;
   std_msgs__msg__Int32 sub1_msg;
 
   // integer subscription 2
-  rcl_subscription_t sub2;
+  rcl_subscription_t sub2 = rcl_get_zero_initialized_subscription();
   const char * sub2_topic_name;
   const rosidl_message_type_support_t * sub2_type_support;
   rcl_subscription_options_t sub2_options;
   std_msgs__msg__Int32 sub2_msg;
 
   // integer subscription 3
-  rcl_subscription_t sub3;
+  rcl_subscription_t sub3 = rcl_get_zero_initialized_subscription();
   const char * sub3_topic_name;
   const rosidl_message_type_support_t * sub3_type_support;
   rcl_subscription_options_t sub3_options;
   std_msgs__msg__Int32 sub3_msg;
 
   // timer 1
-  rcl_timer_t timer1;
+  rcl_timer_t timer1 = rcl_get_zero_initialized_timer();
   const unsigned int timer1_timeout = 100;
   rcl_clock_t clock;
   rcl_allocator_t clock_allocator;

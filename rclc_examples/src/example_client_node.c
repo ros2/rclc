@@ -52,7 +52,7 @@ int main(int argc, const char * const * argv)
   RCCHECK(rclc_node_init_default(&node, "add_twoints_client_rclc", "", &support));
 
   // create client
-  rcl_client_t client;
+  rcl_client_t client = rcl_get_zero_initialized_client();
   RCCHECK(
     rclc_client_init_default(
       &client, &node,
