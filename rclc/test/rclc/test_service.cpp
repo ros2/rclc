@@ -33,7 +33,7 @@ TEST(Test, rclc_service_init_default) {
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
 
   // test with valid arguments
-  rcl_service_t service;
+  rcl_service_t service = rcl_get_zero_initialized_service();
   const rosidl_service_type_support_t * type_support =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   rc = rclc_service_init_default(&service, &node, type_support, topic_name);
@@ -85,7 +85,7 @@ TEST(Test, rclc_service_init_best_effort) {
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
 
   // test with valid arguments
-  rcl_service_t service;
+  rcl_service_t service = rcl_get_zero_initialized_service();
   const rosidl_service_type_support_t * type_support =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   rc = rclc_service_init_best_effort(&service, &node, type_support, topic_name);

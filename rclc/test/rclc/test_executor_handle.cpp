@@ -112,11 +112,11 @@ TEST(Test, executor_handle_get_ptr) {
   EXPECT_EQ(rc, RCL_RET_OK);
   rcutils_reset_error();
   // test null pointer
-  rcl_subscription_t sub;
-  rcl_timer_t timer;
-  rcl_client_t client;
-  rcl_service_t service;
-  rcl_guard_condition_t gc;
+  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_guard_condition_t gc = rcl_get_zero_initialized_guard_condition();
   void * ptr;
   ptr = rclc_executor_handle_get_ptr(nullptr);
   EXPECT_EQ(ptr, nullptr);
