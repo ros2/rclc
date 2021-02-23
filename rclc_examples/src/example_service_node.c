@@ -59,7 +59,7 @@ int main(int argc, const char * const * argv)
   RCCHECK(rclc_node_init_default(&node, "add_twoints_client_rclc", "", &support));
 
   // create service
-  rcl_service_t service;
+  rcl_service_t service = rcl_get_zero_initialized_service();
   RCCHECK(
     rclc_service_init_default(
       &service, &node,

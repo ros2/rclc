@@ -24,7 +24,7 @@ TEST(Test, rclc_node_init_default) {
   EXPECT_EQ(RCL_RET_OK, rc);
   const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node;
+  rcl_node_t node = rcl_get_zero_initialized_node();
 
   // test with valid arguments
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
@@ -72,7 +72,7 @@ TEST(Test, rclc_node_init_with_options) {
   EXPECT_EQ(RCL_RET_OK, rc);
   const char * my_name = "test_node";
   const char * my_namespace = "test_namespace";
-  rcl_node_t node;
+  rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
 
   // test with invalid arguments
