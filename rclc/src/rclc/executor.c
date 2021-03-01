@@ -1566,7 +1566,8 @@ rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e)
   }
 
   // endless spin-method
-  e->timeout_ns = 100000000; // 100ms timeout for rcl_wait
+  // e->timeout_ns = 100000000; // 100ms timeout for rcl_wait
+  printf("rclc_executor: rcl_wait timeout %d ns\n", e->timeout_ns);
   int ii = 0;
   while (rcl_context_is_valid(e->context) ) {
     ii++;
