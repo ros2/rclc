@@ -1,6 +1,13 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.0.0 (2021-03-04)
+------------------
+* service callbacks with context
+* fixed minor issues unit tests
+* upgraded setup_ros action (ci jobs)
+* removed Eloquent from ci jobs
+
 0.1.7 (2021-01-20)
 ------------------
 * Corrected corrupted changelog
