@@ -16,7 +16,13 @@
 
 #include "rclc/executor.h"
 
+#ifdef WIN32
+#include <Windows.h>
+#define rclc_sleep_ms(x) Sleep(x)
+#else
 #include <unistd.h>
+#define rclc_sleep_ms(x) usleep(x*1000)
+#endif
 
 #include <rcutils/time.h>
 
@@ -1108,7 +1114,7 @@ rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
   ret = rcutils_system_time_now(&end_time_point);
   sleep_time = (executor->invocation_time + period) - end_time_point;
   if (sleep_time > 0) {
-    usleep(sleep_time / 1000);
+    rclc_sleep_ms(sleep_time / 1000000);
   }
   executor->invocation_time += period;
   return ret;
