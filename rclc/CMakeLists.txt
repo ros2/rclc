@@ -80,12 +80,31 @@ ament_target_dependencies(${PROJECT_NAME}
 #################################################
 # install
 #################################################
-install(DIRECTORY include/ DESTINATION include)
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+
+#install(DIRECTORY include/ DESTINATION include)
+#install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME}
+  PRIVATE "RCLC_BUILDING_LIBRARY")
+
+install(
+  DIRECTORY include/ ${CMAKE_CURRENT_BINARY_DIR}/include/
+  DESTINATION include
+)
+
+install(
+  TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 # specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(${PROJECT_NAME})
 
 #################################################
 # gtest
