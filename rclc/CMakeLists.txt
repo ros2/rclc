@@ -70,17 +70,17 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
 
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   rcl
   rcutils
   rosidl_generator_c
 )
 
-
 #################################################
 # install
 #################################################
-
 #install(DIRECTORY include/ DESTINATION include)
 #install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
@@ -88,11 +88,6 @@ ament_target_dependencies(${PROJECT_NAME}
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE "RCLC_BUILDING_LIBRARY")
-
-install(
-  DIRECTORY include/ ${CMAKE_CURRENT_BINARY_DIR}/include/
-  DESTINATION include
-)
 
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -105,6 +100,11 @@ install(
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME})
+
+install(
+  DIRECTORY include/ ${CMAKE_CURRENT_BINARY_DIR}/include/
+  DESTINATION include
+)
 
 #################################################
 # gtest
@@ -142,6 +142,8 @@ if(BUILD_TESTING)
     test_msgs
     example_interfaces
   )
+
+
 endif()
 
 #################################################
