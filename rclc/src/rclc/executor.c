@@ -15,15 +15,6 @@
 // limitations under the License.
 
 #include "rclc/executor.h"
-
-#ifdef WIN32
-#include <Windows.h>
-#define rclc_sleep_ms(x) Sleep(x)
-#else
-#include <unistd.h>
-#define rclc_sleep_ms(x) usleep(x * 1000)
-#endif
-
 #include <rcutils/time.h>
 
 // Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
