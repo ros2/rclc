@@ -51,8 +51,15 @@ target_compile_definitions(${PROJECT_NAME}
 
 
 # install
-install(DIRECTORY include/ DESTINATION include)
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+#install(DIRECTORY include/ DESTINATION include)
+#install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+
+install(
+  TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
