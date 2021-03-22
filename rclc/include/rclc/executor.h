@@ -31,6 +31,14 @@ extern "C"
 #include "rclc/types.h"
 #include "rclc/visibility_control.h"
 
+#ifdef WIN32
+#include <Windows.h>
+#define rclc_sleep_ms(x) Sleep(x)
+#else
+#include <unistd.h>
+#define rclc_sleep_ms(x) usleep(x * 1000)
+#endif
+
 /*! \file executor.h
     \brief The RCLC-Executor provides an Executor based on RCL in which all callbacks are
     processed in a user-defined order.
