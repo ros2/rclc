@@ -21,7 +21,7 @@
 #define rclc_sleep_ms(x) Sleep(x)
 #else
 #include <unistd.h>
-#define rclc_sleep_ms(x) usleep(x*1000)
+#define rclc_sleep_ms(x) usleep(x * 1000)
 #endif
 
 #include <rcutils/time.h>

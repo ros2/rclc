@@ -102,7 +102,7 @@ ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME})
 
 install(
-  DIRECTORY include/ ${CMAKE_CURRENT_BINARY_DIR}/include/
+  DIRECTORY include/
   DESTINATION include
 )
 
