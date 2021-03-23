@@ -104,7 +104,13 @@ install(
 # specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+
+if("${rcl_VERSION}" VERSION_LESS "1.1.10")
+# ament_export_targets command is not available for Dashing
+else()
 ament_export_targets(${PROJECT_NAME})
+endif()
+
 
 #################################################
 # gtest
