@@ -96,15 +96,15 @@ install(
   RUNTIME DESTINATION bin
 )
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
-ament_export_targets(${PROJECT_NAME})
-
 install(
   DIRECTORY include/
   DESTINATION include
 )
+
+# specific order: dependents before dependencies
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(${PROJECT_NAME})
 
 #################################################
 # gtest

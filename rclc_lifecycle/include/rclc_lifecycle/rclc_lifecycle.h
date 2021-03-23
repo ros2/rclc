@@ -24,7 +24,7 @@
 #include <rcl_lifecycle/rcl_lifecycle.h>
 
 #include "rclc/node.h"
-#include <rclc_lifecycle/visibility_control.h>
+#include "rclc_lifecycle/visibility_control.h"
 
 typedef struct rclc_lifecycle_callback_map_t
 {
