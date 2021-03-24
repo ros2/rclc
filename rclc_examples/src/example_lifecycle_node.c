@@ -15,7 +15,6 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <unistd.h>
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
