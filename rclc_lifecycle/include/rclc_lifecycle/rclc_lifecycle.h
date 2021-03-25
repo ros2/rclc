@@ -46,7 +46,8 @@ rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator,
+  bool enable_communication_interface);
 
 RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
