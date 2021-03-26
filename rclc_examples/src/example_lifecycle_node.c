@@ -81,7 +81,8 @@ int main(int argc, const char * argv[])
     &lifecycle_node,
     &my_node,
     &state_machine_,
-    &allocator);
+    &allocator,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in creating lifecycle node.\n");
     return -1;

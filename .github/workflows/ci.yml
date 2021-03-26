@@ -1,4 +1,4 @@
-name: CI RCLC
+name: CI RCLC Rolling
 
 on:
   push:
@@ -17,14 +17,8 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ foxy, rolling, dashing ]
+        ros_distribution: [ rolling ]
         include:
-          - docker_image: ubuntu:bionic
-            ros_distribution: dashing
-
-          - docker_image: ubuntu:focal
-            ros_distribution: foxy
-
           - docker_image: ubuntu:focal
             ros_distribution: rolling
     container:
@@ -42,5 +36,5 @@ jobs:
     - uses : ros-tooling/action-ros-ci@0.1.0
       with:
         package-name: "rclc rclc_examples rclc_lifecycle"
-        vcs-repo-file-url: ""
+        vcs-repo-file-url: dependencies.repos
         target-ros2-distro: ${{ matrix.ros_distribution }}
