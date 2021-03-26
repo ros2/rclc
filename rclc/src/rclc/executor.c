@@ -931,7 +931,9 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
       executor->info.number_of_guard_conditions, executor->info.number_of_timers,
       executor->info.number_of_clients, executor->info.number_of_services,
       executor->info.number_of_events,
-      executor->context, rcl_get_default_allocator());
+      executor->context,
+      *executor->allocator);
+
     if (rc != RCL_RET_OK) {
       PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_init);
       return rc;
