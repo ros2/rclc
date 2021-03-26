@@ -233,6 +233,7 @@ rcl_lifecycle_node_fini(
 )
 {
   rcl_ret_t rcl_ret = RCL_RET_OK;
+  RCLC_UNUSED(allocator);
 
   // Cleanup statemachine
   rcl_ret = rcl_lifecycle_state_machine_fini(
