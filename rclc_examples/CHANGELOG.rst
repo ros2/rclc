@@ -5,7 +5,7 @@ Changelog for package rclc_examples
 ------------------
 * Windows port
 * Compatibility sleep function (Windows, POSIX-OS)
-* Minor bug fixes
+* Fixed RCL lifecycle API change for Rolling
 
 1.0.0 (2021-03-04)
 ------------------
