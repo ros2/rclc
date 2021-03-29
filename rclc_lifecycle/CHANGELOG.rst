@@ -1,6 +1,12 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.0.1 (2021-03-29)
+------------------
+* Windows port
+* Compatibility sleep function (Windows, POSIX-OS)
+* Fixed RCL lifecycle API change for Rolling
+
 1.0.0 (2021-03-04)
 ------------------
 * Updated version
