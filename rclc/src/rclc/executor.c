@@ -269,9 +269,10 @@ rclc_executor_add_subscription_with_context(
   executor->handles[executor->index].type = SUBSCRIPTION;
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
-  executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].subscription_callback_with_context = callback;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = context;
 
   // increase index of handle array
   executor->index++;
@@ -990,6 +991,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
                 handle->callback_context);
             }
             break;
+        }
         break;
 
       case TIMER:
