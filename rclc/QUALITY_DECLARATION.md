@@ -161,8 +161,9 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 `rclc` has no Direct Runtime non-ROS dependencies that need to be considered for this declaration.
 
 ## Platform Support [6]
+TODO
 
-`rclc` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
+`rclc` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
 
 ## Security [7]
 
