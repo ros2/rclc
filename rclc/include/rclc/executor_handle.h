@@ -57,6 +57,15 @@ typedef enum
 /// Type definition for callback function.
 typedef void (* rclc_callback_t)(const void *);
 
+/// Type definition for subscription callback function
+/// - incoming message
+//typedef void (* rclc_subscription_callback_t)(const void *);
+
+/// Type definition for subscription callback function
+/// - incoming message
+/// - additional callback context
+typedef void (* rclc_subscription_callback_with_context_t)(const void *, void *);
+
 /// Type definition for client callback function
 /// - request message
 /// - response message
@@ -113,8 +122,8 @@ typedef struct
   /// only for service - ptr to response message
   void * data_response_msg;
 
-  /// only for service - ptr to additional service context
-  void * service_context;
+  /// ptr to additional callback context
+  void * callback_context;
 
   // TODO(jst3si) new type to be stored as data for
   //              service/client objects
@@ -128,6 +137,7 @@ typedef struct
   /// Storage for callbacks
   union {
     rclc_callback_t callback;
+    rclc_subscription_callback_with_context_t subscription_callback_with_context;
     rclc_service_callback_t service_callback;
     rclc_service_callback_with_request_id_t service_callback_with_reqid;
     rclc_service_callback_with_context_t service_callback_with_context;
