@@ -225,6 +225,7 @@ rclc_executor_add_subscription(
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
 
@@ -273,6 +274,7 @@ rclc_executor_add_subscription_with_context(
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].subscription_callback_with_context = callback;
+  executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
   executor->handles[executor->index].callback_context = context;
