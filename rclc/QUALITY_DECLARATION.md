@@ -83,13 +83,21 @@ The copyright holders each provide a statement of copyright in each source code 
 
 ### Feature Testing [4.i]
 
+**rclcc** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
+New features are required to have tests before being added as stated in [CONTRIBUTING](CONTRIBUTING.md).
+Current results can be found here:
+
+* [![CI RCLC](https://github.com/ros2/rclc/actions/workflows/ci.yml/badge.svg)](https://github.com/ros2/rclc/actions/workflows/ci.yml)
+
 Most features in `rclc` have corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
 New features are required to have tests before being added.
-Currently nightly test results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rclc/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rclc/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rclc/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rclc/)
+Currently test results can be seen here for different architectures:
+
+* [linux_amd64_release](TODO)
+* [linux-arm64_release](TODO)
+* [windows_release](TODO)
+
+TODO document for multiple branches
 
 ### Public API Testing [4.ii]
 
@@ -99,36 +107,20 @@ The following functions are partially supported: `rclc_take_loaned_message`, `rc
 
 ### Coverage [4.iii]
 
-`rclc` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#code-coverage), and opts to use line coverage instead of branch coverage.
+TODO 
+[![codecov](https://codecov.io/gh/micro-ROS/rmw-microxrcedds/branch/foxy/graph/badge.svg?token=F7LUHZO0IV)](https://codecov.io/gh/micro-ROS/rclc)
 
-This includes:
-
-- tracking and reporting line coverage statistics
-- no lines are manually skipped in coverage calculations
-
-Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
-
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rclc_rclc_src_rclc/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
-
-### Performance [4.iv]
-
-`rclc` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
-
-System level performance benchmarks that cover features of `rclc` can be found at:
-* [Benchmarks](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
-* [Performance](http://build.ros2.org/view/Rci/job/Rci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
-
-Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
+TODO **rclcc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/micro-ROS/rmw-microxrcedds/commits).
 
 ### Linters and Static Analysis [4.v]
 
-`rclc` uses and passes all the ROS2 standard linters and static analysis tools for a C++ package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters-and-static-analysis). Passing implies there are no linter/static errors when testing against CI of supported platforms.
+**rclc** code style is enforced using [*uncrustify*](https://github.com/uncrustify/uncrustify).
+Among the CI tests, there are tests that ensure that every pull request is compliant with the code style.
+The latest CI results can be seen [here](https://github.com/ros2/rclc/actions/workflows/ci.yml).
 
-Currently nightly test results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rclc/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rclc/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rclc/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rclc/)
+**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).
+
+Results of the latest linter tests can be found [here](https://github.com/ros2/rclc/actions/workflows/ci.yml?query=branch%3Afoxy).
 
 ## Dependencies [5]
 
@@ -139,29 +131,11 @@ It also has several test dependencies, which do not affect the resulting quality
 
 ### Direct Runtime ROS Dependencies [5.i]
 
-#### `rmw`
+#### `rcl`
 
-The `rmw` package provides the API used by `rclc` to interact with the underlying middleware in an abstract way.
+The `rcl` package provides the API of the common library to support implementation of language specific ROS Client Libraries.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
-
-#### `rclc_interfaces`
-
-The `rclc_interfaces` package provides some common ROS Message and ROS Service types which are used to implement certain client library features.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rclc_interfaces/blob/master/rclc_interfaces/QUALITY_DECLARATION.md).
-
-#### `rclc_logging_spdlog`
-
-The `rclc_logging_spdlog` package provides the default logging implementation by wrapping the `spdlog` library.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rclc_logging/blob/master/rclc_logging_spdlog/QUALITY_DECLARATION.md).
-
-#### `rclc_yaml_param_parser`
-
-The `rclc_yaml_param_parser` package provides an API that is used to parse YAML configuration files which may be used to configure ROS and specific nodes.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rclc/blob/master/rclc_yaml_param_parser/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/master/rmw/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
@@ -169,23 +143,14 @@ The `rcutils` package provides an API which contains common utilities and data s
 
 It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
 
-#### `rmw_implementation`
+#### `rosidl_generator_c`
 
-The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
+The `rosidl_generator_c` package is a core-ros package and provides an API that generates message types for C programming language.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/master/rmw_implementation/QUALITY_DECLARATION.md).
+TODO: no quality statement available!
 
-#### `rosidl_runtime_c`
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_generator_c/QUALITY_DECLARATION.md).
 
-The `rosidl_runtime_c` package provides runtime interfaces in C based on user defined ROS Messages and ROS Services, as well as associated support functions for those types.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
-
-#### `tracetools`
-
-The `tracetools` package provides utilities for instrumenting the code in `rclc` so that it may be traced for debugging and performance analysis.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://gitlab.com/ros-tracing/ros2_tracing/-/blob/master/tracetools/QUALITY_DECLARATION.md).
 
 ### Optional Direct Runtime ROS Dependencies [5.ii]
 
