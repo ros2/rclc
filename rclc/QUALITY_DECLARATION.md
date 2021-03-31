@@ -35,35 +35,36 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 `rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. Any ABI break in **rclcc** will be done between minor versions and it should be clearly stated in the release notes.
 
-CONTINUE HERE
-
 ## Change Control Process [2]
+
+The stability of **rclcc** is ensured through reviews, CI and tests.
+The change control process can be found in [CONTRIBUTING](CONTRIBUTING.md)
+
+All changes to **rclcc** occur through pull requests that are required to pass all CI tests.
+In case of failure, only maintainers can merge the pull request, and only when there is enough evidence that the failure is unrelated to the change.
+Additionally, all pull requests must have at least one positive review from another contributor that did not author the pull request.
 
 ### Change Requests [2.i]
 
-All changes will occur through a pull request, check the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#change-control-process) for additional information.
+All changes will occur through a pull request.
 
 ### Contributor Origin [2.ii]
 
-This package uses DCO as its confirmation of contributor origin policy. More information can be found in [CONTRIBUTING](../CONTRIBUTING.md).
+This package uses [Developer Certificate of Origin (DCO)](https://developercertificate.org/) as its confirmation of contributor origin policy since version 1.0.0. More information can be found in [CONTRIBUTING](../CONTRIBUTING.md).
 
 ### Peer Review Policy [2.iii]
 
-All pull requests will be peer-reviewed, check [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#change-control-process) for additional information.
+All pull requests will be peer-reviewed by at least one other contributor who did not author the pull request. Approval is required before merging.
 
 ### Continuous Integration [2.iv]
 
-All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
+All pull requests must pass CI to be considered for merging, unless maintainers consider that there is enough evidence that the failure is unrelated to the changes.
+CI testing is automatically triggered by incoming pull requests.
+Current results can be seen here:
 
-Currently nightly results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rclc/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rclc/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rclc/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rclc/)
+* [![CI RCLC](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml/badge.svg)](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml)
 
-###  Documentation Policy [2.v]
-
-All pull requests must resolve related documentation changes before merging.
+**CONTINUE HERE**
 
 ## Documentation [3]
 
