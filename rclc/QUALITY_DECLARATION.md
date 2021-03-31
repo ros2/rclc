@@ -64,31 +64,20 @@ Current results can be seen here:
 
 * [![CI RCLC](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml/badge.svg)](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml)
 
-**CONTINUE HERE**
-
 ## Documentation [3]
 
 ### Feature Documentation [3.i]
 
-`rclc` provides the main elements of its API listed using doxygen. Refer to the [ROS2 concepts](https://index.ros.org/doc/ros2/Concepts/) and [ROS2 Client Libraries](https://index.ros.org/doc/ros2/Concepts/ROS-2-Client-Libraries/) pages for reference of elements covered by this package.
-
-### Public API Documentation [3.ii]
-
-`rclc` has embedded API documentation and it is generated using doxygen. Currently, its latest version is hosted [here](http://docs.ros2.org/latest/api/rclc/).
-
-New additions to the public API require documentation before being added.
+`rclc` features are documented in the package [README](README.md) and in the header files. 
 
 ### License [3.iii]
 
-The license for `rclc` is Apache 2.0, and a summary is in each source file, the type is declared in the [`package.xml`](./package.xml) manifest file, and a full copy of the license is in the [`LICENSE`](../LICENSE) file.
-
-There is an automated test which runs a linter that ensures each file has a license statement. [Here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rclc/) can be found a list with the latest results of the various linters being run on the package.
+The license for **rclc** is Apache 2.0, and a summary can be found in each source file.
+A full copy of the license can be found [here](../LICENSE).
 
 ### Copyright Statements [3.iv]
 
 The copyright holders each provide a statement of copyright in each source code file in `rclc`.
-
-There is an automated test which runs a linter that ensures each file has at least one copyright statement. Latest linter result report can be seen [Here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rclc/copyright/).
 
 ## Testing [4]
 
