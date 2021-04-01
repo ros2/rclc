@@ -64,9 +64,11 @@ Current results can be seen [../README.md](../README.md).
 
 ## Documentation [3]
 
+TODO check completeness
+
 ### Feature Documentation [3.i]
 
-`rclc` features are documented in the package [README](README.md) and in the header files. 
+`rclc` features are documented in the package [README.md](README.md) and in the header files. 
 
 ### License [3.iii]
 
@@ -121,7 +123,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 The `rcl` package provides the API of the common library to support implementation of language specific ROS Client Libraries.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/master/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/master/rcl/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
@@ -187,7 +189,7 @@ The chart below compares the requirements in the REP-2004 with the current state
 |4.iv.a| Performance tests (if applicable) | x |
 |4.iv.b| Performance tests policy| x |
 |4.v.a| Code style enforcement (linters)| ✓ |
-|4.v.b| Use of static analysis tools | x |
+|4.v.b| Use of static analysis tools | ✓ |
 |5| Dependencies | --- |
 |5.i| Must not have ROS lower level dependencies | ✓ |
 |5.ii| Optional ROS lower level dependencies| ✓ |
