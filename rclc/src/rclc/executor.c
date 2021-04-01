@@ -643,7 +643,7 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
 
   //shorten the list of handles without changing the order of remaining handles
   executor->index--;
-  for(int i=handle_index; i < executor->index; i++){
+  for(size_t i=handle_index; i < executor->index; i++){
     executor->handles[i] = executor->handles[i+1];
   }
   ret = rclc_executor_handle_init(&executor->handles[executor->index], executor->max_handles);
