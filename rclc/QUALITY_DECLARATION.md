@@ -37,10 +37,10 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ## Change Control Process [2]
 
-The stability of **rclcc** is ensured through reviews, CI and tests.
+The stability of **rclc** is ensured through reviews, CI and tests.
 The change control process can be found in [CONTRIBUTING](CONTRIBUTING.md)
 
-All changes to **rclcc** occur through pull requests that are required to pass all CI tests.
+All changes to **rclc** occur through pull requests that are required to pass all CI tests.
 In case of failure, only maintainers can merge the pull request, and only when there is enough evidence that the failure is unrelated to the change.
 Additionally, all pull requests must have at least one positive review from another contributor that did not author the pull request.
 
@@ -83,7 +83,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 ### Feature Testing [4.i]
 
-**rclcc** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
+**rclc** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
 New features are required to have tests before being added as stated in [CONTRIBUTING](CONTRIBUTING.md).
 Current results can be found here:
 
@@ -109,7 +109,7 @@ The following functions are partially supported: `rclc_take_loaned_message`, `rc
 
 [![codecov](https://codecov.io/gh/ros2/rclc/branch/master/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
 
-TODO **rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/micro-ROS/rmw-microxrcedds/commits). TODO
+**rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
 
 ### Linters and Static Analysis [4.v]
 
