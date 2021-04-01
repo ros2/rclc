@@ -4,13 +4,13 @@ This document is a declaration of software quality for the `rclc` package, based
 
 The package `rclc` claims to be in the **Quality Level 2** category when it is used with a **Quality Level 2** middleware.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
 ### Version Scheme [1.i]
 
-`rclc` uses `semver` according to the recommendation for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#versioning).
+`rclc` uses `semver` according to the recommendation for ROS Core packages in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#versioning).
 
 ### Version Stability [1.ii]
 
@@ -33,12 +33,12 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ### ABI and ABI Stability Within a Released ROS Distribution [1.vi]
 
-`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. Any ABI break in **rclcc** will be done between minor versions and it should be clearly stated in the release notes.
+`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. Any ABI break in **rclc** will be done between minor versions and it should be clearly stated in the release notes.
 
 ## Change Control Process [2]
 
 The stability of **rclc** is ensured through reviews, CI and tests.
-The change control process can be found in [CONTRIBUTING](CONTRIBUTING.md)
+The change control process can be found in [CONTRIBUTING](../CONTRIBUTING.md).
 
 All changes to **rclc** occur through pull requests that are required to pass all CI tests.
 In case of failure, only maintainers can merge the pull request, and only when there is enough evidence that the failure is unrelated to the change.
@@ -60,9 +60,7 @@ All pull requests will be peer-reviewed by at least one other contributor who di
 
 All pull requests must pass CI to be considered for merging, unless maintainers consider that there is enough evidence that the failure is unrelated to the changes.
 CI testing is automatically triggered by incoming pull requests.
-Current results can be seen here:
-
-* [![CI RCLC](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml/badge.svg)](https://github.com/micro-ROS/rclc/actions/workflows/ci.yml)
+Current results can be seen [../README.md](../README.md).
 
 ## Documentation [3]
 
@@ -85,29 +83,18 @@ The copyright holders each provide a statement of copyright in each source code 
 
 **rclc** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
 New features are required to have tests before being added as stated in [CONTRIBUTING](CONTRIBUTING.md).
-Current results can be found here:
-
-* [![CI RCLC](https://github.com/ros2/rclc/actions/workflows/ci.yml/badge.svg)](https://github.com/ros2/rclc/actions/workflows/ci.yml)
+Current results can be seen [../README.md](../README.md).
 
 Most features in `rclc` have corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
 New features are required to have tests before being added.
-Currently test results can be seen here for different architectures:
-
-* [linux_amd64_release](TODO)
-* [linux-arm64_release](TODO)
-* [windows_release](TODO)
-
-TODO document for multiple branches
 
 ### Public API Testing [4.ii]
 
 Each part of the public API has tests, and new additions or changes to the public API require tests before being added. The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
 
-The following functions are partially supported: `rclc_take_loaned_message`, `rclc_return_loaned_message_from_subscription`, `rclc_borrow_loaned_message`, `rclc_return_loaned_message_from_publisher` and `rclc_publish_loaned_message` because they are not currently supported on Tier 1 RMW providers.
-
 ### Coverage [4.iii]
 
-[![codecov](https://codecov.io/gh/ros2/rclc/branch/master/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
+TODO see README.
 
 **rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
 
@@ -115,11 +102,11 @@ The following functions are partially supported: `rclc_take_loaned_message`, `rc
 
 **rclc** code style is enforced using [*uncrustify*](https://github.com/uncrustify/uncrustify).
 Among the CI tests, there are tests that ensure that every pull request is compliant with the code style.
-The latest CI results can be seen [here](https://github.com/ros2/rclc/actions/workflows/ci.yml).
+The latest CI results can be seen [../README.md](../README.md).
 
-**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).
+**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).TODO: fix url
 
-Results of the latest linter tests can be found [here](https://github.com/ros2/rclc/actions/workflows/ci.yml?query=branch%3Afoxy).
+Results of the latest linter tests can be found [here](TODO README)
 
 ## Dependencies [5]
 
@@ -146,10 +133,7 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 The `rosidl_generator_c` package is a core-ros package and provides an API that generates message types for C programming language.
 
-TODO: no quality statement available!
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_generator_c/QUALITY_DECLARATION.md).
-
+TODO: no quality statement available.
 
 ### Optional Direct Runtime ROS Dependencies [5.ii]
 
