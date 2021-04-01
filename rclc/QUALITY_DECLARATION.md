@@ -107,10 +107,9 @@ The following functions are partially supported: `rclc_take_loaned_message`, `rc
 
 ### Coverage [4.iii]
 
-TODO 
-[![codecov](https://codecov.io/gh/micro-ROS/rmw-microxrcedds/branch/foxy/graph/badge.svg?token=F7LUHZO0IV)](https://codecov.io/gh/micro-ROS/rclc)
+[![codecov](https://codecov.io/gh/ros2/rclc/branch/master/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
 
-TODO **rclcc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/micro-ROS/rmw-microxrcedds/commits).
+TODO **rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/micro-ROS/rmw-microxrcedds/commits). TODO
 
 ### Linters and Static Analysis [4.v]
 
@@ -161,7 +160,6 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 `rclc` has no Direct Runtime non-ROS dependencies that need to be considered for this declaration.
 
 ## Platform Support [6]
-TODO
 
 `rclc` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
 
