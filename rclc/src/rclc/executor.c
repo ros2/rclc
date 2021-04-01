@@ -641,9 +641,11 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
     return RCL_RET_ERROR;
   }
 
-  //shorten the list of handles by moving the last handle to the Nth position.
+  //shorten the list of handles without changing the order of remaining handles
   executor->index--;
-  executor->handles[handle_index] = executor->handles[executor->index];
+  for(int i=handle_index; i < executor->index; i++){
+    executor->handles[i] = executor->handles[i+1];
+  }
   ret = rclc_executor_handle_init(&executor->handles[executor->index], executor->max_handles);
 
   //force a refresh of the wait set
