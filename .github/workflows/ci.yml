@@ -37,8 +37,11 @@ jobs:
         package-name: "rclc rclc_examples rclc_lifecycle"
         vcs-repo-file-url: dependencies.repos
         target-ros2-distro: ${{ matrix.ros_distribution }}
-        colcon-mixin-name: coverage-gcc
-        colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
-    - uses: codecov/codecov-action@v1
-      with:
-        file: ros_ws/lcov/total_coverage.info
+
+    - name: Coverage
+      run: |
+        cd src/rclc/
+        gcovr -x -r . -o coverage.xml ../../build --exclude-unreachable-branches --exclude rclc/test
+        curl -s https://codecov.io/bash -o codecov.bash && chmod +x codecov.bash
+        ./codecov.bash -t ${{ secrets.CODECOV_TOKEN }}
+        
