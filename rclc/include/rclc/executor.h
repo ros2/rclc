@@ -29,8 +29,6 @@ extern "C"
 
 #include "rclc/executor_handle.h"
 #include "rclc/types.h"
-#include "rclc/sleep.h"
-#include "rclc/visibility_control.h"
 
 /*! \file executor.h
     \brief The RCLC-Executor provides an Executor based on RCL in which all callbacks are
@@ -86,7 +84,6 @@ typedef struct
  *  Return a rclc_executor_t struct with pointer members initialized to `NULL`
  *  and member variables to 0.
  */
-RCLC_PUBLIC
 rclc_executor_t
 rclc_executor_get_zero_initialized_executor(void);
 
@@ -113,7 +110,6 @@ rclc_executor_get_zero_initialized_executor(void);
  * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
  * \return `RCL_RET_ERROR` in case of failure
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_init(
   rclc_executor_t * executor,
@@ -138,7 +134,6 @@ rclc_executor_init(
  * \return `RCL_RET_INVALID_ARGUMENT` if \p executor is a null pointer
  * \return `RCL_RET_ERROR` in an error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_set_timeout(
   rclc_executor_t * executor,
@@ -160,7 +155,6 @@ rclc_executor_set_timeout(
  * \return `RCL_RET_OK` if semantics was set successfully
  * \return `RCL_RET_INVALID_ARGUMENT` if \p executor is a null pointer
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_set_semantics(
   rclc_executor_t * executor,
@@ -185,7 +179,6 @@ rclc_executor_set_semantics(
  * \return `RCL_RET_INVALID_ARGUMENT` if \p executor.handles is a null pointer
  * \return `RCL_RET_ERROR` in an error occured (aka executor was not initialized)
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_fini(rclc_executor_t * executor);
 
@@ -212,7 +205,6 @@ rclc_executor_fini(rclc_executor_t * executor);
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_subscription(
   rclc_executor_t * executor,
@@ -274,7 +266,6 @@ rclc_executor_add_subscription_with_context(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_timer(
   rclc_executor_t * executor,
@@ -303,7 +294,6 @@ rclc_executor_add_timer(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_client(
   rclc_executor_t * executor,
@@ -333,7 +323,6 @@ rclc_executor_add_client(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_client_with_request_id(
   rclc_executor_t * executor,
@@ -364,7 +353,6 @@ rclc_executor_add_client_with_request_id(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_service(
   rclc_executor_t * executor,
@@ -396,7 +384,6 @@ rclc_executor_add_service(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_service_with_request_id(
   rclc_executor_t * executor,
@@ -429,7 +416,6 @@ rclc_executor_add_service_with_request_id(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_service_with_context(
   rclc_executor_t * executor,
@@ -460,12 +446,12 @@ rclc_executor_add_service_with_context(
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_add_guard_condition(
   rclc_executor_t * executor,
   rcl_guard_condition_t * gc,
   rclc_gc_callback_t callback);
+
 
 
 /**
@@ -632,7 +618,6 @@ rclc_executor_remove_guard_condition(
  * \return `RCL_RET_TIMEOUT` if rcl_wait() returned timeout (aka no data is avaiable during until the timeout)
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_spin_some(
   rclc_executor_t * executor,
@@ -659,7 +644,6 @@ rclc_executor_spin_some(
  * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_spin(rclc_executor_t * executor);
 
@@ -685,7 +669,6 @@ rclc_executor_spin(rclc_executor_t * executor);
  * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_spin_period(
   rclc_executor_t * executor,
@@ -714,7 +697,6 @@ rclc_executor_spin_period(
  * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_spin_one_period(
   rclc_executor_t * executor,
@@ -739,7 +721,6 @@ rclc_executor_spin_one_period(
  * \return `RCL_RET_INVALID_ARGUMENT` if executor is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_PUBLIC
 rcl_ret_t
 rclc_executor_set_trigger(
   rclc_executor_t * executor,
@@ -764,7 +745,6 @@ rclc_executor_set_trigger(
  * \return true - if all handles are ready (subscriptions have new data, timers are ready)
  * \return false - otherwise
  */
-RCLC_PUBLIC
 bool
 rclc_executor_trigger_all(
   rclc_executor_handle_t * handles,
@@ -789,7 +769,6 @@ rclc_executor_trigger_all(
  * \return true - if at least one handles is ready (subscriptions have new data, timers are ready)
  * \return false - otherwise
  */
-RCLC_PUBLIC
 bool
 rclc_executor_trigger_any(
   rclc_executor_handle_t * handles,
@@ -813,7 +792,6 @@ rclc_executor_trigger_any(
  * \param [in] obj trigger_object set by rclc_executor_set_trigger (not used)
  * \return true always
  */
-RCLC_PUBLIC
 bool
 rclc_executor_trigger_always(
   rclc_executor_handle_t * handles,
@@ -839,7 +817,6 @@ rclc_executor_trigger_always(
  * \return true if rcl-handle obj is ready
  * \return false otherwise
  */
-RCLC_PUBLIC
 bool
 rclc_executor_trigger_one(
   rclc_executor_handle_t * handles,
