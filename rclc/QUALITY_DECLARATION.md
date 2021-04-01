@@ -94,19 +94,19 @@ Each part of the public API has tests, and new additions or changes to the publi
 
 ### Coverage [4.iii]
 
-TODO see README.
+The coverage report is available in the [../README.md](../README.md).
 
 **rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
 
 ### Linters and Static Analysis [4.v]
 
-**rclc** code style is enforced using [*uncrustify*](https://github.com/uncrustify/uncrustify).
+**rclc** code style is enforced using [uncrustify](https://github.com/uncrustify/uncrustify).
 Among the CI tests, there are tests that ensure that every pull request is compliant with the code style.
 The latest CI results can be seen [../README.md](../README.md).
 
-**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).TODO: fix url
+**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
 
-Results of the latest linter tests can be found [here](TODO README)
+Results of the latest linter tests can be found in the [../README.md](../README.md)
 
 ## Dependencies [5]
 
@@ -133,7 +133,7 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 The `rosidl_generator_c` package is a core-ros package and provides an API that generates message types for C programming language.
 
-TODO: no quality statement available.
+The quality statement for this repository is not available.
 
 ### Optional Direct Runtime ROS Dependencies [5.ii]
 
@@ -165,7 +165,7 @@ The chart below compares the requirements in the REP-2004 with the current state
 |1.iii|Declared public API|✓|
 |1.iv|API stability policy|✓|
 |1.v|ABI stability policy|✓|
-|1.vi_|API/ABI stable within ros distribution|✓|
+|1.vi|API/ABI stable within ros distribution|✓|
 |2| **Change control process** |---|
 |2.i| All changes occur on change request | ✓|
 |2.ii| Contributor origin (DCO, CLA, etc) | ✓|
@@ -184,10 +184,10 @@ The chart below compares the requirements in the REP-2004 with the current state
 |4.ii| Public API tests | ✓ |
 |4.iii.a| Using coverage | ✓ |
 |4.iii.a| Coverage policy | ✓ |
-|4.iv.a| Performance tests (if applicable) | ✓ |
-|4.iv.b| Performance tests policy| ✓ |
+|4.iv.a| Performance tests (if applicable) | x |
+|4.iv.b| Performance tests policy| x |
 |4.v.a| Code style enforcement (linters)| ✓ |
-|4.v.b| Use of static analysis tools | ✓ |
+|4.v.b| Use of static analysis tools | x |
 |5| Dependencies | --- |
 |5.i| Must not have ROS lower level dependencies | ✓ |
 |5.ii| Optional ROS lower level dependencies| ✓ |
