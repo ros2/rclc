@@ -35,8 +35,7 @@ extern "C"
 #include <rcl_interfaces/srv/set_parameters.h>
 
 #include "rclc_parameter/parameter.h"
-
-#define PARAM_MAX 8
+#include "rclc_parameter/config.h"
 
 typedef struct rcl_parameter_server_t
 {

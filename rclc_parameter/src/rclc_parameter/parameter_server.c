@@ -142,9 +142,9 @@ rcl_ret_t rclc_parameter_server_init_default(
     rcl_ret_t ret;
 
     param_server->param_number = 0;
-    rcl_interfaces__msg__Parameter__Sequence__init(&param_server->parameter_list, PARAM_MAX);
+    rcl_interfaces__msg__Parameter__Sequence__init(&param_server->parameter_list, RCLC_UXRCE_MAX_PARAMETERS);
 
-    for (size_t i = 0; i < PARAM_MAX; i++)
+    for (size_t i = 0; i < RCLC_UXRCE_MAX_PARAMETERS; i++)
     {
         rosidl_runtime_c__String__init(&param_server->parameter_list.data[i].name);
         param_server->parameter_list.data[i].value.type = PARAMETER_NOT_SET;
@@ -223,7 +223,7 @@ rcl_ret_t rclc_add_parameter_bool(
         const char* parameter_name,
         bool value)
 {
-    if (param_server->param_number >= PARAM_MAX)
+    if (param_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS)
     {
         return RCL_RET_ERROR;
     }
@@ -246,7 +246,7 @@ rcl_ret_t rclc_add_parameter_int(
         const char* parameter_name,
         int64_t value)
 {
-    if (param_server->param_number >= PARAM_MAX ||
+    if (param_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
             rclc_search_parameter_index(&param_server->parameter_list, parameter_name) != -1)
     {
         return RCL_RET_ERROR;
@@ -269,7 +269,7 @@ rcl_ret_t rclc_add_parameter_double(
         const char* parameter_name,
         double value)
 {
-    if (param_server->param_number >= PARAM_MAX ||
+    if (param_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
             rclc_search_parameter_index(&param_server->parameter_list, parameter_name) != -1)
     {
         return RCL_RET_ERROR;
@@ -292,7 +292,7 @@ rcl_ret_t rclc_add_parameter_string(
         const char* parameter_name,
         char* value)
 {
-    if (param_server->param_number >= PARAM_MAX ||
+    if (param_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
             rclc_search_parameter_index(&param_server->parameter_list, parameter_name) != -1)
     {
         return RCL_RET_ERROR;

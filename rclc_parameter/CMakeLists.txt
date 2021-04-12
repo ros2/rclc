@@ -9,6 +9,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# --- PARAMETER CONFIGURATION ---
+set(RCLC_UXRCE_MAX_PARAMETERS "4" CACHE STRING "This value sets the maximum number of parameters for a node")
+
+# Create source files with the defined configuration
+configure_file(${PROJECT_SOURCE_DIR}/include/rclc_parameter/config.h.in
+  ${PROJECT_SOURCE_DIR}/include/rclc_parameter/config.h)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclc REQUIRED)
 find_package(rcutils REQUIRED)
