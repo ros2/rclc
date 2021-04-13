@@ -36,75 +36,37 @@ extern "C"
 #define PARAMETER_DOUBLE rcl_interfaces__msg__ParameterType__PARAMETER_DOUBLE
 #define PARAMETER_STRING rcl_interfaces__msg__ParameterType__PARAMETER_STRING
 
-RCL_PUBLIC
 rcl_ret_t
-rclc_parameter_set_bool(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rclc_parameter_set_value_bool(
+        rcl_interfaces__msg__Parameter* parameter,
         bool value);
 
-RCL_PUBLIC
 rcl_ret_t
-rclc_parameter_set_int(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rclc_parameter_set_value_int(
+        rcl_interfaces__msg__Parameter* parameter,
         int64_t value);
 
-RCL_PUBLIC
 rcl_ret_t
-rclc_parameter_set_double(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rclc_parameter_set_value_double(
+        rcl_interfaces__msg__Parameter* parameter,
         double value);
 
-RCL_PUBLIC
 rcl_ret_t
-rclc_parameter_set_string(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rclc_parameter_set_value_string(
+        rcl_interfaces__msg__Parameter* parameter,
         char* value);
 
-RCL_PUBLIC
 rcl_ret_t
-rclc_parameter_get_bool(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        bool* output);
-
-RCL_PUBLIC
-rcl_ret_t
-rclc_parameter_get_int(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        int64_t* output);
-
-RCL_PUBLIC
-rcl_ret_t
-rclc_parameter_get_double(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        double* output);
-
-RCL_PUBLIC
-rcl_ret_t
-rclc_parameter_get_string(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        char* output);
-
-RCL_PUBLIC
-rcl_ret_t
-rclc_parameter_get_string_lenght(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        size_t* output);
+rclc_parameter_copy(
+        rcl_interfaces__msg__Parameter* dst,
+        const rcl_interfaces__msg__Parameter* src);
 
 rcl_ret_t
 rclc_parameter_value_copy(
         rcl_interfaces__msg__ParameterValue* dst,
         const rcl_interfaces__msg__ParameterValue* src);
 
-int rclc_search_parameter_index(
+rcl_interfaces__msg__Parameter* rclc_search_parameter(
         rcl_interfaces__msg__Parameter__Sequence* parameter_list,
         const char* param_name);
 

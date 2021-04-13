@@ -20,175 +20,61 @@ extern "C"
 
 #include "rclc_parameter/parameter.h"
 
-rcl_ret_t rclc_parameter_set_bool(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rcl_ret_t rclc_parameter_set_value_bool(
+        rcl_interfaces__msg__Parameter* parameter,
         bool value)
 {
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter_list->data[index].value.type != PARAMETER_BOOL)
+    if (parameter->value.type != PARAMETER_BOOL)
     {
-        ret = RCL_RET_INVALID_ARGUMENT;
-    }
-    else if (index != -1)
-    {
-        parameter_list->data[index].value.bool_value = value;
-        ret = RCL_RET_OK;
+        return RCL_RET_INVALID_ARGUMENT;
     }
 
-    return ret;
+    parameter->value.bool_value = value;
+    return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_int(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rcl_ret_t rclc_parameter_set_value_int(
+        rcl_interfaces__msg__Parameter* parameter,
         int64_t value)
 {
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter_list->data[index].value.type != PARAMETER_INTEGER)
+    if (parameter->value.type != PARAMETER_INTEGER)
     {
-        ret = RCL_RET_INVALID_ARGUMENT;
-    }
-    else if (index != -1)
-    {
-        parameter_list->data[index].value.integer_value = value;
-        ret = RCL_RET_OK;
+        return RCL_RET_INVALID_ARGUMENT;
     }
 
-    return ret;
+    parameter->value.integer_value = value;
+
+    return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_double(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rcl_ret_t rclc_parameter_set_value_double(
+        rcl_interfaces__msg__Parameter* parameter,
         double value)
 {
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter_list->data[index].value.type != PARAMETER_DOUBLE)
+    if (parameter->value.type != PARAMETER_DOUBLE)
     {
-        ret = RCL_RET_INVALID_ARGUMENT;
-    }
-    else if (index != -1)
-    {
-        parameter_list->data[index].value.double_value = value;
-        ret = RCL_RET_OK;
+        return RCL_RET_INVALID_ARGUMENT;
     }
 
-    return ret;
+    parameter->value.double_value = value;
+
+    return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_string(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
+rcl_ret_t rclc_parameter_set_value_string(
+        rcl_interfaces__msg__Parameter* parameter,
         char* value)
 {
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter_list->data[index].value.type != PARAMETER_STRING)
+    if (parameter->value.type != PARAMETER_STRING)
     {
-        ret = RCL_RET_INVALID_ARGUMENT;
+        return RCL_RET_INVALID_ARGUMENT;
     }
-    else if (index != -1 &&
-            rosidl_runtime_c__String__assign(&parameter_list->data[index].value.string_value, value))
+    else if (rosidl_runtime_c__String__assign(&parameter->value.string_value, value))
     {
-        ret = RCL_RET_OK;
+        return RCL_RET_OK;
     }
 
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_get_bool(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        bool* output)
-{
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (index != -1)
-    {
-        *output = parameter_list->data[index].value.bool_value;
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_get_int(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        int64_t* output)
-{
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (index != -1)
-    {
-        *output = parameter_list->data[index].value.integer_value;
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_get_double(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        double* output)
-{
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (index != -1)
-    {
-        *output = parameter_list->data[index].value.double_value;
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
-// Add max_lenght for output?
-rcl_ret_t rclc_parameter_get_string(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        char* output)
-{
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (index != -1)
-    {
-        memcpy(output, parameter_list->data[index].value.string_value.data,
-                parameter_list->data[index].value.string_value.capacity);
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_get_string_lenght(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
-        const char* parameter_name,
-        size_t* output)
-{
-    int index = rclc_search_parameter_index(parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (index != -1)
-    {
-        *output = parameter_list->data[index].value.string_value.capacity;
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
+    return RCL_RET_ERROR;
 }
 
 rcl_ret_t
@@ -221,7 +107,21 @@ rclc_parameter_value_copy(
     return RCL_RET_ERROR;
 }
 
-int rclc_search_parameter_index(
+rcl_ret_t
+rclc_parameter_copy(
+        rcl_interfaces__msg__Parameter* dst,
+        const rcl_interfaces__msg__Parameter* src)
+{
+    RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
+    if (!rosidl_runtime_c__String__assign(&dst->name, src->name.data))
+    {
+        return RCL_RET_ERROR;
+    }
+    return rclc_parameter_value_copy(&dst->value, &src->value);
+}
+
+rcl_interfaces__msg__Parameter* rclc_search_parameter(
         rcl_interfaces__msg__Parameter__Sequence* parameter_list,
         const char* param_name)
 {
@@ -229,11 +129,11 @@ int rclc_search_parameter_index(
     {
         if (!strcmp(param_name, parameter_list->data[i].name.data))
         {
-            return i;
+            return &parameter_list->data[i];
         }
     }
 
-    return -1;
+    return NULL;
 }
 
 #if __cplusplus
