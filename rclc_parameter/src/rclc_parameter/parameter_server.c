@@ -136,8 +136,8 @@ void rclc_parameter_server_set_service_callback(
 
     parameter__Parameter__Sequence* changed_parameters =
             (parameter__Parameter__Sequence*) &param_server->event_list->changed_parameters;
-    size_t index_changed_params[request->parameters.size];
-    size_t num_changed_params = 0;
+    size_t index_params[request->parameters.size];
+    size_t cont_changed = 0;
 
     if(request->parameters.size > response->results.capacity)
     {
@@ -192,8 +192,8 @@ void rclc_parameter_server_set_service_callback(
             else if (response->results.data[i].successful != false)
             {
                 response->results.data[i].successful = true;
-                index_changed_params[num_changed_params] = i;
-                num_changed_params++;
+                index_params[cont_changed] = i;
+                cont_changed++;
             }
         }
         else
@@ -203,16 +203,30 @@ void rclc_parameter_server_set_service_callback(
         }
     }
 
-    if (num_changed_params > 0)
+    if (cont_changed > 0)
     {
-        for (size_t j = 0; j < num_changed_params; j++)
+        const char *parameters_changed[cont_changed];
+
+        for (size_t j = 0; j < cont_changed; j++)
         {
             // TODO: add ret check
-            rclc_parameter_copy(&changed_parameters->data[j], &request->parameters.data[index_changed_params[j]]);
+            parameters_changed[j] = request->parameters.data[index_params[j]].name.data;
+            rclc_parameter_copy(&changed_parameters->data[j], &request->parameters.data[index_params[j]]);
             changed_parameters->size++;
+
+            if (param_server->set_callback[index_params[j]])
+            {
+                param_server->set_callback[index_params[j]](param_server, parameters_changed[j]);
+            }
+            
         }
         
         rclc_parameter_service_publish_event(param_server);
+
+        if (param_server->set_callback_all)
+        {
+            param_server->set_callback_all(param_server, parameters_changed, cont_changed);
+        }
     }
 }
 
@@ -238,6 +252,9 @@ rcl_ret_t rclc_parameter_server_init_default(
     
     const rosidl_message_type_support_t* event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ParameterEvent);
     ret = rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
+
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    parameter_server->set_callback = allocator.zero_allocate(parameter_number, sizeof(SetParameter_UserCallback), allocator.state);
 
     parameter_server->parameter_list = parameter__Parameter__Sequence__create(parameter_number);
 
@@ -277,6 +294,9 @@ rcl_ret_t rclc_parameter_server_fini(
     ret = rcl_service_fini(&parameter_server->get_service, node);
     ret = rcl_service_fini(&parameter_server->get_types_service, node);
     ret = rcl_publisher_fini(&parameter_server->event_publisher, node);
+    
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    allocator.deallocate(parameter_server->set_callback, allocator.state);
 
     // Free memory first, in case service fini fails?
     parameter__Parameter__Sequence__destroy(parameter_server->parameter_list);
@@ -324,6 +344,38 @@ rcl_ret_t rclc_executor_add_parameter_server(
                     parameter_server);
 
     return ret;
+}
+
+rcl_ret_t rclc_parameter_server_add_callback(
+        rcl_parameter_server_t* parameter_server,
+        const char* parameter_name,
+        SetParameter_UserCallback callback)
+{
+    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_name, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+
+    for (size_t i = 0; i <  parameter_server->parameter_list->size; i++)
+    {
+        if (!strcmp(parameter_name, parameter_server->parameter_list->data[i].name.data))
+        {
+            parameter_server->set_callback[i] = callback;
+            return RCL_RET_OK;
+        }
+    }
+
+    return RCL_RET_INVALID_ARGUMENT;
+}
+
+rcl_ret_t rclc_parameter_server_add_callback_all(
+        rcl_parameter_server_t* parameter_server,
+        SetAllParameters_UserCallback callback)
+{
+    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+
+    parameter_server->set_callback_all = callback;
+    return RCL_RET_OK;
 }
 
 rcl_ret_t rclc_add_parameter(
