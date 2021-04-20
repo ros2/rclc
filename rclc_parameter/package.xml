@@ -10,15 +10,13 @@
   
   <author email="antoniocuadros@eprosima.com">Antonio Cuadros</author>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
+  <depend>rcl</depend>
   <depend>rclc</depend>
-  <depend>rosidl_runtime_c</depend>
-  <depend>rcl_interfaces</depend>
-  
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
-
+  <depend>rcutils</depend>
+  <depend>builtin_interfaces</depend>
+   
   <export>
     <build_type>ament_cmake</build_type>
   </export>

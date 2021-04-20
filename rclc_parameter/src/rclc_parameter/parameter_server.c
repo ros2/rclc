@@ -18,7 +18,17 @@ extern "C"
 #include <string>
 #endif /* if __cplusplus */
 
-#include "rclc_parameter/parameter_server.h"
+#include "../rcl_interfaces/include/parameter_event.h"
+#include "../rcl_interfaces/include/set_parameters_result.h"
+#include "../rcl_interfaces/include/get_parameters.h"
+#include "../rcl_interfaces/include/get_parameter_types.h"
+#include "../rcl_interfaces/include/list_parameters.h"
+#include "../rcl_interfaces/include/set_parameters.h"
+
+#include "parameter_server.h"
+#include "parameter_utils.h"
+
+#include "../rcl_interfaces/include/string_utils.h"
 #include <time.h>
 
 // TODO: add prefixes functionality
@@ -27,20 +37,17 @@ void rclc_parameter_server_list_service_callback(
         void* res,
         void* parameter_server)
 {
-    //rcl_interfaces__srv__ListParameters_Request * request = (rcl_interfaces__srv__ListParameters_Request *) req;
+    //parameter__ListParameters_Request * request = (parameter__ListParameters_Request *) req;
     (void) req;
 
-    rcl_interfaces__srv__ListParameters_Response* response = (rcl_interfaces__srv__ListParameters_Response*) res;
+    parameter__ListParameters_Response* response = (parameter__ListParameters_Response*) res;
     rcl_parameter_server_t* param_server = (rcl_parameter_server_t*) parameter_server;
 
-    // Check call to rosidl_runtime_c__String__Sequence__fini
-    rosidl_runtime_c__String__Sequence__init(&response->result.names, (size_t)  param_server->param_number);
-    rosidl_runtime_c__String__Sequence__init(&response->result.prefixes, (size_t) 1);
+    response->result.names.size = param_server->parameter_list->size;
 
-    for (size_t i = 0; i < param_server->param_number; i++)
+    for (size_t i = 0; i < response->result.names.size; i++)
     {
-        rosidl_runtime_c__String__assign(&response->result.names.data[i],
-                param_server->parameter_list.data[i].name.data);
+        parameter__String__assign(&response->result.names.data[i], param_server->parameter_list->data[i].name.data);
     }
 }
 
@@ -49,21 +56,69 @@ void rclc_parameter_server_get_service_callback(
         void* res,
         void* parameter_server)
 {
-
-    rcl_interfaces__srv__GetParameters_Request* request = (rcl_interfaces__srv__GetParameters_Request*) req;
-    rcl_interfaces__srv__GetParameters_Response* response = (rcl_interfaces__srv__GetParameters_Response*) res;
+    parameter__GetParameters_Request* request = (parameter__GetParameters_Request*) req;
+    parameter__GetParameters_Response* response = (parameter__GetParameters_Response*) res;
     rcl_parameter_server_t* param_server = (rcl_parameter_server_t*) parameter_server;
 
-    rcl_interfaces__msg__ParameterValue__Sequence__init(&response->values, request->names.size);
-
-    for (size_t i = 0; i < request->names.size; i++)
+    if(request->names.size > response->values.capacity)
     {
-        rcl_interfaces__msg__Parameter* parameter = rclc_search_parameter(&param_server->parameter_list,
+        response->values.size = 0;
+        return;
+    }
+
+    response->values.size = request->names.size;
+
+    for (size_t i = 0; i < response->values.size; i++)
+    {
+        // Clear previous values
+        response->values.data[i].bool_value = false;
+        response->values.data[i].integer_value = 0;
+        response->values.data[i].double_value = 0;
+
+        parameter__Parameter* parameter = rclc_search_parameter(param_server->parameter_list,
                         request->names.data[i].data);
 
         if (parameter != NULL)
         {
             rclc_parameter_value_copy(&response->values.data[i], &parameter->value);
+        }
+        else
+        {
+            response->values.data[i].type = PARAMETER_NOT_SET;
+        }
+    }
+}
+
+void rclc_parameter_server_get_types_service_callback(
+        const void* req,
+        void* res,
+        void* parameter_server)
+{
+    parameter__GetParameterTypes_Request* request = (parameter__GetParameterTypes_Request *)  req;
+    parameter__GetParameterTypes_Response* response = (parameter__GetParameterTypes_Response *) res;
+    rcl_parameter_server_t* param_server = (rcl_parameter_server_t*) parameter_server;
+
+    // TODO: fix request overflow on executor?
+    if(request->names.size > response->types.capacity)
+    {
+        response->types.size = 0;
+        return;
+    }
+
+    response->types.size = request->names.size;
+
+    for (size_t i = 0; i < response->types.size; i++)
+    {
+        parameter__Parameter* parameter = rclc_search_parameter(param_server->parameter_list,
+                        request->names.data[i].data);
+
+        if (parameter != NULL)
+        {
+            response->types.data[i] = parameter->value.type;
+        }
+        else
+        {
+            response->types.data[i] = PARAMETER_NOT_SET;
         }
     }
 }
@@ -75,32 +130,39 @@ void rclc_parameter_server_set_service_callback(
 {
     // Check if value is equal to stored and skip?
 
-    rcl_interfaces__srv__SetParameters_Request* request = (rcl_interfaces__srv__SetParameters_Request*) req;
-    rcl_interfaces__srv__SetParameters_Response* response = (rcl_interfaces__srv__SetParameters_Response*) res;
+    parameter__SetParameters_Request* request = (parameter__SetParameters_Request*) req;
+    parameter__SetParameters_Response* response = (parameter__SetParameters_Response*) res;
     rcl_parameter_server_t* param_server = (rcl_parameter_server_t*) parameter_server;
 
-    rcl_interfaces__msg__Parameter__Sequence* changed_parameters =
-            (rcl_interfaces__msg__Parameter__Sequence*) &param_server->event_list.changed_parameters;
+    parameter__Parameter__Sequence* changed_parameters =
+            (parameter__Parameter__Sequence*) &param_server->event_list->changed_parameters;
     size_t index_changed_params[request->parameters.size];
     size_t num_changed_params = 0;
 
-    rcl_interfaces__msg__SetParametersResult__Sequence__init(&response->results, request->parameters.size);
+    if(request->parameters.size > response->results.capacity)
+    {
+        response->results.size = 0;
+        return;
+    }
 
-    for (size_t i = 0; i < request->parameters.size; i++)
+    response->results.size = request->parameters.size;
+
+    for (size_t i = 0; i < response->results.size; i++)
     {
         rosidl_runtime_c__String* message = (rosidl_runtime_c__String*) &response->results.data[i].reason.data;
-        rcl_interfaces__msg__Parameter* parameter = rclc_search_parameter(&param_server->parameter_list,
+        parameter__Parameter* parameter = rclc_search_parameter(param_server->parameter_list,
                         request->parameters.data[i].name.data);
         rcl_ret_t ret = RCL_RET_OK;
 
         if (parameter != NULL)
         {
             response->results.data[i].successful = true;
+            message->data[0] = '\0';
 
             switch (request->parameters.data[i].value.type)
             {
                 case PARAMETER_NOT_SET:
-                    rosidl_runtime_c__String__assignn(message, "Parameter type NOT SET", 25);
+                    parameter__String__assign(message, "Type NOT SET");
                     response->results.data[i].successful = false;
                     break;
 
@@ -116,21 +178,15 @@ void rclc_parameter_server_set_service_callback(
                     ret = rclc_parameter_set_value_double(parameter, request->parameters.data[i].value.double_value);
                     break;
 
-                case PARAMETER_STRING:
-                    ret =
-                            rclc_parameter_set_value_string(parameter,
-                                    request->parameters.data[i].value.string_value.data);
-                    break;
-
                 default:
-                    rosidl_runtime_c__String__assignn(message, "Parameter type not supported", 30);
+                    parameter__String__assign(message, "Type not supported");
                     response->results.data[i].successful = false;
                     break;
             }
 
             if (ret == RCL_RET_INVALID_ARGUMENT)
             {
-                rosidl_runtime_c__String__assignn(message, "Parameter type mismatch", 25);
+                parameter__String__assign(message, "Type mismatch");
                 response->results.data[i].successful = false;
             }
             else if (response->results.data[i].successful != false)
@@ -142,69 +198,69 @@ void rclc_parameter_server_set_service_callback(
         }
         else
         {
-            rosidl_runtime_c__String__assignn(message, "Parameter not found", 20);
+            parameter__String__assign(message, "Not found");
             response->results.data[i].successful = false;
         }
     }
 
     if (num_changed_params > 0)
     {
-        rcl_interfaces__msg__Parameter__Sequence__init(changed_parameters, num_changed_params);
-
         for (size_t j = 0; j < num_changed_params; j++)
         {
+            // TODO: add ret check
             rclc_parameter_copy(&changed_parameters->data[j], &request->parameters.data[index_changed_params[j]]);
+            changed_parameters->size++;
         }
-
+        
         rclc_parameter_service_publish_event(param_server);
-        rcl_interfaces__msg__Parameter__Sequence__fini(changed_parameters);
     }
 }
 
 rcl_ret_t rclc_parameter_server_init_default(
         rcl_parameter_server_t* parameter_server,
+        size_t parameter_number,
         rcl_node_t* node)
 {
     // TODO: Add ret check
     rcl_ret_t ret;
 
-    parameter_server->param_number = 0;
-    rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->parameter_list, RCLC_UXRCE_MAX_PARAMETERS);
-
-    for (size_t i = 0; i < RCLC_UXRCE_MAX_PARAMETERS; i++)
-    {
-        rosidl_runtime_c__String__init(&parameter_server->parameter_list.data[i].name);
-        parameter_server->parameter_list.data[i].value.type = PARAMETER_NOT_SET;
-    }
-
     const rosidl_service_type_support_t* get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, GetParameters);
     ret = rclc_parameter_server_init_service(&parameter_server->get_service, node, "/get_parameters", get_ts);
+
+    const rosidl_service_type_support_t* get_types_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, GetParameterTypes);
+    ret = rclc_parameter_server_init_service(&parameter_server->get_types_service, node, "/get_parameter_types", get_types_ts);
 
     const rosidl_service_type_support_t* set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, SetParameters);
     ret = rclc_parameter_server_init_service(&parameter_server->set_service, node, "/set_parameters", set_ts);
 
     const rosidl_service_type_support_t* list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, ListParameters);
     ret = rclc_parameter_server_init_service(&parameter_server->list_service, node, "/list_parameters", list_ts);
-
+    
     const rosidl_message_type_support_t* event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ParameterEvent);
-
     ret = rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
 
+    parameter_server->parameter_list = parameter__Parameter__Sequence__create(parameter_number);
+
+    // Request max size? User can ask for > parameter_number    
+    parameter_server->get_request = parameter__GetParameters_Request__create(parameter_number);
+    parameter_server->get_response = parameter__GetParameters_Response__create(parameter_number);
+
+    parameter_server->get_types_request = parameter__GetParameterTypes_Request__create(parameter_number);
+    parameter_server->get_types_response = parameter__GetParameterTypes_Response__create(parameter_number);
+
+    parameter_server->set_request = parameter__SetParameters_Request__create(parameter_number);
+    parameter_server->set_response = parameter__SetParameters_Response__create(parameter_number);
+
+    parameter_server->list_request = parameter__ListParameters_Request__create(parameter_number);
+    parameter_server->list_response = parameter__ListParameters_Response__create(parameter_number);
+
     const char* node_name = rcl_node_get_name(node);
-    rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
-    if (!rosidl_runtime_c__String__assign(&parameter_server->event_list.node, node_name))
+    parameter_server->event_list = parameter__ParameterEvent__create(parameter_number);
+
+    if (!parameter__String__assign(&parameter_server->event_list->node, node_name))
     {
         return RCL_RET_ERROR;
     }
-
-    rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
-    rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
-
-    rcl_interfaces__srv__SetParameters_Request__init(&parameter_server->set_request);
-    rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
-
-    rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
-    rcl_interfaces__srv__ListParameters_Response__init(&parameter_server->list_response);
 
     return ret;
 }
@@ -215,24 +271,29 @@ rcl_ret_t rclc_parameter_server_fini(
 {
     // TODO: Add ret check
     rcl_ret_t ret;
-    rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->parameter_list);
-    parameter_server->param_number = 0;
 
     ret = rcl_service_fini(&parameter_server->list_service, node);
     ret = rcl_service_fini(&parameter_server->set_service, node);
     ret = rcl_service_fini(&parameter_server->get_service, node);
+    ret = rcl_service_fini(&parameter_server->get_types_service, node);
     ret = rcl_publisher_fini(&parameter_server->event_publisher, node);
 
-    rcl_interfaces__msg__ParameterEvent__fini(&parameter_server->event_list);
+    // Free memory first, in case service fini fails?
+    parameter__Parameter__Sequence__destroy(parameter_server->parameter_list);
 
-    rcl_interfaces__srv__GetParameters_Request__fini(&parameter_server->get_request);
-    rcl_interfaces__srv__GetParameters_Response__fini(&parameter_server->get_response);
+    parameter__GetParameters_Request__destroy(parameter_server->get_request);
+    parameter__GetParameters_Response__destroy(parameter_server->get_response);
 
-    rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
-    rcl_interfaces__srv__SetParameters_Response__fini(&parameter_server->set_response);
+    parameter__GetParameterTypes_Request__destroy(parameter_server->get_types_request);
+    parameter__GetParameterTypes_Response__destroy(parameter_server->get_types_response);
 
-    rcl_interfaces__srv__ListParameters_Request__fini(&parameter_server->list_request);
-    rcl_interfaces__srv__ListParameters_Response__fini(&parameter_server->list_response);
+    parameter__SetParameters_Request__destroy(parameter_server->set_request);
+    parameter__SetParameters_Response__destroy(parameter_server->set_response);
+
+    parameter__ListParameters_Request__destroy(parameter_server->list_request);
+    parameter__ListParameters_Response__destroy(parameter_server->list_response);
+
+    parameter__ParameterEvent__destroy(parameter_server->event_list);
 
     return ret;
 }
@@ -245,146 +306,53 @@ rcl_ret_t rclc_executor_add_parameter_server(
     rcl_ret_t ret;
 
     ret = rclc_executor_add_service_with_context(executor, &parameter_server->list_service,
-                    &parameter_server->list_request, &parameter_server->list_response,
+                    parameter_server->list_request, parameter_server->list_response,
                     rclc_parameter_server_list_service_callback, parameter_server);
 
+    ret = rclc_executor_add_service_with_context(executor, &parameter_server->get_types_service,
+                    parameter_server->get_types_request, parameter_server->get_types_response,
+                    rclc_parameter_server_get_types_service_callback, parameter_server);
+
     ret = rclc_executor_add_service_with_context(executor, &parameter_server->set_service,
-                    &parameter_server->set_request, &parameter_server->set_response,
+                    parameter_server->set_request, parameter_server->set_response,
                     rclc_parameter_server_set_service_callback,
                     parameter_server);
 
     ret = rclc_executor_add_service_with_context(executor, &parameter_server->get_service,
-                    &parameter_server->get_request, &parameter_server->get_response,
+                    parameter_server->get_request, parameter_server->get_response,
                     rclc_parameter_server_get_service_callback,
                     parameter_server);
 
     return ret;
 }
 
-rcl_ret_t rclc_add_parameter_bool(
+rcl_ret_t rclc_add_parameter(
         rcl_parameter_server_t* parameter_server,
         const char* parameter_name,
-        bool value)
+        int type)
 {
-    if (parameter_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS)
+    size_t index = parameter_server->parameter_list->size;
+
+    if (index >= parameter_server->parameter_list->capacity ||
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name) != NULL)
+    {
+        return RCL_RET_ERROR;
+    }
+    else if (!parameter__String__assign(&parameter_server->parameter_list->data[index].name, parameter_name))
     {
         return RCL_RET_ERROR;
     }
 
-    if (!rosidl_runtime_c__String__assign(&parameter_server->parameter_list.data[parameter_server->param_number].name,
-            parameter_name))
+    parameter_server->parameter_list->data[index].value.type = type;
+    parameter_server->parameter_list->size++;
+    
+    if (rclc_parameter_copy(&parameter_server->event_list->new_parameters.data[0], &parameter_server->parameter_list->data[index]) == RCL_RET_ERROR)
     {
         return RCL_RET_ERROR;
     }
 
-    parameter_server->parameter_list.data[parameter_server->param_number].value.type = PARAMETER_BOOL;
-    parameter_server->parameter_list.data[parameter_server->param_number].value.bool_value = value;
-
-    // TODO: Add ret check
-    rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.new_parameters, 1);
-    rclc_parameter_copy(&parameter_server->event_list.new_parameters.data[0],
-            &parameter_server->parameter_list.data[parameter_server->param_number]);
-    //rclc_parameter_service_publish_event(parameter_server);
-    rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.new_parameters);
-
-    parameter_server->param_number++;
-
-    return RCL_RET_OK;
-}
-
-rcl_ret_t rclc_add_parameter_int(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        int64_t value)
-{
-    if (parameter_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name) != NULL)
-    {
-        return RCL_RET_ERROR;
-    }
-    else if (!rosidl_runtime_c__String__assign(&parameter_server->parameter_list.data[parameter_server->param_number].
-                    name,
-            parameter_name))
-    {
-        return RCL_RET_ERROR;
-    }
-
-    parameter_server->parameter_list.data[parameter_server->param_number].value.type = PARAMETER_INTEGER;
-    parameter_server->parameter_list.data[parameter_server->param_number].value.integer_value = value;
-
-    rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.new_parameters, 1);
-    rclc_parameter_copy(&parameter_server->event_list.new_parameters.data[0],
-            &parameter_server->parameter_list.data[parameter_server->param_number]);
-    //rclc_parameter_service_publish_event(parameter_server);
-    rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.new_parameters);
-
-    parameter_server->param_number++;
-
-    return RCL_RET_OK;
-}
-
-rcl_ret_t rclc_add_parameter_double(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        double value)
-{
-    if (parameter_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name) != NULL)
-    {
-        return RCL_RET_ERROR;
-    }
-    else if (!rosidl_runtime_c__String__assign(&parameter_server->parameter_list.data[parameter_server->param_number].
-                    name,
-            parameter_name))
-    {
-        return RCL_RET_ERROR;
-    }
-
-    parameter_server->parameter_list.data[parameter_server->param_number].value.type = PARAMETER_DOUBLE;
-    parameter_server->parameter_list.data[parameter_server->param_number].value.double_value = value;
-
-    rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.new_parameters, 1);
-    rclc_parameter_copy(&parameter_server->event_list.new_parameters.data[0],
-            &parameter_server->parameter_list.data[parameter_server->param_number]);
-    //rclc_parameter_service_publish_event(parameter_server);
-    rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.new_parameters);
-
-    parameter_server->param_number++;
-
-    return RCL_RET_OK;
-}
-
-rcl_ret_t rclc_add_parameter_string(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        char* value)
-{
-    if (parameter_server->param_number >= RCLC_UXRCE_MAX_PARAMETERS ||
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name) != NULL)
-    {
-        return RCL_RET_ERROR;
-    }
-    else if (!rosidl_runtime_c__String__assign(&parameter_server->parameter_list.data[parameter_server->param_number].
-                    name,
-            parameter_name))
-    {
-        return RCL_RET_ERROR;
-    }
-
-    parameter_server->parameter_list.data[parameter_server->param_number].value.type = PARAMETER_STRING;
-    rosidl_runtime_c__String__assign(
-        &parameter_server->parameter_list.data[parameter_server->param_number].value.string_value,
-        value);
-
-    rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.new_parameters, 1);
-    rclc_parameter_copy(&parameter_server->event_list.new_parameters.data[0],
-            &parameter_server->parameter_list.data[parameter_server->param_number]);
-    //rclc_parameter_service_publish_event(parameter_server);
-    rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.new_parameters);
-
-    parameter_server->param_number++;
-
-    return RCL_RET_OK;
+    parameter_server->event_list->new_parameters.size = 1;
+    return rclc_parameter_service_publish_event(parameter_server);
 }
 
 rcl_ret_t rclc_parameter_set_bool(
@@ -392,16 +360,21 @@ rcl_ret_t rclc_parameter_set_bool(
         const char* parameter_name,
         bool value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
+
+    if (parameter == NULL)
+    {
+        return RCL_RET_ERROR;
+    }
+
     rcl_ret_t ret = rclc_parameter_set_value_bool(parameter, value);
 
     if (ret == RCL_RET_OK)
     {
-        rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.changed_parameters, 1);
-        rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
+        rclc_parameter_copy(&parameter_server->event_list->changed_parameters.data[0], parameter);
+        parameter_server->event_list->changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
-        rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.changed_parameters);
     }
 
     return ret;
@@ -412,16 +385,21 @@ rcl_ret_t rclc_parameter_set_int(
         const char* parameter_name,
         int64_t value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
+
+    if (parameter == NULL)
+    {
+        return RCL_RET_ERROR;
+    }
+    
     rcl_ret_t ret = rclc_parameter_set_value_int(parameter, value);
 
     if (ret == RCL_RET_OK)
     {
-        rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.changed_parameters, 1);
-        rclc_parameter_copy(parameter_server->event_list.changed_parameters.data, parameter);
+        rclc_parameter_copy(&parameter_server->event_list->changed_parameters.data[0], parameter);
+        parameter_server->event_list->changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
-        rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.changed_parameters);
     }
 
     return ret;
@@ -432,36 +410,21 @@ rcl_ret_t rclc_parameter_set_double(
         const char* parameter_name,
         double value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
+
+    if (parameter == NULL)
+    {
+        return RCL_RET_ERROR;
+    }
+
     rcl_ret_t ret = rclc_parameter_set_value_double(parameter, value);
 
     if (ret == RCL_RET_OK)
     {
-        rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.changed_parameters, 1);
-        rclc_parameter_copy(parameter_server->event_list.changed_parameters.data, parameter);
+        rclc_parameter_copy(&parameter_server->event_list->changed_parameters.data[0], parameter);
+        parameter_server->event_list->changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
-        rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.changed_parameters);
-    }
-
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_set_string(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        char* value)
-{
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
-    rcl_ret_t ret = rclc_parameter_set_value_string(parameter, value);
-
-    if (ret == RCL_RET_OK)
-    {
-        rcl_interfaces__msg__Parameter__Sequence__init(&parameter_server->event_list.changed_parameters, 1);
-        rclc_parameter_copy(parameter_server->event_list.changed_parameters.data, parameter);
-        rclc_parameter_service_publish_event(parameter_server);
-        rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->event_list.changed_parameters);
     }
 
     return ret;
@@ -472,8 +435,8 @@ rcl_ret_t rclc_parameter_get_bool(
         const char* parameter_name,
         bool* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
     rcl_ret_t ret = RCL_RET_ERROR;
 
     if (parameter->value.type != PARAMETER_BOOL)
@@ -494,8 +457,8 @@ rcl_ret_t rclc_parameter_get_int(
         const char* parameter_name,
         int64_t* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
     rcl_ret_t ret = RCL_RET_ERROR;
 
     if (parameter->value.type != PARAMETER_INTEGER)
@@ -516,8 +479,8 @@ rcl_ret_t rclc_parameter_get_double(
         const char* parameter_name,
         double* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
+    parameter__Parameter* parameter =
+            rclc_search_parameter(parameter_server->parameter_list, parameter_name);
     rcl_ret_t ret = RCL_RET_ERROR;
 
     if (parameter->value.type != PARAMETER_DOUBLE)
@@ -533,44 +496,6 @@ rcl_ret_t rclc_parameter_get_double(
     return ret;
 }
 
-// Add max_lenght for output?
-rcl_ret_t rclc_parameter_get_string(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        char* output)
-{
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter != NULL)
-    {
-        memcpy(output, parameter->value.string_value.data,
-                parameter->value.string_value.capacity);
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
-rcl_ret_t rclc_parameter_get_string_lenght(
-        rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        size_t* output)
-{
-    rcl_interfaces__msg__Parameter* parameter =
-            rclc_search_parameter(&parameter_server->parameter_list, parameter_name);
-    rcl_ret_t ret = RCL_RET_ERROR;
-
-    if (parameter != NULL)
-    {
-        *output = parameter->value.string_value.capacity;
-        ret = RCL_RET_OK;
-    }
-
-    return ret;
-}
-
 rcl_ret_t rclc_parameter_service_publish_event(
         rcl_parameter_server_t* parameter_server)
 {
@@ -579,10 +504,12 @@ rcl_ret_t rclc_parameter_service_publish_event(
 
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    parameter_server->event_list.stamp.sec = ts.tv_sec;
-    parameter_server->event_list.stamp.nanosec = ts.tv_nsec;
+    parameter_server->event_list->stamp.sec = ts.tv_sec;
+    parameter_server->event_list->stamp.nanosec = ts.tv_nsec;
 
-    rcl_ret_t ret = rcl_publish(&parameter_server->event_publisher, &parameter_server->event_list, NULL);
+    rcl_ret_t ret = rcl_publish(&parameter_server->event_publisher, parameter_server->event_list, NULL);
+    parameter_server->event_list->new_parameters.size = 0;
+    parameter_server->event_list->changed_parameters.size = 0;
 
     return ret;
 }
@@ -596,12 +523,10 @@ rcl_ret_t rclc_parameter_server_init_service(
     const char* node_name = rcl_node_get_name(node);
     size_t getlen = strlen(node_name) + strlen(service_name) + 2;
 
-    // Need to use allocator for get_service_name?
     char get_service_name[getlen];
     memset(get_service_name, 0, getlen);
     memcpy(get_service_name, node_name, strlen(node_name) + 1);
     memcpy((get_service_name + strlen(node_name)), service_name, strlen(service_name) + 1);
-
     return rclc_service_init_default(service, node, srv_type, get_service_name);
 }
 

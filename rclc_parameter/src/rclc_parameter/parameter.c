@@ -18,10 +18,11 @@ extern "C"
 #include <string>
 #endif /* if __cplusplus */
 
-#include "rclc_parameter/parameter.h"
+#include "parameter_utils.h"
+#include "../rcl_interfaces/include/string_utils.h"
 
 rcl_ret_t rclc_parameter_set_value_bool(
-        rcl_interfaces__msg__Parameter* parameter,
+        parameter__Parameter* parameter,
         bool value)
 {
     if (parameter->value.type != PARAMETER_BOOL)
@@ -34,7 +35,7 @@ rcl_ret_t rclc_parameter_set_value_bool(
 }
 
 rcl_ret_t rclc_parameter_set_value_int(
-        rcl_interfaces__msg__Parameter* parameter,
+        parameter__Parameter* parameter,
         int64_t value)
 {
     if (parameter->value.type != PARAMETER_INTEGER)
@@ -48,7 +49,7 @@ rcl_ret_t rclc_parameter_set_value_int(
 }
 
 rcl_ret_t rclc_parameter_set_value_double(
-        rcl_interfaces__msg__Parameter* parameter,
+        parameter__Parameter* parameter,
         double value)
 {
     if (parameter->value.type != PARAMETER_DOUBLE)
@@ -61,26 +62,10 @@ rcl_ret_t rclc_parameter_set_value_double(
     return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_value_string(
-        rcl_interfaces__msg__Parameter* parameter,
-        char* value)
-{
-    if (parameter->value.type != PARAMETER_STRING)
-    {
-        return RCL_RET_INVALID_ARGUMENT;
-    }
-    else if (rosidl_runtime_c__String__assign(&parameter->value.string_value, value))
-    {
-        return RCL_RET_OK;
-    }
-
-    return RCL_RET_ERROR;
-}
-
 rcl_ret_t
 rclc_parameter_value_copy(
-        rcl_interfaces__msg__ParameterValue* dst,
-        const rcl_interfaces__msg__ParameterValue* src)
+        parameter__ParameterValue* dst,
+        const parameter__ParameterValue* src)
 {
     RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
     RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
@@ -97,11 +82,9 @@ rclc_parameter_value_copy(
         case PARAMETER_DOUBLE:
             dst->double_value = src->double_value;
             return RCL_RET_OK;
-        case PARAMETER_STRING:
-            return rosidl_runtime_c__String__assign(
-                &dst->string_value, src->string_value.data) ? RCL_RET_OK : RCL_RET_ERROR;
         case PARAMETER_NOT_SET:
         default:
+            dst->type = PARAMETER_NOT_SET;
             return RCL_RET_ERROR;
     }
     return RCL_RET_ERROR;
@@ -109,20 +92,21 @@ rclc_parameter_value_copy(
 
 rcl_ret_t
 rclc_parameter_copy(
-        rcl_interfaces__msg__Parameter* dst,
-        const rcl_interfaces__msg__Parameter* src)
+        parameter__Parameter* dst,
+        const parameter__Parameter* src)
 {
     RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
     RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
-    if (!rosidl_runtime_c__String__assign(&dst->name, src->name.data))
+    
+    if (!parameter__String__assign(&dst->name, src->name.data))
     {
         return RCL_RET_ERROR;
     }
     return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
-rcl_interfaces__msg__Parameter* rclc_search_parameter(
-        rcl_interfaces__msg__Parameter__Sequence* parameter_list,
+parameter__Parameter* rclc_search_parameter(
+        parameter__Parameter__Sequence* parameter_list,
         const char* param_name)
 {
     for (size_t i = 0; i < parameter_list->size; i++)
@@ -135,7 +119,6 @@ rcl_interfaces__msg__Parameter* rclc_search_parameter(
 
     return NULL;
 }
-
 #if __cplusplus
 }
 #endif /* if __cplusplus */

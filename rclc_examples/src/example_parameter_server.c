@@ -32,48 +32,28 @@ int main(
 
     // create service
     rcl_parameter_server_t param_server;
-    RCCHECK(rclc_parameter_server_init_default(&param_server, &node));
+    RCCHECK(rclc_parameter_server_init_default(&param_server, 4, &node));
 
     // Add parameters
-    RCCHECK(rclc_add_parameter_bool(&param_server, "test_param1", true));
-    RCCHECK(rclc_add_parameter_int(&param_server, "test_param2", 198));
-    RCCHECK(rclc_add_parameter_double(&param_server, "test_param3", 10.28));
-    RCCHECK(rclc_add_parameter_string(&param_server, "test_param4", "value"));
-
-    size_t param4_lenght;
-    RCCHECK(rclc_parameter_get_string_lenght(&param_server, "test_param4", &param4_lenght));
+    RCCHECK(rclc_add_parameter(&param_server, "test_param1", 1));
+    RCCHECK(rclc_add_parameter(&param_server, "test_param2", 2));
+    RCCHECK(rclc_add_parameter(&param_server, "test_param3", 3));
 
     bool param1;
     int64_t param2;
     double param3;
-    char param4[param4_lenght];
 
     RCCHECK(rclc_parameter_get_bool(&param_server, "test_param1", &param1));
     RCCHECK(rclc_parameter_get_int(&param_server, "test_param2", &param2));
     RCCHECK(rclc_parameter_get_double(&param_server, "test_param3", &param3));
-    RCCHECK(rclc_parameter_get_string(&param_server, "test_param4", param4));
-
-    printf("Test parameters Add\n");
-    printf("Bool parameter: %d\n", param1);
-    printf("Int parameter: %ld\n", param2);
-    printf("Double parameter: %f\n", param3);
-    printf("String parameter: %s\n\n", param4);
 
     RCCHECK(rclc_parameter_set_bool(&param_server, "test_param1", 0));
     RCCHECK(rclc_parameter_set_int(&param_server, "test_param2", -50));
     RCCHECK(rclc_parameter_set_double(&param_server, "test_param3", 0.01));
-    RCCHECK(rclc_parameter_set_string(&param_server, "test_param4", "new_test"));
 
     RCCHECK(rclc_parameter_get_bool(&param_server, "test_param1", &param1));
     RCCHECK(rclc_parameter_get_int(&param_server, "test_param2", &param2));
     RCCHECK(rclc_parameter_get_double(&param_server, "test_param3", &param3));
-    RCCHECK(rclc_parameter_get_string(&param_server, "test_param4", param4));
-
-    printf("Test parameters Set Get\n");
-    printf("Bool parameter: %d\n", param1);
-    printf("Int parameter: %ld\n", param2);
-    printf("Double parameter: %f\n", param3);
-    printf("String parameter: %s\n", param4);
 
     // Create executor
     rclc_executor_t executor;

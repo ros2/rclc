@@ -12,9 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__PARAMETER_CONFIG_H_
-#define RCL__PARAMETER_CONFIG_H_
+#ifndef RCL__PARAMETER_SERVER_H_
+#define RCL__PARAMETER_SERVER_H_
 
-#define RCLC_UXRCE_MAX_PARAMETERS @RCLC_UXRCE_MAX_PARAMETERS@
+#if __cplusplus
+extern "C"
+{
+#endif // if __cplusplus
 
-#endif  // RCL__PARAMETER_CONFIG_H_
+#include "rclc_parameter/rclc_parameter.h"
+
+rcl_ret_t rclc_parameter_server_init_service(
+        rcl_service_t* service,
+        rcl_node_t* node,
+        char* service_name,
+        const rosidl_service_type_support_t* srv_type);
+
+rcl_ret_t rclc_parameter_service_publish_event(
+        rcl_parameter_server_t* parameter_server);
+
+#if __cplusplus
+}
+#endif // if __cplusplus
+
+#endif  // RCL__PARAMETER_SERVER_H_
