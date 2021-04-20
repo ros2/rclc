@@ -29,11 +29,11 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ### ABI Stability Policy [1.v]
 
-`rclc` contains C code and therefore must be concerned with ABI stability, and will maintain ABI stability within a ROS distribution.
+`rclc` contains C code and therefore must be concerned with ABI stability and will maintain ABI stability within a ROS distribution.
 
-### ABI and ABI Stability Within a Released ROS Distribution [1.vi]
+### API and ABI Stability Within a Released ROS Distribution [1.vi]
 
-`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. Any ABI break in **rclc** will be done between minor versions and it should be clearly stated in the release notes.
+`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. 
 
 ## Change Control Process [2]
 
