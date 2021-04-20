@@ -31,9 +31,9 @@ All installed headers are in the [`include`](./include/rclc_lifecycle) directory
 
 `rclc_lifecycle` contains C code and therefore must be concerned with ABI stability, and will maintain ABI stability within a ROS distribution.
 
-### ABI and ABI Stability Within a Released ROS Distribution [1.vi]
+### API and ABI Stability Within a Released ROS Distribution [1.vi]
 
-`rclc_lifecycle` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. Any ABI break in **rclc_lifecycle** will be done between minor versions and it should be clearly stated in the release notes.
+`rclc_lifecycle` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. 
 
 ## Change Control Process [2]
 
