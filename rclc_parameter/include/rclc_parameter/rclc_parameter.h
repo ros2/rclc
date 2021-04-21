@@ -41,8 +41,7 @@ typedef struct parameter__ListParameters_Response ListParameters_Response;
 typedef struct parameter__Parameter__Sequence Parameter__Sequence;
 typedef struct parameter__ParameterEvent ParameterEvent;
 
-typedef void (* SetAllParameters_UserCallback)(void * param_server, const char ** param_names, size_t param_number);
-typedef void (* SetParameter_UserCallback)(void *param_server, const char *param_name);
+typedef void (* SetParameters_UserCallback)(void * param_server, const char ** param_names, size_t param_number);
 
 typedef struct rcl_parameter_server_t
 {
@@ -69,8 +68,7 @@ typedef struct rcl_parameter_server_t
 
     ParameterEvent *event_list;
 
-    SetAllParameters_UserCallback set_callback_all;
-    SetParameter_UserCallback *set_callback;
+    SetParameters_UserCallback set_callback;
 } rcl_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
@@ -80,12 +78,7 @@ rcl_ret_t rclc_parameter_server_init_default(
 
 rcl_ret_t rclc_parameter_server_add_callback(
         rcl_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        SetParameter_UserCallback callback);
-
-rcl_ret_t rclc_parameter_server_add_callback_all(
-        rcl_parameter_server_t* parameter_server,
-        SetAllParameters_UserCallback callback);
+        SetParameters_UserCallback callback);
 
 rcl_ret_t rclc_parameter_server_fini(
         rcl_parameter_server_t* parameter_server,

@@ -28,15 +28,6 @@ void parameter_changed(void * param_server, const char **names, size_t size)
     }
 }
 
-void parameter_2_changed(void *param_server, const char *name)
-{
-    int64_t param_value = 0;
-    if (!rclc_parameter_get_int(param_server, name, &param_value))
-    {
-        printf("Parameter %s value modified to: %ld", name, param_value);
-    }
-}
-
 int main()
 {
     rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -53,9 +44,8 @@ int main()
     rcl_parameter_server_t param_server;
     RCCHECK(rclc_parameter_server_init_default(&param_server, 4, &node));
 
-    // Add parameter change callbacks
-    RCCHECK(rclc_parameter_server_add_callback(&param_server, "test_param2", parameter_2_changed));
-    RCCHECK(rclc_parameter_server_add_callback_all(&param_server, parameter_changed));
+    // Add parameter change callback
+    RCCHECK(rclc_parameter_server_add_callback(&param_server, parameter_changed));
 
     // Add parameters
     RCCHECK(rclc_add_parameter(&param_server, "test_param1", 1));
