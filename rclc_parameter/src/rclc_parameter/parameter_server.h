@@ -29,7 +29,7 @@ rcl_ret_t rclc_parameter_server_init_service(
         const rosidl_service_type_support_t* srv_type);
 
 rcl_ret_t rclc_parameter_service_publish_event(
-        rcl_parameter_server_t* parameter_server);
+        rclc_parameter_server_t* parameter_server);
 
 #if __cplusplus
 }

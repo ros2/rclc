@@ -28,11 +28,6 @@ extern "C"
 #include "../rcl_interfaces/include/parameter.h"
 #include "../rcl_interfaces/include/parameter_value.h"
 
-#define PARAMETER_NOT_SET 0
-#define PARAMETER_BOOL 1
-#define PARAMETER_INTEGER 2
-#define PARAMETER_DOUBLE 3
-
 //RCLC_PUBLIC
 rcl_ret_t
 rclc_parameter_set_value_bool(

@@ -20,12 +20,13 @@ extern "C"
 
 #include "parameter_utils.h"
 #include "../rcl_interfaces/include/string_utils.h"
+#include <rclc_parameter/rclc_parameter.h>
 
 rcl_ret_t rclc_parameter_set_value_bool(
         parameter__Parameter* parameter,
         bool value)
 {
-    if (parameter->value.type != PARAMETER_BOOL)
+    if (parameter->value.type != RCLC_PARAMETER_BOOL)
     {
         return RCL_RET_INVALID_ARGUMENT;
     }
@@ -38,7 +39,7 @@ rcl_ret_t rclc_parameter_set_value_int(
         parameter__Parameter* parameter,
         int64_t value)
 {
-    if (parameter->value.type != PARAMETER_INTEGER)
+    if (parameter->value.type != RCLC_PARAMETER_INT)
     {
         return RCL_RET_INVALID_ARGUMENT;
     }
@@ -52,7 +53,7 @@ rcl_ret_t rclc_parameter_set_value_double(
         parameter__Parameter* parameter,
         double value)
 {
-    if (parameter->value.type != PARAMETER_DOUBLE)
+    if (parameter->value.type != RCLC_PARAMETER_DOUBLE)
     {
         return RCL_RET_INVALID_ARGUMENT;
     }
@@ -73,18 +74,18 @@ rclc_parameter_value_copy(
     dst->type = src->type;
 
     switch (src->type){
-        case PARAMETER_BOOL:
+        case RCLC_PARAMETER_BOOL:
             dst->bool_value = src->bool_value;
             return RCL_RET_OK;
-        case PARAMETER_INTEGER:
+        case RCLC_PARAMETER_INT:
             dst->integer_value = src->integer_value;
             return RCL_RET_OK;
-        case PARAMETER_DOUBLE:
+        case RCLC_PARAMETER_DOUBLE:
             dst->double_value = src->double_value;
             return RCL_RET_OK;
-        case PARAMETER_NOT_SET:
+        case RCLC_PARAMETER_NOT_SET:
         default:
-            dst->type = PARAMETER_NOT_SET;
+            dst->type = RCLC_PARAMETER_NOT_SET;
             return RCL_RET_ERROR;
     }
     return RCL_RET_ERROR;

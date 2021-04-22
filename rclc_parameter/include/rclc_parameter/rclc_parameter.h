@@ -20,6 +20,8 @@ extern "C"
 {
 #endif // if __cplusplus
 
+#include <stdarg.h>
+
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
@@ -43,7 +45,14 @@ typedef struct parameter__ParameterEvent ParameterEvent;
 
 typedef void (* SetParameters_UserCallback)(void * param_server, const char ** param_names, size_t param_number);
 
-typedef struct rcl_parameter_server_t
+typedef enum rclc_parameter_type_t {
+    RCLC_PARAMETER_NOT_SET = 0,
+    RCLC_PARAMETER_BOOL,
+    RCLC_PARAMETER_INT,
+    RCLC_PARAMETER_DOUBLE
+} rclc_parameter_type_t;
+
+typedef struct rclc_parameter_server_t
 {
     rcl_service_t get_service;
     rcl_service_t get_types_service;
@@ -69,64 +78,67 @@ typedef struct rcl_parameter_server_t
     ParameterEvent *event_list;
 
     SetParameters_UserCallback set_callback;
-} rcl_parameter_server_t;
+} rclc_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         size_t parameter_number,
         rcl_node_t* node);
 
-rcl_ret_t rclc_parameter_server_add_callback(
-        rcl_parameter_server_t* parameter_server,
-        SetParameters_UserCallback callback);
-
 rcl_ret_t rclc_parameter_server_fini(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         rcl_node_t* node);
 
 rcl_ret_t rclc_executor_add_parameter_server(
         rclc_executor_t* executor,
-        rcl_parameter_server_t* parameter_server);
+        rclc_parameter_server_t* parameter_server,
+        SetParameters_UserCallback set_callback);
 
 rcl_ret_t
 rclc_add_parameter(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
-        int tipe);
+        rclc_parameter_type_t type);
+
+rcl_ret_t
+rclc_parameter_set(
+        rclc_parameter_server_t* parameter_server,
+        const char* parameter_name,
+        ...);
 
 rcl_ret_t
 rclc_parameter_set_bool(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         bool value);
 
 rcl_ret_t
 rclc_parameter_set_int(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         int64_t value);
 
 rcl_ret_t
 rclc_parameter_set_double(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         double value);
 
 rcl_ret_t
 rclc_parameter_get_bool(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         bool* output);
 
 rcl_ret_t
 rclc_parameter_get_int(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         int64_t* output);
 
 rcl_ret_t
 rclc_parameter_get_double(
-        rcl_parameter_server_t* parameter_server,
+        rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
         double* output);
 
