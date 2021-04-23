@@ -40,6 +40,8 @@ The RCLC-Executor provides an API register subscriptions and timers as well as r
 As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor.
 Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
+The quality declaration is available in [QUALITY_DECLARATION.md](QUALITY_DECLARATION.md).
+
 ## RCLC-Executor
 Here we introduce the rclc Executor, which is a ROS 2 Executor implemented based on  and for the rcl API, for applications written in the C language.
 Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly replay test data.

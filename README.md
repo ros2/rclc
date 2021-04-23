@@ -9,6 +9,8 @@ In detail, this repository contains three packages:
 
 Technical information on the interfaces and the usage of these packages is given in the README.md files in the corresponding subfolders.
 
+The quality declarations for the packages are avaiable in QUALITY_DECLARATION.md files in the corresponding subfolders.
+
 ## Purpose of the project
 
 The software is not ready for production use. It has neither been developed nor tested for a specific use case. However, the license conditions of the applicable Open Source licenses allow you to adapt the software to your needs. Before using it in a safety relevant setting, make sure that the software fulfills your requirements and adjust it according to any applicable safety standards (e.g. ISO 26262).

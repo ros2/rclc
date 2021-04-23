@@ -29,7 +29,7 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ### ABI Stability Policy [1.v]
 
-`rclc` contains C code and therefore must be concerned with ABI stability and will maintain ABI stability within a ROS distribution.
+`rclc` contains C code and therefore must be concerned with ABI stability and will maintain ABI stability within a ROS distribution. Because an ABI-break is considered as major version change, there will be no major releases once the ROS distribution is released.
 
 ### API and ABI Stability Within a Released ROS Distribution [1.vi]
 
@@ -37,10 +37,10 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ## Change Control Process [2]
 
-The stability of **rclc** is ensured through reviews, CI and tests.
+The stability of `rclc` is ensured through reviews, CI and tests.
 The change control process can be found in [CONTRIBUTING](../CONTRIBUTING.md).
 
-All changes to **rclc** occur through pull requests that are required to pass all CI tests.
+All changes to `rclc` occur through pull requests that are required to pass all CI tests.
 In case of failure, only maintainers can merge the pull request, and only when there is enough evidence that the failure is unrelated to the change.
 Additionally, all pull requests must have at least one positive review from another contributor that did not author the pull request.
 
@@ -62,17 +62,23 @@ All pull requests must pass CI to be considered for merging, unless maintainers 
 CI testing is automatically triggered by incoming pull requests.
 Current results can be seen [../README.md](../README.md).
 
-## Documentation [3]
+###  Documentation Policy [2.v]
 
-TODO check completeness
+All pull requests must resolve related documentation changes before merging.
+
+## Documentation [3]
 
 ### Feature Documentation [3.i]
 
 `rclc` features are documented in the package [README.md](README.md) and in the header files. 
 
+### Public API Documentation [3.ii]
+
+`rclc` has embedded API documentation.
+
 ### License [3.iii]
 
-The license for **rclc** is Apache 2.0, and a summary can be found in each source file.
+The license for `rclc` is Apache 2.0, and a summary can be found in each source file.
 A full copy of the license can be found [here](../LICENSE).
 
 ### Copyright Statements [3.iv]
@@ -83,7 +89,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 ### Feature Testing [4.i]
 
-**rclc** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
+`rclc` provides tests which simulate typical usage, and they are located in the [`test` directory](test).
 New features are required to have tests before being added as stated in [CONTRIBUTING](CONTRIBUTING.md).
 Current results can be seen [../README.md](../README.md).
 
@@ -98,15 +104,19 @@ Each part of the public API has tests, and new additions or changes to the publi
 
 The coverage report is available in the [../README.md](../README.md).
 
-**rclc** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
+`rclc` checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
+
+### Coverage [4.iv]
+
+Performance tests for `rclc` have not been implemented.
 
 ### Linters and Static Analysis [4.v]
 
-**rclc** code style is enforced using [uncrustify](https://github.com/uncrustify/uncrustify).
+`rclc` code style is enforced using [uncrustify](https://github.com/uncrustify/uncrustify).
 Among the CI tests, there are tests that ensure that every pull request is compliant with the code style.
 The latest CI results can be seen [../README.md](../README.md).
 
-**rclc** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
+`rclc` uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
 
 Results of the latest linter tests can be found in the [../README.md](../README.md)
 

@@ -29,7 +29,7 @@ All installed headers are in the [`include`](./include/rclc_lifecycle) directory
 
 ### ABI Stability Policy [1.v]
 
-`rclc_lifecycle` contains C code and therefore must be concerned with ABI stability, and will maintain ABI stability within a ROS distribution.
+`rclc_lifecycle` contains C code and therefore must be concerned with ABI stability and will maintain ABI stability within a ROS distribution. Because an ABI-break is considered as major version change, there will be no major releases once the ROS distribution is released.
 
 ### API and ABI Stability Within a Released ROS Distribution [1.vi]
 
@@ -37,10 +37,10 @@ All installed headers are in the [`include`](./include/rclc_lifecycle) directory
 
 ## Change Control Process [2]
 
-The stability of **rclc_lifecycle** is ensured through reviews, CI and tests.
+The stability of `rclc_lifecycle` is ensured through reviews, CI and tests.
 The change control process can be found in [CONTRIBUTING](../CONTRIBUTING.md).
 
-All changes to **rclc_lifecycle** occur through pull requests that are required to pass all CI tests.
+All changes to `rclc_lifecycle` occur through pull requests that are required to pass all CI tests.
 In case of failure, only maintainers can merge the pull request, and only when there is enough evidence that the failure is unrelated to the change.
 Additionally, all pull requests must have at least one positive review from another contributor that did not author the pull request.
 
@@ -62,17 +62,25 @@ All pull requests must pass CI to be considered for merging, unless maintainers 
 CI testing is automatically triggered by incoming pull requests.
 Current results can be seen [../README.md](../README.md).
 
-## Documentation [3]
+###  Documentation Policy [2.v]
 
-TODO check completeness
+All pull requests must resolve related documentation changes before merging.
+
+## Documentation [3]
 
 ### Feature Documentation [3.i]
 
 `rclc_lifecycle` features are documented in the package [README.md](README.md) and in the header files. 
 
+### Public API Documentation [3.ii]
+
+`rclc_lifecycle` has embedded API documentation.
+
+New additions to the public API require documentation before being added.
+
 ### License [3.iii]
 
-The license for **rclc_lifecycle** is Apache 2.0, and a summary can be found in each source file.
+The license for `rclc_lifecycle` is Apache 2.0, and a summary can be found in each source file.
 A full copy of the license can be found [here](../LICENSE).
 
 ### Copyright Statements [3.iv]
@@ -83,7 +91,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 ### Feature Testing [4.i]
 
-**rclc_lifecycle** provides tests which simulate typical usage, and they are located in the [`test` directory](test).
+`rclc_lifecycle` provides tests which simulate typical usage, and they are located in the [`test` directory](test).
 New features are required to have tests before being added as stated in [CONTRIBUTING](CONTRIBUTING.md).
 Current results can be seen [../README.md](../README.md).
 
@@ -98,15 +106,19 @@ Each part of the public API has tests, and new additions or changes to the publi
 
 The coverage report is available in the [../README.md](../README.md).
 
-**rclc_lifecycle** checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc_lifecycle/commits).
+`rclc_lifecycle` checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc_lifecycle/commits).
+
+### Coverage [4.iv]
+
+Performance tests for `rclc_lifecycle` have not been implemented.
 
 ### Linters and Static Analysis [4.v]
 
-**rclc_lifecycle** code style is enforced using [uncrustify](https://github.com/uncrustify/uncrustify).
+`rclc_lifecycle` code style is enforced using [uncrustify](https://github.com/uncrustify/uncrustify).
 Among the CI tests, there are tests that ensure that every pull request is compliant with the code style.
 The latest CI results can be seen [../README.md](../README.md).
 
-**rclc_lifecycle** uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
+`rclc_lifecycle` uses and passes all the standard linters and static analysis tools for a C99 package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
 
 Results of the latest linter tests can be found in the [../README.md](../README.md)
 
