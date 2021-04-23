@@ -19,11 +19,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
-find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
-find_package(rclc_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(lifecycle_msgs REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(rclc_parameter REQUIRED)
 
@@ -44,9 +41,6 @@ ament_target_dependencies(example_service_node rcl rclc example_interfaces)
 add_executable(example_client_node src/example_client_node.c)
 ament_target_dependencies(example_client_node rcl rclc example_interfaces)
 
-add_executable(example_lifecycle_node src/example_lifecycle_node.c)
-ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
-
 add_executable(example_parameter_server src/example_parameter_server.c)
 ament_target_dependencies(example_parameter_server rclc rclc_parameter)
 
@@ -54,7 +48,6 @@ install(TARGETS
   example_executor
   example_executor_convenience
   example_executor_trigger
-  example_lifecycle_node
   example_service_node
   example_client_node
   example_parameter_server

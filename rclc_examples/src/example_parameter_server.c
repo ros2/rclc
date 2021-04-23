@@ -34,20 +34,18 @@ int main()
 
     // Create parameter service
     rclc_parameter_server_t param_server;
-    rclc_parameter_server_init_default(&param_server, 4, &node);
-
-    // Add parameters
-    rclc_add_parameter(&param_server, "test_param1", 1);
-    rclc_add_parameter(&param_server, "test_param2", 2);
-    rclc_add_parameter(&param_server, "test_param3", 3);
+    rclc_parameter_server_init_default(&param_server, &node);
 
     // Create executor
     rclc_executor_t executor;
-    size_t handle_number = 6;
-    rclc_executor_init(&executor, &support.context, handle_number, &allocator);
+    rclc_executor_init(&executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER, &allocator);
     rclc_executor_add_parameter_server(&executor, &param_server, parameter_changed);
 
-    // Modify parameters
+    // Add parameters
+    rclc_add_parameter(&param_server, "test_param1", RCLC_PARAMETER_BOOL);
+    rclc_add_parameter(&param_server, "test_param2", RCLC_PARAMETER_INT);
+    rclc_add_parameter(&param_server, "test_param3", RCLC_PARAMETER_DOUBLE);
+
     bool param1;
     int64_t param2;
     double param3;
@@ -57,7 +55,7 @@ int main()
     rclc_parameter_get_double(&param_server, "test_param3", &param3);
 
     rclc_parameter_set(&param_server, "test_param1", (bool) false);
-    rclc_parameter_set(&param_server, "test_param2", (int) -50);
+    rclc_parameter_set(&param_server, "test_param2", (int) 0);
     rclc_parameter_set(&param_server, "test_param3", (double) 0.01);
 
     rclc_parameter_get_bool(&param_server, "test_param1", &param1);

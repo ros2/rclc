@@ -28,6 +28,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclc REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(rcl_interfaces REQUIRED)
 
 #################################################
 # create library
@@ -35,16 +36,6 @@ find_package(builtin_interfaces REQUIRED)
 add_library(${PROJECT_NAME} SHARED
   src/rclc_parameter/parameter_server.c
   src/rclc_parameter/parameter.c
-  src/rcl_interfaces/msg/set_parameters_result__functions.c
-  src/rcl_interfaces/msg/parameter__functions.c
-  src/rcl_interfaces/msg/parameter_value__functions.c
-  src/rcl_interfaces/msg/list_parameters_result__functions.c
-  src/rcl_interfaces/msg/parameter_event__functions.c
-  src/rcl_interfaces/string/string_functions.c
-  src/rcl_interfaces/srv/get_parameters__functions.c
-  src/rcl_interfaces/srv/set_parameters__functions.c
-  src/rcl_interfaces/srv/list_parameters__functions.c
-  src/rcl_interfaces/srv/get_parameter_types__functions.c
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -60,6 +51,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclc
   rcutils
   builtin_interfaces
+  rcl_interfaces
 )
 
 #################################################

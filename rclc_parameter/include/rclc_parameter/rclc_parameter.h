@@ -28,20 +28,37 @@ extern "C"
 #include <rclc/executor.h>
 #include <rcl/types.h>
 
-typedef struct parameter__GetParameters_Request GetParameters_Request;
-typedef struct parameter__GetParameters_Response GetParameters_Response;
+#include <rcl_interfaces/msg/parameter.h>
+// #include <rcl_interfaces/msg/list_parameters_result.h>
+// #include <rcl_interfaces/msg/parameter_descriptor.h>
+#include <rcl_interfaces/msg/parameter_event.h>
+// #include <rcl_interfaces/msg/set_parameters_result.h>
+// #include <rcl_interfaces/srv/describe_parameters.h>
+#include <rcl_interfaces/srv/get_parameter_types.h>
+#include <rcl_interfaces/srv/get_parameters.h>
+#include <rcl_interfaces/srv/list_parameters.h>
+#include <rcl_interfaces/srv/set_parameters.h>
+// #include <rcl_interfaces/srv/set_parameters_atomically.h>
 
-typedef struct parameter__GetParameterTypes_Request GetParameterTypes_Request;
-typedef struct parameter__GetParameterTypes_Response GetParameterTypes_Response;
+typedef struct rcl_interfaces__srv__GetParameters_Request GetParameters_Request;
+typedef struct rcl_interfaces__srv__GetParameters_Response GetParameters_Response;
 
-typedef struct parameter__SetParameters_Request SetParameters_Request;
-typedef struct parameter__SetParameters_Response SetParameters_Response;
+typedef struct rcl_interfaces__srv__GetParameterTypes_Request GetParameterTypes_Request;
+typedef struct rcl_interfaces__srv__GetParameterTypes_Response GetParameterTypes_Response;
 
-typedef struct parameter__ListParameters_Request ListParameters_Request;
-typedef struct parameter__ListParameters_Response ListParameters_Response;
+typedef struct rcl_interfaces__srv__SetParameters_Request SetParameters_Request;
+typedef struct rcl_interfaces__srv__SetParameters_Response SetParameters_Response;
+typedef struct rcl_interfaces__msg__SetParametersResult SetParameters_Result;
 
-typedef struct parameter__Parameter__Sequence Parameter__Sequence;
-typedef struct parameter__ParameterEvent ParameterEvent;
+typedef struct rcl_interfaces__srv__ListParameters_Request ListParameters_Request;
+typedef struct rcl_interfaces__srv__ListParameters_Response ListParameters_Response;
+
+typedef struct rcl_interfaces__msg__Parameter Parameter;
+typedef struct rcl_interfaces__msg__ParameterValue ParameterValue;
+typedef struct rcl_interfaces__msg__Parameter__Sequence Parameter__Sequence;
+typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
+
+#define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 6
 
 typedef void (* SetParameters_UserCallback)(void * param_server, const char ** param_names, size_t param_number);
 
@@ -61,28 +78,27 @@ typedef struct rclc_parameter_server_t
 
     rcl_publisher_t event_publisher;
 
-    GetParameters_Request *get_request;
-    GetParameters_Response* get_response;
+    GetParameters_Request get_request;
+    GetParameters_Response get_response;
 
-    GetParameterTypes_Request *get_types_request;
-    GetParameterTypes_Response *get_types_response;
+    GetParameterTypes_Request get_types_request;
+    GetParameterTypes_Response get_types_response;
 
-    SetParameters_Request *set_request;
-    SetParameters_Response *set_response;
+    SetParameters_Request set_request;
+    SetParameters_Response set_response;
 
-    ListParameters_Request *list_request;
-    ListParameters_Response *list_response;
+    ListParameters_Request list_request;
+    ListParameters_Response list_response;
 
-    Parameter__Sequence * parameter_list;
+    Parameter__Sequence parameter_list;
 
-    ParameterEvent *event_list;
+    ParameterEvent event_list;
 
     SetParameters_UserCallback set_callback;
 } rclc_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
         rclc_parameter_server_t* parameter_server,
-        size_t parameter_number,
         rcl_node_t* node);
 
 rcl_ret_t rclc_parameter_server_fini(

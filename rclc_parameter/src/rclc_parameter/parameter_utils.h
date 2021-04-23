@@ -20,48 +20,44 @@ extern "C"
 {
 #endif // if __cplusplus
 
-//#include <rclc/visibility_control.h>
 #include <rcl/error_handling.h>
+#include <rcl_interfaces/msg/parameter.h>
 
 #include "rcl/types.h"
+#include <rclc_parameter/rclc_parameter.h>
 
-#include "../rcl_interfaces/include/parameter.h"
-#include "../rcl_interfaces/include/parameter_value.h"
-
-//RCLC_PUBLIC
 rcl_ret_t
 rclc_parameter_set_value_bool(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         bool value);
 
-//RCLC_PUBLIC
 rcl_ret_t
 rclc_parameter_set_value_int(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         int64_t value);
 
-//RCLC_PUBLIC
 rcl_ret_t
 rclc_parameter_set_value_double(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         double value);
 
-//RCLC_PUBLIC
-rcl_ret_t
-rclc_parameter_copy(
-        parameter__Parameter* dst,
-        const parameter__Parameter* src);
-
-//RCLC_PUBLIC
 rcl_ret_t
 rclc_parameter_value_copy(
-        parameter__ParameterValue* dst,
-        const parameter__ParameterValue* src);
+        ParameterValue* dst,
+        const ParameterValue* src);
 
-//RCLC_PUBLIC
-parameter__Parameter* rclc_search_parameter(
-        parameter__Parameter__Sequence* parameter_list,
+rcl_ret_t
+rclc_parameter_copy(
+        Parameter* dst,
+        const Parameter* src);
+
+Parameter* rclc_parameter_search(
+        Parameter__Sequence* parameter_list,
         const char* param_name);
+
+bool rclc_parameter_set_string(
+        rosidl_runtime_c__String* string,
+        const char* value);
 
 #if __cplusplus
 }

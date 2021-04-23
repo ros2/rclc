@@ -15,15 +15,15 @@
 #if __cplusplus
 extern "C"
 {
-#include <string>
 #endif /* if __cplusplus */
 
+#include <string.h>
+
 #include "parameter_utils.h"
-#include "../rcl_interfaces/include/string_utils.h"
 #include <rclc_parameter/rclc_parameter.h>
 
 rcl_ret_t rclc_parameter_set_value_bool(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         bool value)
 {
     if (parameter->value.type != RCLC_PARAMETER_BOOL)
@@ -36,7 +36,7 @@ rcl_ret_t rclc_parameter_set_value_bool(
 }
 
 rcl_ret_t rclc_parameter_set_value_int(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         int64_t value)
 {
     if (parameter->value.type != RCLC_PARAMETER_INT)
@@ -50,7 +50,7 @@ rcl_ret_t rclc_parameter_set_value_int(
 }
 
 rcl_ret_t rclc_parameter_set_value_double(
-        parameter__Parameter* parameter,
+        Parameter* parameter,
         double value)
 {
     if (parameter->value.type != RCLC_PARAMETER_DOUBLE)
@@ -65,8 +65,8 @@ rcl_ret_t rclc_parameter_set_value_double(
 
 rcl_ret_t
 rclc_parameter_value_copy(
-        parameter__ParameterValue* dst,
-        const parameter__ParameterValue* src)
+        ParameterValue* dst,
+        const ParameterValue* src)
 {
     RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
     RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
@@ -93,21 +93,18 @@ rclc_parameter_value_copy(
 
 rcl_ret_t
 rclc_parameter_copy(
-        parameter__Parameter* dst,
-        const parameter__Parameter* src)
+        Parameter* dst,
+        const Parameter* src)
 {
     RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
     RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
     
-    if (!parameter__String__assign(&dst->name, src->name.data))
-    {
-        return RCL_RET_ERROR;
-    }
+    rclc_parameter_set_string(&dst->name, src->name.data);
     return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
-parameter__Parameter* rclc_search_parameter(
-        parameter__Parameter__Sequence* parameter_list,
+Parameter* rclc_parameter_search(
+        Parameter__Sequence* parameter_list,
         const char* param_name)
 {
     for (size_t i = 0; i < parameter_list->size; i++)
@@ -120,6 +117,23 @@ parameter__Parameter* rclc_search_parameter(
 
     return NULL;
 }
+
+bool rclc_parameter_set_string(
+        rosidl_runtime_c__String* string,
+        const char* value)
+{
+    uint32_t len = strlen(value);
+    if (string->capacity >= len)
+    {
+        memcpy(string->data, value, len);
+        string->size = len;
+        return true;
+    }
+    string->size = 0;
+    return false;
+}
+        
+
 #if __cplusplus
 }
 #endif /* if __cplusplus */
