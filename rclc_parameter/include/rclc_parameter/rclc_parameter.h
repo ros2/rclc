@@ -29,16 +29,11 @@ extern "C"
 #include <rcl/types.h>
 
 #include <rcl_interfaces/msg/parameter.h>
-// #include <rcl_interfaces/msg/list_parameters_result.h>
-// #include <rcl_interfaces/msg/parameter_descriptor.h>
 #include <rcl_interfaces/msg/parameter_event.h>
-// #include <rcl_interfaces/msg/set_parameters_result.h>
-// #include <rcl_interfaces/srv/describe_parameters.h>
 #include <rcl_interfaces/srv/get_parameter_types.h>
 #include <rcl_interfaces/srv/get_parameters.h>
 #include <rcl_interfaces/srv/list_parameters.h>
 #include <rcl_interfaces/srv/set_parameters.h>
-// #include <rcl_interfaces/srv/set_parameters_atomically.h>
 
 typedef struct rcl_interfaces__srv__GetParameters_Request GetParameters_Request;
 typedef struct rcl_interfaces__srv__GetParameters_Response GetParameters_Response;
@@ -60,7 +55,7 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 #define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 6
 
-typedef void (* SetParameters_UserCallback)(void * param_server, const char ** param_names, size_t param_number);
+typedef void (* ModifiedParameter_Callback)(Parameter * param);
 
 typedef enum rclc_parameter_type_t {
     RCLC_PARAMETER_NOT_SET = 0,
@@ -94,7 +89,7 @@ typedef struct rclc_parameter_server_t
 
     ParameterEvent event_list;
 
-    SetParameters_UserCallback set_callback;
+    ModifiedParameter_Callback on_modification;
 } rclc_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
@@ -108,7 +103,7 @@ rcl_ret_t rclc_parameter_server_fini(
 rcl_ret_t rclc_executor_add_parameter_server(
         rclc_executor_t* executor,
         rclc_parameter_server_t* parameter_server,
-        SetParameters_UserCallback set_callback);
+        ModifiedParameter_Callback on_modification);
 
 rcl_ret_t
 rclc_add_parameter(

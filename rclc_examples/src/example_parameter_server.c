@@ -8,15 +8,24 @@
 
 #include <rclc_parameter/rclc_parameter.h>
 
-void parameter_changed(void * param_server, const char **names, size_t size)
+void parameter_changed(Parameter * param)
 {
-    (void) param_server;
-
-    printf("%ld Parameters modified: ", size);
-    for (size_t i = 0; i < size; i++)
+    printf("Parameter %s modified.", param->name.data);
+    switch (param->value.type)
     {
-        printf("%s\n", names[i]);
+    case RCLC_PARAMETER_BOOL:
+        printf(" New value (bool) %d", param->value.bool_value);
+        break;
+    case RCLC_PARAMETER_INT:
+        printf(" New value (int) %ld", param->value.integer_value);
+        break;
+    case RCLC_PARAMETER_DOUBLE:
+        printf(" New value (double) %f", param->value.double_value);
+        break;
+    default:
+        break;
     }
+    printf("\n");
 }
 
 int main()
@@ -55,7 +64,7 @@ int main()
     rclc_parameter_get_double(&param_server, "test_param3", &param3);
 
     rclc_parameter_set(&param_server, "test_param1", (bool) false);
-    rclc_parameter_set(&param_server, "test_param2", (int) 0);
+    rclc_parameter_set(&param_server, "test_param2", (int) 10);
     rclc_parameter_set(&param_server, "test_param3", (double) 0.01);
 
     rclc_parameter_get_bool(&param_server, "test_param1", &param1);

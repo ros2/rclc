@@ -381,14 +381,14 @@ rcl_ret_t rclc_parameter_server_fini(
 rcl_ret_t rclc_executor_add_parameter_server(
         rclc_executor_t* executor,
         rclc_parameter_server_t* parameter_server,
-        SetParameters_UserCallback set_callback)
+        ModifiedParameter_Callback on_modification)
 {
     rcl_ret_t ret;
 
     RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
-    RCL_CHECK_ARGUMENT_FOR_NULL(set_callback, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(on_modification, RCL_RET_INVALID_ARGUMENT);
 
-    parameter_server->set_callback = set_callback;
+    parameter_server->on_modification = on_modification;
 
     ret = rclc_executor_add_service_with_context(executor, &parameter_server->list_service,
                     &parameter_server->list_request, &parameter_server->list_response,
@@ -485,9 +485,9 @@ rclc_parameter_set(
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
 
-        if (parameter_server->set_callback)
+        if (parameter_server->on_modification)
         {
-            parameter_server->set_callback(parameter_server, &parameter_name, 1);
+            parameter_server->on_modification(parameter);
         }
     }
 
@@ -515,9 +515,9 @@ rcl_ret_t rclc_parameter_set_bool(
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
 
-        if (parameter_server->set_callback)
+        if (parameter_server->on_modification)
         {
-            parameter_server->set_callback(parameter_server, &parameter_name, 1);
+            parameter_server->on_modification(parameter);
         }
     }
 
@@ -545,9 +545,9 @@ rcl_ret_t rclc_parameter_set_int(
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
 
-        if (parameter_server->set_callback)
+        if (parameter_server->on_modification)
         {
-            parameter_server->set_callback(parameter_server, &parameter_name, 1);
+            parameter_server->on_modification(parameter);
         }
     }
 
@@ -575,9 +575,9 @@ rcl_ret_t rclc_parameter_set_double(
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
         
-        if (parameter_server->set_callback)
+        if (parameter_server->on_modification)
         {
-            parameter_server->set_callback(parameter_server, &parameter_name, 1);
+            parameter_server->on_modification(parameter);
         }
     }
 
