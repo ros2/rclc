@@ -584,6 +584,52 @@ rcl_ret_t rclc_parameter_set_double(
     return ret;
 }
 
+rcl_ret_t
+rclc_parameter_get(
+        rclc_parameter_server_t* parameter_server,
+        const char* parameter_name,
+        void * value)
+{
+    rcl_ret_t ret = RCL_RET_OK;
+
+    rcl_interfaces__msg__Parameter* parameter =
+        rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
+
+    if (parameter == NULL)
+    {
+        return RCL_RET_ERROR;
+    }
+
+    switch (parameter->value.type)
+    {
+        case RCLC_PARAMETER_NOT_SET:
+            ret = RCL_RET_INVALID_ARGUMENT;
+            break;
+        case RCLC_PARAMETER_BOOL:
+            {
+                bool* aux = (bool*) value;
+                *aux = parameter->value.bool_value;
+            }
+            break;
+        case RCLC_PARAMETER_INT:
+            { 
+               int* aux = (int*) value;
+                *aux = (int) parameter->value.integer_value;
+            }
+            break;
+        case RCLC_PARAMETER_DOUBLE:
+            {
+                double* aux = (double*) value;
+                *aux = parameter->value.double_value;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+}
+
 rcl_ret_t rclc_parameter_get_bool(
         rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
@@ -613,7 +659,7 @@ rcl_ret_t rclc_parameter_get_bool(
 rcl_ret_t rclc_parameter_get_int(
         rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
-        int64_t* output)
+        int* output)
 {
     rcl_interfaces__msg__Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);

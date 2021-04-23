@@ -136,6 +136,12 @@ rclc_parameter_set_double(
         double value);
 
 rcl_ret_t
+rclc_parameter_get(
+        rclc_parameter_server_t* parameter_server,
+        const char* parameter_name,
+        void * value);
+
+rcl_ret_t
 rclc_parameter_get_bool(
         rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
@@ -145,7 +151,7 @@ rcl_ret_t
 rclc_parameter_get_int(
         rclc_parameter_server_t* parameter_server,
         const char* parameter_name,
-        int64_t* output);
+        int* output);
 
 rcl_ret_t
 rclc_parameter_get_double(

@@ -8,7 +8,20 @@
 
 #include <rclc_parameter/rclc_parameter.h>
 
-void parameter_changed(Parameter * param)
+rclc_parameter_server_t param_server;
+
+void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+{
+    (void) timer;
+    (void) last_call_time;
+
+	int value;
+    rclc_parameter_get(&param_server, "param2", &value);
+    value++;
+    rclc_parameter_set(&param_server, "param2", (int) value);
+}
+
+void on_parameter_changed(Parameter * param)
 {
     printf("Parameter %s modified.", param->name.data);
     switch (param->value.type)
@@ -39,37 +52,52 @@ int main()
 
     // Create node
     rcl_node_t node;
-    rclc_node_init_default(&node, "param_test", "", &support);
+    rclc_node_init_default(&node, "demo_param_node", "", &support);
 
     // Create parameter service
-    rclc_parameter_server_t param_server;
     rclc_parameter_server_init_default(&param_server, &node);
+
+    // create timer,
+	rcl_timer_t timer;
+	rclc_timer_init_default(
+		&timer,
+		&support,
+		RCL_MS_TO_NS(1000),
+		timer_callback);
 
     // Create executor
     rclc_executor_t executor;
-    rclc_executor_init(&executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER, &allocator);
-    rclc_executor_add_parameter_server(&executor, &param_server, parameter_changed);
+    rclc_executor_init(&executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER + 1, &allocator);
+    rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed);
+	rclc_executor_add_timer(&executor, &timer);
 
     // Add parameters
-    rclc_add_parameter(&param_server, "test_param1", RCLC_PARAMETER_BOOL);
-    rclc_add_parameter(&param_server, "test_param2", RCLC_PARAMETER_INT);
-    rclc_add_parameter(&param_server, "test_param3", RCLC_PARAMETER_DOUBLE);
+    // TODO: maybe we can add a param to set if notifications are enabled to save XRCE-DDS bandwitdh
+    rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_BOOL);
+    rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT);
+    rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE);
 
     bool param1;
-    int64_t param2;
+    int param2;
     double param3;
 
-    rclc_parameter_get_bool(&param_server, "test_param1", &param1);
-    rclc_parameter_get_int(&param_server, "test_param2", &param2);
-    rclc_parameter_get_double(&param_server, "test_param3", &param3);
+    // TODO: We need to choose between this API:
+    rclc_parameter_set(&param_server, "param1", (bool) false);
+    rclc_parameter_set(&param_server, "param2", (int) 10);
+    rclc_parameter_set(&param_server, "param3", (double) 0.01);
 
-    rclc_parameter_set(&param_server, "test_param1", (bool) false);
-    rclc_parameter_set(&param_server, "test_param2", (int) 10);
-    rclc_parameter_set(&param_server, "test_param3", (double) 0.01);
+    rclc_parameter_get(&param_server, "param1", &param1);
+    rclc_parameter_get(&param_server, "param2", &param2);
+    rclc_parameter_get(&param_server, "param3", &param3);
 
-    rclc_parameter_get_bool(&param_server, "test_param1", &param1);
-    rclc_parameter_get_int(&param_server, "test_param2", &param2);
-    rclc_parameter_get_double(&param_server, "test_param3", &param3);
+    // Or this API
+    rclc_parameter_set_bool(&param_server, "param1", false);
+    rclc_parameter_set_int(&param_server, "param2", 10);
+    rclc_parameter_set_double(&param_server, "param3", 0.01);
+
+    rclc_parameter_get_bool(&param_server, "param1", &param1);
+    rclc_parameter_get_int(&param_server, "param2", &param2);
+    rclc_parameter_get_double(&param_server, "param3", &param3);
 
     rclc_executor_spin(&executor);
 
