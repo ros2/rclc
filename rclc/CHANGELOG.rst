@@ -2,6 +2,11 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.0 (2021-04-23)
+------------------
+* added codecov support
+* new API of rcl_lifecycle in Rolling required major version bump
+
 1.0.1 (2021-03-29)
 ------------------
 * Windows port
