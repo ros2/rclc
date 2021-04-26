@@ -38,7 +38,7 @@ jobs:
     - uses : ros-tooling/action-ros-ci@0.1.0
       with:
         package-name: "rclc rclc_examples rclc_lifecycle"
-        vcs-repo-file-url: dependencies.repos
+        vcs-repo-file-url: ""
         target-ros2-distro: ${{ matrix.ros_distribution }}
         colcon-mixin-name: coverage-gcc
         colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
