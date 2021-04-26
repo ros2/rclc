@@ -194,11 +194,20 @@ void rclc_parameter_server_set_service_callback(
     }
 }
 
-microros_sm_create_memory(rclc_parameter_static_pool, rclc_parameter_static_memory_pool_t, 1, true)
-
 rcl_ret_t rclc_parameter_server_init_default(
         rclc_parameter_server_t* parameter_server,
         rcl_node_t* node)
+{
+    rclc_parameter_options_t opts = {.notify_changed_over_dds = true};
+    return rclc_parameter_server_init_with_option(parameter_server, node, &opts);
+}
+
+microros_sm_create_memory(rclc_parameter_static_pool, rclc_parameter_static_memory_pool_t, 1, true)
+
+rcl_ret_t rclc_parameter_server_init_with_option(
+        rclc_parameter_server_t* parameter_server,
+        rcl_node_t* node,
+        rclc_parameter_options_t * options)
 {
     RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
     RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
@@ -217,8 +226,12 @@ rcl_ret_t rclc_parameter_server_init_default(
     const rosidl_service_type_support_t* list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, ListParameters);
     ret &= rclc_parameter_server_init_service(&parameter_server->list_service, node, "/list_parameters", list_ts);
     
-    const rosidl_message_type_support_t* event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ParameterEvent);
-    ret &= rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
+    parameter_server->notify_changed_over_dds = options->notify_changed_over_dds;
+    if (parameter_server->notify_changed_over_dds)
+    {
+        const rosidl_message_type_support_t* event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ParameterEvent);
+        ret &= rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
+    }
 
     // Init rclc_parameter static memory pools
     if (!microros_sm_is_init(rclc_parameter_static_pool))
@@ -368,8 +381,12 @@ rcl_ret_t rclc_parameter_server_fini(
     ret &= rcl_service_fini(&parameter_server->set_service, node);
     ret &= rcl_service_fini(&parameter_server->get_service, node);
     ret &= rcl_service_fini(&parameter_server->get_types_service, node);
-    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
-
+    
+    if (parameter_server->notify_changed_over_dds)
+    {
+       ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
+    }
+    
     microros_sm_put_memory(rclc_parameter_static_pool, parameter_server->static_pool);
 
     return ret;
@@ -428,12 +445,16 @@ rcl_ret_t rclc_add_parameter(
     parameter_server->parameter_list.data[index].value.type = type;
     parameter_server->parameter_list.size++;
 
-    rclc_parameter_prepare_parameter_event(
-        &parameter_server->event_list, 
-        &parameter_server->parameter_list.data[index],
-        true);
+    if (parameter_server->notify_changed_over_dds)
+    {
+        rclc_parameter_prepare_parameter_event(
+            &parameter_server->event_list, 
+            &parameter_server->parameter_list.data[index],
+            true);
+        return rclc_parameter_service_publish_event(parameter_server);
+    }
 
-    return rclc_parameter_service_publish_event(parameter_server);
+    return true;
 }
 
 rcl_ret_t
@@ -477,8 +498,11 @@ rclc_parameter_set(
 
     if (ret == RCL_RET_OK)
     {
-        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-        rclc_parameter_service_publish_event(parameter_server);
+        if (parameter_server->notify_changed_over_dds)
+        {
+            rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+            rclc_parameter_service_publish_event(parameter_server);
+        }
 
         if (parameter_server->on_modification)
         {
@@ -510,8 +534,11 @@ rcl_ret_t rclc_parameter_set_bool(
     {
         parameter->value.bool_value = value;
 
-        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-        rclc_parameter_service_publish_event(parameter_server);
+        if (parameter_server->notify_changed_over_dds)
+        {
+            rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+            rclc_parameter_service_publish_event(parameter_server);
+        }
 
         if (parameter_server->on_modification)
         {
@@ -543,8 +570,11 @@ rcl_ret_t rclc_parameter_set_int(
     {
         parameter->value.integer_value = value;
 
-        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-        rclc_parameter_service_publish_event(parameter_server);
+        if (parameter_server->notify_changed_over_dds)
+        {
+            rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+            rclc_parameter_service_publish_event(parameter_server);
+        }
 
         if (parameter_server->on_modification)
         {
@@ -576,8 +606,11 @@ rcl_ret_t rclc_parameter_set_double(
     {
         parameter->value.double_value = value;
 
-        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-        rclc_parameter_service_publish_event(parameter_server);
+        if (parameter_server->notify_changed_over_dds)
+        {
+            rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+            rclc_parameter_service_publish_event(parameter_server);
+        }
         
         if (parameter_server->on_modification)
         {

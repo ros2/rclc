@@ -85,6 +85,10 @@ typedef struct rclc_parameter_static_memory_pool_t {
     char event_list_node_data[RCLC_PARAMETER_MAX_STRING_LEN];
 } rclc_parameter_static_memory_pool_t;
 
+typedef struct rclc_parameter_options_t {
+    bool notify_changed_over_dds;
+} rclc_parameter_options_t;
+
 typedef struct rclc_parameter_server_t
 {
     rcl_service_t get_service;
@@ -113,11 +117,18 @@ typedef struct rclc_parameter_server_t
     ParameterEvent event_list;
 
     ModifiedParameter_Callback on_modification;
+    
+    bool notify_changed_over_dds;
 } rclc_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
         rclc_parameter_server_t* parameter_server,
         rcl_node_t* node);
+
+rcl_ret_t rclc_parameter_server_init_with_option(
+        rclc_parameter_server_t* parameter_server,
+        rcl_node_t* node,
+        rclc_parameter_options_t * options);
 
 rcl_ret_t rclc_parameter_server_fini(
         rclc_parameter_server_t* parameter_server,
