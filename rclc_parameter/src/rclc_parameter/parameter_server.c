@@ -21,6 +21,7 @@ extern "C"
 
 #include "parameter_server.h"
 #include "parameter_utils.h"
+#include "microros_static_memory_manager.h"
 
 #include <time.h>
 
@@ -193,7 +194,7 @@ void rclc_parameter_server_set_service_callback(
     }
 }
 
-static rclc_parameter_static_memory_pool_t rclc_parameter_static_memory_pool = {0};
+microros_sm_create_memory(rclc_parameter_static_pool, rclc_parameter_static_memory_pool_t, 1, true)
 
 rcl_ret_t rclc_parameter_server_init_default(
         rclc_parameter_server_t* parameter_server,
@@ -220,7 +221,13 @@ rcl_ret_t rclc_parameter_server_init_default(
     ret &= rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
 
     // Init rclc_parameter static memory pools
+    if (!microros_sm_is_init(rclc_parameter_static_pool))
+    {
+        microros_sm_init_memory(rclc_parameter_static_pool);
+    }
 
+    parameter_server->static_pool = microros_sm_get_memory(rclc_parameter_static_pool);
+    
     // Set all memebers to zero
     memset(&parameter_server->get_request, 0, sizeof(GetParameters_Request));
     memset(&parameter_server->get_response, 0, sizeof(GetParameters_Response));
@@ -237,105 +244,105 @@ rcl_ret_t rclc_parameter_server_init_default(
     memset(&parameter_server->event_list, 0, sizeof(ParameterEvent));
 
     // Init parameter_server->parameter_list
-    parameter_server->parameter_list.data = rclc_parameter_static_memory_pool.parameter_list;
+    parameter_server->parameter_list.data = parameter_server->static_pool->parameter_list;
     parameter_server->parameter_list.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->parameter_list.size = 0;
     
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->parameter_list.data[i].name.data = rclc_parameter_static_memory_pool.parameter_list_names[i];
+        parameter_server->parameter_list.data[i].name.data = parameter_server->static_pool->parameter_list_names[i];
         parameter_server->parameter_list.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->parameter_list.data[i].name.size = 0;
     }
     
     // Init parameter_server->get_request
-    parameter_server->get_request.names.data = rclc_parameter_static_memory_pool.get_request_names;
+    parameter_server->get_request.names.data = parameter_server->static_pool->get_request_names;
     parameter_server->get_request.names.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->get_request.names.size = 0;
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->get_request.names.data[i].data = rclc_parameter_static_memory_pool.get_request_names_data[i];
+        parameter_server->get_request.names.data[i].data = parameter_server->static_pool->get_request_names_data[i];
         parameter_server->get_request.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->get_request.names.data[i].size = 0;
     }
     
     // Init parameter_server->get_response
-    parameter_server->get_response.values.data = rclc_parameter_static_memory_pool.get_response_values;
+    parameter_server->get_response.values.data = parameter_server->static_pool->get_response_values;
     parameter_server->get_response.values.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->get_response.values.size = 0;
 
     // Init parameter_server->get_types_request
-    parameter_server->get_types_request.names.data = rclc_parameter_static_memory_pool.get_types_request_names;
+    parameter_server->get_types_request.names.data = parameter_server->static_pool->get_types_request_names;
     parameter_server->get_types_request.names.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->get_types_request.names.size = 0;
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->get_types_request.names.data[i].data = rclc_parameter_static_memory_pool.get_type_request_names_data[i];
+        parameter_server->get_types_request.names.data[i].data = parameter_server->static_pool->get_type_request_names_data[i];
         parameter_server->get_types_request.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->get_types_request.names.data[i].size = 0;
     }
 
     // Init parameter_server->get_types_response
-    parameter_server->get_types_response.types.data = rclc_parameter_static_memory_pool.get_types_request_types;
+    parameter_server->get_types_response.types.data = parameter_server->static_pool->get_types_request_types;
     parameter_server->get_types_response.types.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->get_types_response.types.size = 0;
 
     // Init parameter_server->set_request
-    parameter_server->set_request.parameters.data = rclc_parameter_static_memory_pool.set_request_parameters;
+    parameter_server->set_request.parameters.data = parameter_server->static_pool->set_request_parameters;
     parameter_server->set_request.parameters.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->set_request.parameters.size = 0;
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->set_request.parameters.data[i].name.data = rclc_parameter_static_memory_pool.set_request_parameters_name_data[i];
+        parameter_server->set_request.parameters.data[i].name.data = parameter_server->static_pool->set_request_parameters_name_data[i];
         parameter_server->set_request.parameters.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->set_request.parameters.data[i].name.size = 0;
     }
 
     // Init parameter_server->set_response
-    parameter_server->set_response.results.data = rclc_parameter_static_memory_pool.set_parameter_result;
+    parameter_server->set_response.results.data = parameter_server->static_pool->set_parameter_result;
     parameter_server->set_response.results.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->set_response.results.size = 0;
     
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->set_response.results.data[i].reason.data = rclc_parameter_static_memory_pool.set_parameter_result_reason_data[i];
+        parameter_server->set_response.results.data[i].reason.data = parameter_server->static_pool->set_parameter_result_reason_data[i];
         parameter_server->set_response.results.data[i].reason.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->set_response.results.data[i].reason.size = 0;
     }
 
     // Init parameter_server->list_response
-    parameter_server->list_response.result.names.data = rclc_parameter_static_memory_pool.list_response_names;
+    parameter_server->list_response.result.names.data = parameter_server->static_pool->list_response_names;
     parameter_server->list_response.result.names.capacity = RCLC_PARAMETER_MAX_PARAM;
     parameter_server->list_response.result.names.size = 0;
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->list_response.result.names.data[i].data = rclc_parameter_static_memory_pool.list_response_names_data[i];
+        parameter_server->list_response.result.names.data[i].data = parameter_server->static_pool->list_response_names_data[i];
         parameter_server->list_response.result.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
         parameter_server->list_response.result.names.data[i].size = 0;
     }
 
     // Init parameter_server->new_parameters
-    parameter_server->event_list.new_parameters.data = &rclc_parameter_static_memory_pool.event_list_new_parameters;
+    parameter_server->event_list.new_parameters.data = &parameter_server->static_pool->event_list_new_parameters;
     parameter_server->event_list.new_parameters.capacity = 1;
     parameter_server->event_list.new_parameters.size = 0;
     
-    parameter_server->event_list.changed_parameters.data = &rclc_parameter_static_memory_pool.event_list_changed_parameters;
+    parameter_server->event_list.changed_parameters.data = &parameter_server->static_pool->event_list_changed_parameters;
     parameter_server->event_list.changed_parameters.capacity = 1;
     parameter_server->event_list.changed_parameters.size = 0;
 
-    parameter_server->event_list.new_parameters.data[0].name.data = rclc_parameter_static_memory_pool.event_list_new_parameters_name_data;
+    parameter_server->event_list.new_parameters.data[0].name.data = parameter_server->static_pool->event_list_new_parameters_name_data;
     parameter_server->event_list.new_parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
     parameter_server->event_list.new_parameters.data[0].name.size = 0;
 
-    parameter_server->event_list.changed_parameters.data[0].name.data = rclc_parameter_static_memory_pool.event_list_changed_parameters_name_data;
+    parameter_server->event_list.changed_parameters.data[0].name.data = parameter_server->static_pool->event_list_changed_parameters_name_data;
     parameter_server->event_list.changed_parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
     parameter_server->event_list.changed_parameters.data[0].name.size = 0;
     
-    parameter_server->event_list.node.data = rclc_parameter_static_memory_pool.event_list_node_data;
+    parameter_server->event_list.node.data = parameter_server->static_pool->event_list_node_data;
     parameter_server->event_list.node.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
     parameter_server->event_list.node.size = 0;
     

@@ -64,6 +64,31 @@ typedef enum rclc_parameter_type_t {
     RCLC_PARAMETER_DOUBLE
 } rclc_parameter_type_t;
 
+#define RCLC_PARAMETER_MAX_STRING_LEN 30
+#define RCLC_PARAMETER_MAX_PARAM 4
+
+typedef struct rclc_parameter_static_memory_pool_t {
+    Parameter parameter_list[RCLC_PARAMETER_MAX_PARAM];
+    char parameter_list_names[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    rosidl_runtime_c__String get_request_names[RCLC_PARAMETER_MAX_PARAM];
+    char get_request_names_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    ParameterValue get_response_values[RCLC_PARAMETER_MAX_PARAM];
+    rosidl_runtime_c__String get_types_request_names[RCLC_PARAMETER_MAX_PARAM];
+    char get_type_request_names_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    uint8_t get_types_request_types[RCLC_PARAMETER_MAX_PARAM];
+    Parameter set_request_parameters[RCLC_PARAMETER_MAX_PARAM];
+    char set_request_parameters_name_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    SetParameters_Result set_parameter_result[RCLC_PARAMETER_MAX_PARAM];
+    char set_parameter_result_reason_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    rosidl_runtime_c__String list_response_names[RCLC_PARAMETER_MAX_PARAM];
+    char list_response_names_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
+    Parameter event_list_new_parameters;
+    char event_list_new_parameters_name_data[RCLC_PARAMETER_MAX_STRING_LEN];
+    Parameter event_list_changed_parameters;
+    char event_list_changed_parameters_name_data[RCLC_PARAMETER_MAX_STRING_LEN];
+    char event_list_node_data[RCLC_PARAMETER_MAX_STRING_LEN];
+} rclc_parameter_static_memory_pool_t;
+
 typedef struct rclc_parameter_server_t
 {
     rcl_service_t get_service;
@@ -72,6 +97,8 @@ typedef struct rclc_parameter_server_t
     rcl_service_t list_service;
 
     rcl_publisher_t event_publisher;
+
+    rclc_parameter_static_memory_pool_t* static_pool;
 
     GetParameters_Request get_request;
     GetParameters_Response get_response;
