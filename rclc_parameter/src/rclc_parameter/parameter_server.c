@@ -366,7 +366,7 @@ rcl_ret_t rclc_parameter_server_fini(
     ret &= rcl_service_fini(&parameter_server->get_types_service, node);
     ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
 
-    // TODO: Free memory if required
+    microros_sm_put_memory(rclc_parameter_static_pool, parameter_server->static_pool);
 
     return ret;
 }
