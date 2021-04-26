@@ -82,10 +82,6 @@ typedef struct rclc_parameter_static_memory_pool_t {
     char set_parameter_result_reason_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
     rosidl_runtime_c__String list_response_names[RCLC_PARAMETER_MAX_PARAM];
     char list_response_names_data[RCLC_PARAMETER_MAX_PARAM][RCLC_PARAMETER_MAX_STRING_LEN];
-    Parameter event_list_new_parameters;
-    char event_list_new_parameters_name_data[RCLC_PARAMETER_MAX_STRING_LEN];
-    Parameter event_list_changed_parameters;
-    char event_list_changed_parameters_name_data[RCLC_PARAMETER_MAX_STRING_LEN];
     char event_list_node_data[RCLC_PARAMETER_MAX_STRING_LEN];
 } rclc_parameter_static_memory_pool_t;
 

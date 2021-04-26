@@ -102,7 +102,7 @@ void rclc_parameter_server_get_types_service_callback(
 
     for (size_t i = 0; i < response->types.size; i++)
     {
-        rcl_interfaces__msg__Parameter* parameter = rclc_parameter_search(&param_server->parameter_list,
+        Parameter* parameter = rclc_parameter_search(&param_server->parameter_list,
                         request->names.data[i].data);
 
         if (parameter != NULL)
@@ -136,7 +136,7 @@ void rclc_parameter_server_set_service_callback(
     for (size_t i = 0; i < response->results.size; i++)
     {
         rosidl_runtime_c__String* message = (rosidl_runtime_c__String*) &response->results.data[i].reason.data;
-        rcl_interfaces__msg__Parameter* parameter = rclc_parameter_search(&param_server->parameter_list,
+        Parameter* parameter = rclc_parameter_search(&param_server->parameter_list,
                         request->parameters.data[i].name.data);
         rcl_ret_t ret = RCL_RET_OK;
 
@@ -227,7 +227,7 @@ rcl_ret_t rclc_parameter_server_init_default(
     }
 
     parameter_server->static_pool = microros_sm_get_memory(rclc_parameter_static_pool);
-    
+
     // Set all memebers to zero
     memset(&parameter_server->get_request, 0, sizeof(GetParameters_Request));
     memset(&parameter_server->get_response, 0, sizeof(GetParameters_Response));
@@ -250,9 +250,14 @@ rcl_ret_t rclc_parameter_server_init_default(
     
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->parameter_list.data[i].name.data = parameter_server->static_pool->parameter_list_names[i];
-        parameter_server->parameter_list.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->parameter_list.data[i].name.size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->parameter_list.data[i].name,
+            parameter_server->static_pool->parameter_list_names[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
+        rclc_parameter_init_parametervalue(
+            &parameter_server->parameter_list.data[i].value
+        );
     }
     
     // Init parameter_server->get_request
@@ -262,9 +267,11 @@ rcl_ret_t rclc_parameter_server_init_default(
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->get_request.names.data[i].data = parameter_server->static_pool->get_request_names_data[i];
-        parameter_server->get_request.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->get_request.names.data[i].size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->get_request.names.data[i],
+            parameter_server->static_pool->get_request_names_data[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
     }
     
     // Init parameter_server->get_response
@@ -279,9 +286,11 @@ rcl_ret_t rclc_parameter_server_init_default(
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->get_types_request.names.data[i].data = parameter_server->static_pool->get_type_request_names_data[i];
-        parameter_server->get_types_request.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->get_types_request.names.data[i].size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->get_types_request.names.data[i],
+            parameter_server->static_pool->get_type_request_names_data[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
     }
 
     // Init parameter_server->get_types_response
@@ -296,9 +305,14 @@ rcl_ret_t rclc_parameter_server_init_default(
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->set_request.parameters.data[i].name.data = parameter_server->static_pool->set_request_parameters_name_data[i];
-        parameter_server->set_request.parameters.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->set_request.parameters.data[i].name.size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->set_request.parameters.data[i].name,
+            parameter_server->static_pool->set_request_parameters_name_data[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
+        rclc_parameter_init_parametervalue(
+            &parameter_server->set_request.parameters.data[i].value
+        );
     }
 
     // Init parameter_server->set_response
@@ -308,9 +322,11 @@ rcl_ret_t rclc_parameter_server_init_default(
     
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->set_response.results.data[i].reason.data = parameter_server->static_pool->set_parameter_result_reason_data[i];
-        parameter_server->set_response.results.data[i].reason.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->set_response.results.data[i].reason.size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->set_response.results.data[i].reason,
+            parameter_server->static_pool->set_parameter_result_reason_data[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
     }
 
     // Init parameter_server->list_response
@@ -320,31 +336,19 @@ rcl_ret_t rclc_parameter_server_init_default(
 
     for (size_t i = 0; i < RCLC_PARAMETER_MAX_PARAM; i++)
     {
-        parameter_server->list_response.result.names.data[i].data = parameter_server->static_pool->list_response_names_data[i];
-        parameter_server->list_response.result.names.data[i].capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-        parameter_server->list_response.result.names.data[i].size = 0;
+        rclc_parameter_init_string(
+            &parameter_server->list_response.result.names.data[i],
+            parameter_server->static_pool->list_response_names_data[i],
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
     }
 
-    // Init parameter_server->new_parameters
-    parameter_server->event_list.new_parameters.data = &parameter_server->static_pool->event_list_new_parameters;
-    parameter_server->event_list.new_parameters.capacity = 1;
-    parameter_server->event_list.new_parameters.size = 0;
-    
-    parameter_server->event_list.changed_parameters.data = &parameter_server->static_pool->event_list_changed_parameters;
-    parameter_server->event_list.changed_parameters.capacity = 1;
-    parameter_server->event_list.changed_parameters.size = 0;
-
-    parameter_server->event_list.new_parameters.data[0].name.data = parameter_server->static_pool->event_list_new_parameters_name_data;
-    parameter_server->event_list.new_parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-    parameter_server->event_list.new_parameters.data[0].name.size = 0;
-
-    parameter_server->event_list.changed_parameters.data[0].name.data = parameter_server->static_pool->event_list_changed_parameters_name_data;
-    parameter_server->event_list.changed_parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-    parameter_server->event_list.changed_parameters.data[0].name.size = 0;
-    
-    parameter_server->event_list.node.data = parameter_server->static_pool->event_list_node_data;
-    parameter_server->event_list.node.capacity = RCLC_PARAMETER_MAX_STRING_LEN;
-    parameter_server->event_list.node.size = 0;
+    // Init parameter_server
+    rclc_parameter_init_string(
+            &parameter_server->event_list.node,
+            parameter_server->static_pool->event_list_node_data,
+            RCLC_PARAMETER_MAX_STRING_LEN
+        );
     
     rclc_parameter_set_string(&parameter_server->event_list.node, rcl_node_get_name(node));
 
@@ -423,13 +427,12 @@ rcl_ret_t rclc_add_parameter(
 
     parameter_server->parameter_list.data[index].value.type = type;
     parameter_server->parameter_list.size++;
-    
-    if (rclc_parameter_copy(&parameter_server->event_list.new_parameters.data[0], &parameter_server->parameter_list.data[index]) == RCL_RET_ERROR)
-    {
-        return RCL_RET_ERROR;
-    }
 
-    parameter_server->event_list.new_parameters.size = 1;
+    rclc_parameter_prepare_parameter_event(
+        &parameter_server->event_list, 
+        &parameter_server->parameter_list.data[index],
+        true);
+
     return rclc_parameter_service_publish_event(parameter_server);
 }
 
@@ -441,7 +444,7 @@ rclc_parameter_set(
 {   
     rcl_ret_t ret = RCL_RET_OK;
 
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
         rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
     if (parameter == NULL)
@@ -474,8 +477,7 @@ rclc_parameter_set(
 
     if (ret == RCL_RET_OK)
     {
-        rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
-        parameter_server->event_list.changed_parameters.size = 1;
+        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
         rclc_parameter_service_publish_event(parameter_server);
 
         if (parameter_server->on_modification)
@@ -492,7 +494,7 @@ rcl_ret_t rclc_parameter_set_bool(
         const char* parameter_name,
         bool value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
     if (parameter == NULL)
@@ -508,8 +510,7 @@ rcl_ret_t rclc_parameter_set_bool(
     {
         parameter->value.bool_value = value;
 
-        rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
-        parameter_server->event_list.changed_parameters.size = 1;
+        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
         rclc_parameter_service_publish_event(parameter_server);
 
         if (parameter_server->on_modification)
@@ -526,7 +527,7 @@ rcl_ret_t rclc_parameter_set_int(
         const char* parameter_name,
         int64_t value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
     if (parameter == NULL)
@@ -542,8 +543,7 @@ rcl_ret_t rclc_parameter_set_int(
     {
         parameter->value.integer_value = value;
 
-        rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
-        parameter_server->event_list.changed_parameters.size = 1;
+        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
         rclc_parameter_service_publish_event(parameter_server);
 
         if (parameter_server->on_modification)
@@ -560,7 +560,7 @@ rcl_ret_t rclc_parameter_set_double(
         const char* parameter_name,
         double value)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
     if (parameter == NULL)
@@ -576,8 +576,7 @@ rcl_ret_t rclc_parameter_set_double(
     {
         parameter->value.double_value = value;
 
-        rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
-        parameter_server->event_list.changed_parameters.size = 1;
+        rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
         rclc_parameter_service_publish_event(parameter_server);
         
         if (parameter_server->on_modification)
@@ -597,7 +596,7 @@ rclc_parameter_get(
 {
     rcl_ret_t ret = RCL_RET_OK;
 
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
         rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
     if (parameter == NULL)
@@ -640,7 +639,7 @@ rcl_ret_t rclc_parameter_get_bool(
         const char* parameter_name,
         bool* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
     
     rcl_ret_t ret = RCL_RET_OK;
@@ -666,7 +665,7 @@ rcl_ret_t rclc_parameter_get_int(
         const char* parameter_name,
         int* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
     
     rcl_ret_t ret = RCL_RET_OK;
@@ -692,7 +691,7 @@ rcl_ret_t rclc_parameter_get_double(
         const char* parameter_name,
         double* output)
 {
-    rcl_interfaces__msg__Parameter* parameter =
+    Parameter* parameter =
             rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
     
     rcl_ret_t ret = RCL_RET_OK;

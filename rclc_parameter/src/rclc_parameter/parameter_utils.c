@@ -91,6 +91,40 @@ bool rclc_parameter_set_string(
     string->size = 0;
     return false;
 }
+
+void rclc_parameter_prepare_parameter_event(
+        ParameterEvent* event,
+        Parameter* parameter,
+        bool new)
+{   
+    memset(&event->new_parameters, 0, sizeof(Parameter__Sequence));
+    memset(&event->changed_parameters, 0, sizeof(Parameter__Sequence));
+
+    Parameter__Sequence* seq = (new) ? 
+        &event->new_parameters : 
+        &event->changed_parameters;
+
+    seq->data = parameter;
+    seq->capacity = 1;
+    seq->size = 1;
+}
+
+static char null_string = '\0';
+
+void rclc_parameter_init_string(rosidl_runtime_c__String* dst, char* ptr, size_t capacity){
+    dst->data = ptr;
+    dst->capacity = capacity;
+    dst->size = 0;
+}
+
+void rclc_parameter_init_parametervalue(rcl_interfaces__msg__ParameterValue* dst){
+    rclc_parameter_init_string(&dst->string_value, &null_string, 1);
+    rclc_parameter_init_empty_sequence(dst->byte_array_value);
+    rclc_parameter_init_empty_sequence(dst->bool_array_value);
+    rclc_parameter_init_empty_sequence(dst->integer_array_value);
+    rclc_parameter_init_empty_sequence(dst->double_array_value);
+    rclc_parameter_init_empty_sequence(dst->string_array_value);
+}
         
 
 #if __cplusplus

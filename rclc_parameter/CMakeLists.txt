@@ -35,7 +35,7 @@ find_package(rcl_interfaces REQUIRED)
 #################################################
 add_library(${PROJECT_NAME} SHARED
   src/rclc_parameter/parameter_server.c
-  src/rclc_parameter/parameter.c
+  src/rclc_parameter/parameter_utils.c
 )
 
 target_include_directories(${PROJECT_NAME}
