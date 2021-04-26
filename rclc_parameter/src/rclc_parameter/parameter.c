@@ -22,47 +22,6 @@ extern "C"
 #include "parameter_utils.h"
 #include <rclc_parameter/rclc_parameter.h>
 
-rcl_ret_t rclc_parameter_set_value_bool(
-        Parameter* parameter,
-        bool value)
-{
-    if (parameter->value.type != RCLC_PARAMETER_BOOL)
-    {
-        return RCL_RET_INVALID_ARGUMENT;
-    }
-
-    parameter->value.bool_value = value;
-    return RCL_RET_OK;
-}
-
-rcl_ret_t rclc_parameter_set_value_int(
-        Parameter* parameter,
-        int64_t value)
-{
-    if (parameter->value.type != RCLC_PARAMETER_INT)
-    {
-        return RCL_RET_INVALID_ARGUMENT;
-    }
-
-    parameter->value.integer_value = value;
-
-    return RCL_RET_OK;
-}
-
-rcl_ret_t rclc_parameter_set_value_double(
-        Parameter* parameter,
-        double value)
-{
-    if (parameter->value.type != RCLC_PARAMETER_DOUBLE)
-    {
-        return RCL_RET_INVALID_ARGUMENT;
-    }
-
-    parameter->value.double_value = value;
-
-    return RCL_RET_OK;
-}
-
 rcl_ret_t
 rclc_parameter_value_copy(
         ParameterValue* dst,

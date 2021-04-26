@@ -26,7 +26,6 @@ extern "C"
 
 #define RCLC_PARAMETER_SERVICE_MAX_LENGHT 50
 
-// TODO: add prefixes functionality
 void rclc_parameter_server_list_service_callback(
         const void* req,
         void* res,
@@ -92,7 +91,6 @@ void rclc_parameter_server_get_types_service_callback(
     GetParameterTypes_Response* response = (GetParameterTypes_Response *) res;
     rclc_parameter_server_t* param_server = (rclc_parameter_server_t*) parameter_server;
 
-    // TODO: fix request overflow on executor?
     if(request->names.size > response->types.capacity)
     {
         response->types.size = 0;
@@ -201,23 +199,25 @@ rcl_ret_t rclc_parameter_server_init_default(
         rclc_parameter_server_t* parameter_server,
         rcl_node_t* node)
 {
-    // TODO: Add ret check
+    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+
     rcl_ret_t ret;
 
     const rosidl_service_type_support_t* get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, GetParameters);
     ret = rclc_parameter_server_init_service(&parameter_server->get_service, node, "/get_parameters", get_ts);
 
     const rosidl_service_type_support_t* get_types_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, GetParameterTypes);
-    ret = rclc_parameter_server_init_service(&parameter_server->get_types_service, node, "/get_parameter_types", get_types_ts);
+    ret &= rclc_parameter_server_init_service(&parameter_server->get_types_service, node, "/get_parameter_types", get_types_ts);
 
     const rosidl_service_type_support_t* set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, SetParameters);
-    ret = rclc_parameter_server_init_service(&parameter_server->set_service, node, "/set_parameters", set_ts);
+    ret &= rclc_parameter_server_init_service(&parameter_server->set_service, node, "/set_parameters", set_ts);
 
     const rosidl_service_type_support_t* list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(rcl_interfaces, srv, ListParameters);
-    ret = rclc_parameter_server_init_service(&parameter_server->list_service, node, "/list_parameters", list_ts);
+    ret &= rclc_parameter_server_init_service(&parameter_server->list_service, node, "/list_parameters", list_ts);
     
     const rosidl_message_type_support_t* event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ParameterEvent);
-    ret = rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
+    ret &= rclc_publisher_init_default(&parameter_server->event_publisher, node, event_ts, "/parameter_events");
 
     // Init rclc_parameter static memory pools
 
@@ -348,31 +348,18 @@ rcl_ret_t rclc_parameter_server_fini(
         rclc_parameter_server_t* parameter_server,
         rcl_node_t* node)
 {
-    // TODO: Add ret check
+    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+
     rcl_ret_t ret;
 
     ret = rcl_service_fini(&parameter_server->list_service, node);
-    ret = rcl_service_fini(&parameter_server->set_service, node);
-    ret = rcl_service_fini(&parameter_server->get_service, node);
-    ret = rcl_service_fini(&parameter_server->get_types_service, node);
-    ret = rcl_publisher_fini(&parameter_server->event_publisher, node);
+    ret &= rcl_service_fini(&parameter_server->set_service, node);
+    ret &= rcl_service_fini(&parameter_server->get_service, node);
+    ret &= rcl_service_fini(&parameter_server->get_types_service, node);
+    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
 
-    // Free memory first, in case service fini fails?
-    // rcl_interfaces__msg__Parameter__Sequence__destroy(parameter_server->parameter_list);
-
-    // rcl_interfaces__GetParameters_Request__destroy(parameter_server->get_request);
-    // rcl_interfaces__GetParameters_Response__destroy(parameter_server->get_response);
-
-    // rcl_interfaces__GetParameterTypes_Request__destroy(parameter_server->get_types_request);
-    // rcl_interfaces__GetParameterTypes_Response__destroy(parameter_server->get_types_response);
-
-    // rcl_interfaces__SetParameters_Request__destroy(parameter_server->set_request);
-    // rcl_interfaces__SetParameters_Response__destroy(parameter_server->set_response);
-
-    // rcl_interfaces__ListParameters_Request__destroy(parameter_server->list_request);
-    // rcl_interfaces__srv__ListParameters_Response__destroy(parameter_server->list_response);
-
-    // rcl_interfaces__msg__ParameterEvent__destroy(parameter_server->event_list);
+    // TODO: Free memory if required
 
     return ret;
 }
@@ -506,10 +493,14 @@ rcl_ret_t rclc_parameter_set_bool(
         return RCL_RET_ERROR;
     }
 
-    rcl_ret_t ret = rclc_parameter_set_value_bool(parameter, value);
-
-    if (ret == RCL_RET_OK)
+    if (parameter->value.type != RCLC_PARAMETER_BOOL)
     {
+        return RCL_RET_INVALID_ARGUMENT;
+    } 
+    else 
+    {
+        parameter->value.bool_value = value;
+
         rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
@@ -518,9 +509,9 @@ rcl_ret_t rclc_parameter_set_bool(
         {
             parameter_server->on_modification(parameter);
         }
-    }
 
-    return ret;
+        return RCL_RET_OK;
+    }
 }
 
 rcl_ret_t rclc_parameter_set_int(
@@ -536,10 +527,14 @@ rcl_ret_t rclc_parameter_set_int(
         return RCL_RET_ERROR;
     }
     
-    rcl_ret_t ret = rclc_parameter_set_value_int(parameter, value);
-
-    if (ret == RCL_RET_OK)
+    if (parameter->value.type != RCLC_PARAMETER_INT)
     {
+        return RCL_RET_INVALID_ARGUMENT;
+    }
+    else
+    {
+        parameter->value.integer_value = value;
+
         rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
@@ -548,9 +543,9 @@ rcl_ret_t rclc_parameter_set_int(
         {
             parameter_server->on_modification(parameter);
         }
-    }
 
-    return ret;
+        return RCL_RET_OK;
+    }
 }
 
 rcl_ret_t rclc_parameter_set_double(
@@ -566,10 +561,14 @@ rcl_ret_t rclc_parameter_set_double(
         return RCL_RET_ERROR;
     }
 
-    rcl_ret_t ret = rclc_parameter_set_value_double(parameter, value);
-
-    if (ret == RCL_RET_OK)
+    if (parameter->value.type != RCLC_PARAMETER_DOUBLE)
     {
+        return RCL_RET_INVALID_ARGUMENT;
+    }
+    else
+    {
+        parameter->value.double_value = value;
+
         rclc_parameter_copy(&parameter_server->event_list.changed_parameters.data[0], parameter);
         parameter_server->event_list.changed_parameters.size = 1;
         rclc_parameter_service_publish_event(parameter_server);
@@ -578,9 +577,9 @@ rcl_ret_t rclc_parameter_set_double(
         {
             parameter_server->on_modification(parameter);
         }
+        
+        return RCL_RET_OK;
     }
-
-    return ret;
 }
 
 rcl_ret_t

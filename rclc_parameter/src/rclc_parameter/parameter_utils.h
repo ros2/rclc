@@ -27,21 +27,6 @@ extern "C"
 #include <rclc_parameter/rclc_parameter.h>
 
 rcl_ret_t
-rclc_parameter_set_value_bool(
-        Parameter* parameter,
-        bool value);
-
-rcl_ret_t
-rclc_parameter_set_value_int(
-        Parameter* parameter,
-        int64_t value);
-
-rcl_ret_t
-rclc_parameter_set_value_double(
-        Parameter* parameter,
-        double value);
-
-rcl_ret_t
 rclc_parameter_value_copy(
         ParameterValue* dst,
         const ParameterValue* src);
