@@ -72,7 +72,6 @@ int main()
 	rclc_executor_add_timer(&executor, &timer);
 
     // Add parameters
-    // TODO: maybe we can add a param to set if notifications are enabled to save XRCE-DDS bandwitdh
     rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_BOOL);
     rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT);
     rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE);

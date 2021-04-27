@@ -202,7 +202,7 @@ rcl_ret_t rclc_parameter_server_init_default(
     return rclc_parameter_server_init_with_option(parameter_server, node, &opts);
 }
 
-microros_sm_create_memory(rclc_parameter_static_pool, rclc_parameter_static_memory_pool_t, 1, true)
+microros_sm_create_memory(rclc_parameter_static_pool, rclc_parameter_static_memory_pool_t, RCLC_PARAMETER_MAX_NODES, true)
 
 rcl_ret_t rclc_parameter_server_init_with_option(
         rclc_parameter_server_t* parameter_server,

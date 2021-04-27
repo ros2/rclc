@@ -65,6 +65,37 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
 #################################################
+# gtest
+#################################################
+if(BUILD_TESTING)
+  find_package(rclcpp REQUIRED)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_lint_auto REQUIRED)
+  set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
+  find_package(osrf_testing_tools_cpp REQUIRED)
+  find_package(std_msgs REQUIRED)
+  find_package(example_interfaces REQUIRED)
+
+  ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(${PROJECT_NAME}_test
+    test/rclc_parameter/test_parameter.cpp
+  )
+
+  target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
+  target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
+  ament_target_dependencies(${PROJECT_NAME}_test
+    rclcpp  
+    rcl
+    rcutils
+    rosidl_generator_c
+    osrf_testing_tools_cpp
+    std_msgs
+    example_interfaces
+  )
+endif()
+
+#################################################
 # export dependencies
 #################################################
 # specific order: dependents before dependencies

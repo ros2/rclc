@@ -66,6 +66,7 @@ typedef enum rclc_parameter_type_t {
 
 #define RCLC_PARAMETER_MAX_STRING_LEN 30
 #define RCLC_PARAMETER_MAX_PARAM 4
+#define RCLC_PARAMETER_MAX_NODES 1
 
 typedef struct rclc_parameter_static_memory_pool_t {
     Parameter parameter_list[RCLC_PARAMETER_MAX_PARAM];
