@@ -4,6 +4,7 @@
 
 The rclc_lifecycle package is a [ROS 2](http://www.ros2.org/) package and provides convenience functions to bundle a ROS Client Library (RCL) node with the ROS 2 Node Lifecycle state machine in the C programming language, similar to the [rclcpp Lifecycle Node](https://github.com/ros2/rclcpp/blob/master/rclcpp_lifecycle/include/rclcpp_lifecycle/lifecycle_node.hpp) for C++.
 
+The quality declaration is available in [QUALITY_DECLARATION.md](QUALITY_DECLARATION.md).
 ## API
 
 The API of the RCLC Lifecycle Node can be divided in several phases: Initialization, Running and Clean-Up.
