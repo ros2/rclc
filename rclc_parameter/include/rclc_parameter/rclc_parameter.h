@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLC__PARAMETER_H_
-#define RCLC__PARAMETER_H_
+#ifndef RCLC_PARAMETER__RCLC_PARAMETER_H_
+#define RCLC_PARAMETER__RCLC_PARAMETER_H_
 
 #if __cplusplus
 extern "C"
 {
-#endif // if __cplusplus
+#endif  // if __cplusplus
 
 #include <stdarg.h>
 
@@ -61,122 +61,124 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 typedef void (* ModifiedParameter_Callback)(Parameter * param);
 
-typedef enum rclc_parameter_type_t {
-    RCLC_PARAMETER_NOT_SET = 0,
-    RCLC_PARAMETER_BOOL,
-    RCLC_PARAMETER_INT,
-    RCLC_PARAMETER_DOUBLE
+typedef enum rclc_parameter_type_t
+{
+  RCLC_PARAMETER_NOT_SET = 0,
+  RCLC_PARAMETER_BOOL,
+  RCLC_PARAMETER_INT,
+  RCLC_PARAMETER_DOUBLE
 } rclc_parameter_type_t;
 
-typedef struct rclc_parameter_options_t {
-    bool notify_changed_over_dds;
-    size_t max_params;
+typedef struct rclc_parameter_options_t
+{
+  bool notify_changed_over_dds;
+  size_t max_params;
 } rclc_parameter_options_t;
 
 typedef struct rclc_parameter_server_t
 {
-    rcl_service_t get_service;
-    rcl_service_t get_types_service;
-    rcl_service_t set_service;
-    rcl_service_t list_service;
+  rcl_service_t get_service;
+  rcl_service_t get_types_service;
+  rcl_service_t set_service;
+  rcl_service_t list_service;
 
-    rcl_publisher_t event_publisher;
+  rcl_publisher_t event_publisher;
 
-    GetParameters_Request get_request;
-    GetParameters_Response get_response;
+  GetParameters_Request get_request;
+  GetParameters_Response get_response;
 
-    GetParameterTypes_Request get_types_request;
-    GetParameterTypes_Response get_types_response;
+  GetParameterTypes_Request get_types_request;
+  GetParameterTypes_Response get_types_response;
 
-    SetParameters_Request set_request;
-    SetParameters_Response set_response;
+  SetParameters_Request set_request;
+  SetParameters_Response set_response;
 
-    ListParameters_Request list_request;
-    ListParameters_Response list_response;
+  ListParameters_Request list_request;
+  ListParameters_Response list_response;
 
-    Parameter__Sequence parameter_list;
+  Parameter__Sequence parameter_list;
 
-    ParameterEvent event_list;
+  ParameterEvent event_list;
 
-    ModifiedParameter_Callback on_modification;
-    
-    bool notify_changed_over_dds;
+  ModifiedParameter_Callback on_modification;
+
+  bool notify_changed_over_dds;
 } rclc_parameter_server_t;
 
 rcl_ret_t rclc_parameter_server_init_default(
-        rclc_parameter_server_t* parameter_server,
-        rcl_node_t* node);
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node);
 
 rcl_ret_t rclc_parameter_server_init_with_option(
-        rclc_parameter_server_t* parameter_server,
-        rcl_node_t* node,
-        rclc_parameter_options_t * options);
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node,
+  rclc_parameter_options_t * options);
 
 rcl_ret_t rclc_parameter_server_fini(
-        rclc_parameter_server_t* parameter_server,
-        rcl_node_t* node);
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node);
 
 rcl_ret_t rclc_executor_add_parameter_server(
-        rclc_executor_t* executor,
-        rclc_parameter_server_t* parameter_server,
-        ModifiedParameter_Callback on_modification);
+  rclc_executor_t * executor,
+  rclc_parameter_server_t * parameter_server,
+  ModifiedParameter_Callback on_modification);
 
 rcl_ret_t
 rclc_add_parameter(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        rclc_parameter_type_t type);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  rclc_parameter_type_t type);
 
 rcl_ret_t
 rclc_parameter_set(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        ...);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  ...);
 
 rcl_ret_t
 rclc_parameter_set_bool(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        bool value);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  bool value);
 
 rcl_ret_t
 rclc_parameter_set_int(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        int64_t value);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  int64_t value);
 
 rcl_ret_t
 rclc_parameter_set_double(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        double value);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  double value);
 
 rcl_ret_t
 rclc_parameter_get(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        void * value);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  void * value);
 
 rcl_ret_t
 rclc_parameter_get_bool(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        bool* output);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  bool * output);
 
 rcl_ret_t
 rclc_parameter_get_int(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        int* output);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  int * output);
 
 rcl_ret_t
 rclc_parameter_get_double(
-        rclc_parameter_server_t* parameter_server,
-        const char* parameter_name,
-        double* output);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  double * output);
 
 #if __cplusplus
 }
-#endif // if __cplusplus
+#endif  // if __cplusplus
 
-#endif  // RCL__PARAMETER_H_
+#endif  // RCLC_PARAMETER__RCLC_PARAMETER_H_

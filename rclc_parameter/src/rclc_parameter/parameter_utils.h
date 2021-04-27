@@ -12,45 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__PARAMETER_UTILS_H_
-#define RCL__PARAMETER_UTILS_H_
+#ifndef RCLC_PARAMETER__PARAMETER_UTILS_H_
+#define RCLC_PARAMETER__PARAMETER_UTILS_H_
 
 #if __cplusplus
 extern "C"
 {
-#endif // if __cplusplus
+#endif  // if __cplusplus
+
+#include <rclc_parameter/rclc_parameter.h>
+#include <rosidl_runtime_c/string_functions.h>
 
 #include <rcl/error_handling.h>
-#include <rcl_interfaces/msg/parameter.h>
-
-#include "rcl/types.h"
-#include <rclc_parameter/rclc_parameter.h>
+#include <rcl/types.h>
 
 rcl_ret_t
 rclc_parameter_value_copy(
-        ParameterValue* dst,
-        const ParameterValue* src);
+  ParameterValue * dst,
+  const ParameterValue * src);
 
 rcl_ret_t
 rclc_parameter_copy(
-        Parameter* dst,
-        const Parameter* src);
+  Parameter * dst,
+  const Parameter * src);
 
-Parameter* rclc_parameter_search(
-        Parameter__Sequence* parameter_list,
-        const char* param_name);
+Parameter * rclc_parameter_search(
+  Parameter__Sequence * parameter_list,
+  const char * param_name);
 
 bool rclc_parameter_set_string(
-        rosidl_runtime_c__String* string,
-        const char* value);
+  rosidl_runtime_c__String * str,
+  const char * value);
 
 void rclc_parameter_prepare_parameter_event(
-        ParameterEvent* event,
-        Parameter* parameter,
-        bool new);
+  ParameterEvent * event,
+  Parameter * parameter,
+  bool new);
 
 #if __cplusplus
 }
-#endif // if __cplusplus
+#endif  // if __cplusplus
 
-#endif  // RCL__PARAMETER_UTILS_H_
+#endif  // RCLC_PARAMETER__PARAMETER_UTILS_H_

@@ -87,7 +87,7 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
-    rclcpp  
+    rclcpp
     rcl
     rcutils
     rosidl_generator_c
