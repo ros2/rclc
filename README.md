@@ -9,6 +9,8 @@ In detail, this repository contains three packages:
 
 Technical information on the interfaces and the usage of these packages is given in the README.md files in the corresponding subfolders.
 
+The quality declarations for the packages are avaiable in QUALITY_DECLARATION.md files in the corresponding subfolders.
+
 ## Purpose of the project
 
 The software is not ready for production use. It has neither been developed nor tested for a specific use case. However, the license conditions of the applicable Open Source licenses allow you to adapt the software to your needs. Before using it in a safety relevant setting, make sure that the software fulfills your requirements and adjust it according to any applicable safety standards (e.g. ISO 26262).
@@ -65,3 +67,8 @@ Bloom release status of all packages in repository [github.com/ros2/rclc/](https
 | [rclc_lifecycle](https://github.com/ros2/rclc/tree/master/rclc_lifecycle) | Dashing |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Dbin_uB64__rclc_lifecycle__ubuntu_bionic_amd64__binary)](https://build.ros2.org/job/Dbin_uB64__rclc_lifecycle__ubuntu_bionic_amd64__binary/)  | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Dbin_ubv8_uBv8__rclc_lifecycle__ubuntu_bionic_arm64__binary)](https://build.ros2.org/job/Dbin_ubv8_uBv8__rclc_lifecycle__ubuntu_bionic_arm64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Dbin_ubhf_uBhf__rclc_lifecycle__ubuntu_bionic_armhf__binary)](https://build.ros2.org/job/Dbin_ubhf_uBhf__rclc_lifecycle__ubuntu_bionic_armhf__binary/) |
 | | Foxy | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Fbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_ubv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Fbin_ubv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) | |
 | | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) | |
+
+## Code coverage
+The code coverage is tested with every commit, pull request. Results are available at [codecov](https://app.codecov.io/gh/ros2/rclc/branch/master/).
+
+[![codecov](https://codecov.io/gh/ros2/rclc/branch/master/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
