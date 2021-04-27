@@ -159,32 +159,60 @@ TEST(Test, rclc_node_init_default) {
 
     // Use auxiliar RCLCPP node for check
     auto list_params = parameters_client->list_parameters({}, 10);
+    ASSERT_EQ(list_params.names.size(), 4u);
     for (auto & name : list_params.names) {
         std::vector<std::string>::iterator it;
         it = std::find (param_names.begin(), param_names.end(), name);
         ASSERT_NE(it, param_names.end());
     }
 
-    // rclcpp::Parameter param;
-    // const std::string name("param1");
-    // const bool defaultvalue = 0;
-    // bool ans = parameters_client->get_parameter(name, defaultvalue);
-    // std::cout << ans;
+    const std::string name("param1");
+    const bool defaultvalue = 0;
+    bool param_value = parameters_client->get_parameter(name, defaultvalue);
+    ASSERT_EQ(param_value, true);
 
+    // External set bool
+    expected_type = RCLC_PARAMETER_BOOL;
+    expected_value.bool_value = false;
+    std::vector<rclcpp::Parameter> new_params = {rclcpp::Parameter("param1", expected_value.bool_value)};
+    std::vector<rcl_interfaces::msg::SetParametersResult> result = parameters_client->set_parameters(new_params);
+    ASSERT_TRUE(result[0].successful);
 
-    // auto graph = param_client_node->get_topic_names_and_types();
+    // External fail type
+    new_params.clear();
+    new_params.push_back(rclcpp::Parameter("param1", (double) 12.2));
+    result = parameters_client->set_parameters(new_params);
+    ASSERT_FALSE(result[0].successful);
 
-    // for(auto iter = graph.begin(); iter != graph.end(); ++iter)
-    // {
-    //     std::cout << iter->first << "\n";
-    //     for (auto iter2 = iter->second.begin(); iter2 < iter->second.end(); iter2++)
-    //     {
-    //         std::cout << "\t" << *iter2 << "\n";
-    //     }
-        
-    // }
+    // External set int
+    expected_type = RCLC_PARAMETER_INT;
+    expected_value.integer_value = 12;
+    new_params.clear();
+    new_params.push_back(rclcpp::Parameter("param2", expected_value.integer_value));
+    result = parameters_client->set_parameters(new_params);
+    ASSERT_TRUE(result[0].successful);
+
+    // External set int
+    expected_type = RCLC_PARAMETER_DOUBLE;
+    expected_value.double_value = 12.12;
+    new_params.clear();
+    new_params.push_back(rclcpp::Parameter("param3", expected_value.double_value));
+    result = parameters_client->set_parameters(new_params);
+    ASSERT_TRUE(result[0].successful);
+
+    // External get types
+    const std::vector<std::string> types_query = {
+        "param1",
+        "param2",
+        "param3"
+    };
+    std::vector<rclcpp::ParameterType> types = parameters_client->get_parameter_types(types_query);
+    ASSERT_EQ(types.size(), 3u);
+    ASSERT_EQ(types[0], rclcpp::ParameterType::PARAMETER_BOOL);
+    ASSERT_EQ(types[1], rclcpp::ParameterType::PARAMETER_INTEGER);
+    ASSERT_EQ(types[2], rclcpp::ParameterType::PARAMETER_DOUBLE);
 
     rclcpp::shutdown();
-    // spin = false;
+    spin = false;
     rclc_parameter_server_thread.join();
 }

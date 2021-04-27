@@ -29,6 +29,7 @@ find_package(rclc REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rcl_interfaces REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
 
 #################################################
 # create library
@@ -52,6 +53,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rcutils
   builtin_interfaces
   rcl_interfaces
+  rosidl_runtime_c
 )
 
 #################################################

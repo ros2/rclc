@@ -49,15 +49,6 @@ void rclc_parameter_prepare_parameter_event(
         Parameter* parameter,
         bool new);
 
-void rclc_parameter_init_string(rosidl_runtime_c__String* dst, char* ptr, size_t capacity);
-
-void rclc_parameter_init_parametervalue(rcl_interfaces__msg__ParameterValue* dst);
-
-#define rclc_parameter_init_empty_sequence(seq) \
-    seq.data = NULL; \
-    seq.capacity = 0; \
-    seq.size = 0;
-
 #if __cplusplus
 }
 #endif // if __cplusplus

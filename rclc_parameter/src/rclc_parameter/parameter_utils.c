@@ -19,6 +19,8 @@ extern "C"
 
 #include <string.h>
 
+#include <rosidl_runtime_c/string_functions.h>
+
 #include "parameter_utils.h"
 #include <rclc_parameter/rclc_parameter.h>
 
@@ -81,15 +83,7 @@ bool rclc_parameter_set_string(
         rosidl_runtime_c__String* string,
         const char* value)
 {
-    uint32_t len = strlen(value);
-    if (string->capacity >= len)
-    {
-        memcpy(string->data, value, len);
-        string->size = len;
-        return true;
-    }
-    string->size = 0;
-    return false;
+    return rosidl_runtime_c__String__assign(string, value);
 }
 
 void rclc_parameter_prepare_parameter_event(
@@ -107,25 +101,7 @@ void rclc_parameter_prepare_parameter_event(
     seq->data = parameter;
     seq->capacity = 1;
     seq->size = 1;
-}
-
-static char null_string = '\0';
-
-void rclc_parameter_init_string(rosidl_runtime_c__String* dst, char* ptr, size_t capacity){
-    dst->data = ptr;
-    dst->capacity = capacity;
-    dst->size = 0;
-}
-
-void rclc_parameter_init_parametervalue(rcl_interfaces__msg__ParameterValue* dst){
-    rclc_parameter_init_string(&dst->string_value, &null_string, 1);
-    rclc_parameter_init_empty_sequence(dst->byte_array_value);
-    rclc_parameter_init_empty_sequence(dst->bool_array_value);
-    rclc_parameter_init_empty_sequence(dst->integer_array_value);
-    rclc_parameter_init_empty_sequence(dst->double_array_value);
-    rclc_parameter_init_empty_sequence(dst->string_array_value);
-}
-        
+}    
 
 #if __cplusplus
 }
