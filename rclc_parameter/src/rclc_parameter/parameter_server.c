@@ -23,7 +23,6 @@ extern "C"
 
 #include "./parameter_utils.h"
 
-
 #define RCLC_PARAMETER_SERVICE_MAX_LENGHT 50
 
 rcl_ret_t rclc_parameter_server_init_service(
@@ -34,6 +33,36 @@ rcl_ret_t rclc_parameter_server_init_service(
 
 rcl_ret_t rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server);
+
+void rclc_parameter_server_describe_service_callback(
+  const void * req,
+  void * res,
+  void * parameter_server)
+{
+  rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
+  DescribeParameters_Request * request = (DescribeParameters_Request *) req;
+  DescribeParameters_Response * response = (DescribeParameters_Response *) res;
+
+  size_t size = (request->names.size > param_server->parameter_list.size) ?
+    param_server->parameter_list.size :
+    request->names.size;
+
+  response->descriptors.size = size;
+
+  for (size_t i = 0; i < size; i++) {
+    rclc_parameter_set_string(
+      &response->descriptors.data[i].name,
+      request->names.data[i].data);
+
+    Parameter * parameter = rclc_parameter_search(
+      &param_server->parameter_list,
+      request->names.data[i].data);
+
+    response->descriptors.data[i].type = (parameter != NULL) ?
+      parameter->value.type :
+      RCLC_PARAMETER_NOT_SET;
+  }
+}
 
 void rclc_parameter_server_list_service_callback(
   const void * req,
@@ -236,6 +265,13 @@ rcl_ret_t rclc_parameter_server_init_with_option(
     &parameter_server->list_service, node,
     "/list_parameters", list_ts);
 
+  const rosidl_service_type_support_t * describe_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces, srv,
+    DescribeParameters);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->describe_service, node,
+    "/describe_parameters", describe_ts);
+
   parameter_server->notify_changed_over_dds = options->notify_changed_over_dds;
   if (parameter_server->notify_changed_over_dds) {
     const rosidl_message_type_support_t * event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(
@@ -280,6 +316,13 @@ rcl_ret_t rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->get_types_response.types.size = 0;
 
+  rcl_interfaces__srv__DescribeParameters_Request__init(&parameter_server->describe_request);
+  rcl_interfaces__srv__DescribeParameters_Response__init(&parameter_server->describe_response);
+  rcl_interfaces__msg__ParameterDescriptor__Sequence__init(
+    &parameter_server->describe_response.descriptors,
+    options->max_params);
+  parameter_server->describe_response.descriptors.size = 0;
+
   rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
   if (!rosidl_runtime_c__String__assign(
       &parameter_server->event_list.node,
@@ -304,6 +347,7 @@ rcl_ret_t rclc_parameter_server_fini(
   ret &= rcl_service_fini(&parameter_server->set_service, node);
   ret &= rcl_service_fini(&parameter_server->get_service, node);
   ret &= rcl_service_fini(&parameter_server->get_types_service, node);
+  ret &= rcl_service_fini(&parameter_server->describe_service, node);
 
   if (parameter_server->notify_changed_over_dds) {
     ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
@@ -344,6 +388,12 @@ rcl_ret_t rclc_executor_add_parameter_server(
     executor, &parameter_server->get_service,
     &parameter_server->get_request, &parameter_server->get_response,
     rclc_parameter_server_get_service_callback,
+    parameter_server);
+
+  ret &= rclc_executor_add_service_with_context(
+    executor, &parameter_server->describe_service,
+    &parameter_server->describe_request, &parameter_server->describe_response,
+    rclc_parameter_server_describe_service_callback,
     parameter_server);
 
   return ret;

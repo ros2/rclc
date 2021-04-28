@@ -36,6 +36,8 @@ extern "C"
 #include <rcl_interfaces/msg/set_parameters_result.h>
 #include <rcl_interfaces/srv/list_parameters.h>
 #include <rcl_interfaces/srv/set_parameters.h>
+#include <rcl_interfaces/srv/describe_parameters.h>
+#include <rcl_interfaces/msg/parameter_descriptor.h>
 #include <rosidl_runtime_c/string_functions.h>
 #include <rosidl_runtime_c/primitives_sequence_functions.h>
 
@@ -51,6 +53,9 @@ typedef struct rcl_interfaces__srv__SetParameters_Request SetParameters_Request;
 typedef struct rcl_interfaces__srv__SetParameters_Response SetParameters_Response;
 typedef struct rcl_interfaces__msg__SetParametersResult SetParameters_Result;
 
+typedef struct rcl_interfaces__srv__DescribeParameters_Request DescribeParameters_Request;
+typedef struct rcl_interfaces__srv__DescribeParameters_Response DescribeParameters_Response;
+
 typedef struct rcl_interfaces__srv__ListParameters_Request ListParameters_Request;
 typedef struct rcl_interfaces__srv__ListParameters_Response ListParameters_Response;
 
@@ -60,7 +65,7 @@ typedef struct rcl_interfaces__msg__Parameter__Sequence Parameter__Sequence;
 typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 // Number of RCLC executor handles required for a parameter server
-#define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 6
+#define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 5
 
 // On parameter modified callback
 typedef void (* ModifiedParameter_Callback)(Parameter * param);
@@ -88,7 +93,7 @@ typedef struct rclc_parameter_server_t
   rcl_service_t get_types_service;
   rcl_service_t set_service;
   rcl_service_t list_service;
-
+  rcl_service_t describe_service;
   rcl_publisher_t event_publisher;
 
   GetParameters_Request get_request;
@@ -102,6 +107,9 @@ typedef struct rclc_parameter_server_t
 
   ListParameters_Request list_request;
   ListParameters_Response list_response;
+
+  DescribeParameters_Request describe_request;
+  DescribeParameters_Response describe_response;
 
   Parameter__Sequence parameter_list;
 
