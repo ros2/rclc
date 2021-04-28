@@ -198,7 +198,7 @@ TEST(Test, rclc_node_init_default) {
   result = parameters_client->set_parameters(new_params);
   ASSERT_TRUE(result[0].successful);
 
-  // External set int
+  // External set double
   expected_type = RCLC_PARAMETER_DOUBLE;
   expected_value.double_value = 12.12;
   new_params.clear();
