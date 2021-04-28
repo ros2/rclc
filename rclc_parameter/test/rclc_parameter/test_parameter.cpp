@@ -218,7 +218,27 @@ TEST(Test, rclc_node_init_default) {
   ASSERT_EQ(types[1], rclcpp::ParameterType::PARAMETER_INTEGER);
   ASSERT_EQ(types[2], rclcpp::ParameterType::PARAMETER_DOUBLE);
 
+  // Test callback
+  auto promise = std::make_shared<std::promise<void>>();
+  auto future = promise->get_future();
+  size_t on_parameter_calls = 0;
+  auto sub = parameters_client->on_parameter_event(
+    [&](const rcl_interfaces::msg::ParameterEvent::SharedPtr /* event */) -> void
+    {
+      on_parameter_calls++;
+      promise->set_value();
+    });
+
+  expected_type = RCLC_PARAMETER_BOOL;
+  expected_value.double_value = false;
+  rclc_parameter_set(&param_server, "param1", false);
+
+  rclcpp::spin_until_future_complete(param_client_node, future.share());
+
+  ASSERT_EQ(on_parameter_calls, 1u);
+
   rclcpp::shutdown();
+
   spin = false;
   rclc_parameter_server_thread.join();
 }
