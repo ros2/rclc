@@ -127,26 +127,26 @@ TEST(Test, rclc_node_init_default) {
   // Set parameters
   expected_type = RCLC_PARAMETER_BOOL;
   expected_value.bool_value = true;
-  rclc_parameter_set(&param_server, "param1", static_cast<bool>(expected_value.bool_value));
+  rclc_parameter_set_bool(&param_server, "param1", static_cast<bool>(expected_value.bool_value));
 
   expected_type = RCLC_PARAMETER_INT;
   expected_value.integer_value = 10;
-  rclc_parameter_set(&param_server, "param2", static_cast<int>(expected_value.integer_value));
+  rclc_parameter_set_int(&param_server, "param2", static_cast<int>(expected_value.integer_value));
 
   expected_type = RCLC_PARAMETER_DOUBLE;
   expected_value.double_value = 0.01;
-  rclc_parameter_set(&param_server, "param3", static_cast<double>(expected_value.double_value));
+  rclc_parameter_set_double(&param_server, "param3", static_cast<double>(expected_value.double_value));
 
   // Get parameters
   bool param1;
   int param2;
   double param3;
 
-  rclc_parameter_get(&param_server, "param1", &param1);
+  rclc_parameter_get_bool(&param_server, "param1", &param1);
   ASSERT_EQ(param1, true);
-  rclc_parameter_get(&param_server, "param2", &param2);
+  rclc_parameter_get_int(&param_server, "param2", &param2);
   ASSERT_EQ(param2, 10);
-  rclc_parameter_get(&param_server, "param3", &param3);
+  rclc_parameter_get_double(&param_server, "param3", &param3);
   ASSERT_EQ(param3, 0.01);
 
   ASSERT_EQ(callcack_calls, 3);
@@ -231,7 +231,7 @@ TEST(Test, rclc_node_init_default) {
 
   expected_type = RCLC_PARAMETER_BOOL;
   expected_value.double_value = false;
-  rclc_parameter_set(&param_server, "param1", false);
+  rclc_parameter_set_bool(&param_server, "param1", false);
 
   rclcpp::spin_until_future_complete(param_client_node, future.share());
 

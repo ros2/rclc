@@ -16,9 +16,9 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
     (void) last_call_time;
 
 	int value;
-    rclc_parameter_get(&param_server, "param2", &value);
+    rclc_parameter_get_int(&param_server, "param2", &value);
     value++;
-    rclc_parameter_set(&param_server, "param2", (int) value);
+    rclc_parameter_set_int(&param_server, "param2", (int64_t) value);
 }
 
 void on_parameter_changed(Parameter * param)
@@ -81,13 +81,13 @@ int main()
     double param3;
 
     // TODO: We need to choose between this API:
-    rclc_parameter_set(&param_server, "param1", (bool) false);
-    rclc_parameter_set(&param_server, "param2", (int) 10);
-    rclc_parameter_set(&param_server, "param3", (double) 0.01);
+    rclc_parameter_set_bool(&param_server, "param1", (bool) false);
+    rclc_parameter_set_int(&param_server, "param2", (int64_t) 10);
+    rclc_parameter_set_double(&param_server, "param3", (double) 0.01);
 
-    rclc_parameter_get(&param_server, "param1", &param1);
-    rclc_parameter_get(&param_server, "param2", &param2);
-    rclc_parameter_get(&param_server, "param3", &param3);
+    rclc_parameter_get_bool(&param_server, "param1", &param1);
+    rclc_parameter_get_int(&param_server, "param2", &param2);
+    rclc_parameter_get_double(&param_server, "param3", &param3);
 
     // Or this API
     rclc_parameter_set_bool(&param_server, "param1", false);

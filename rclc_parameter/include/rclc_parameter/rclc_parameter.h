@@ -228,29 +228,6 @@ rclc_add_parameter(
   rclc_parameter_type_t type);
 
 /**
- *  Sets the value of an existing a RCLC parameter
- *
- *  * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | No
- *
- * \param[in] parameter_server preallocated rclc_parameter_server_t
- * \param[in] parameter_name name of the parameter
- * \param[in] varidic value of the parameter
- * \return `RCL_RET_OK` if success
- */
-
-rcl_ret_t
-rclc_parameter_set(
-  rclc_parameter_server_t * parameter_server,
-  const char * parameter_name,
-  ...);
-
-/**
  *  Sets the value of an existing a RCLC bool parameter
  *
  *  * <hr>
@@ -318,29 +295,6 @@ rclc_parameter_set_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   double value);
-
-/**
- *  Get the value of an existing a RCLC parameter
- *
- *  * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | No
- *
- * \param[in] parameter_server preallocated rclc_parameter_server_t
- * \param[in] parameter_name name of the parameter
- * \param[inout] value returns value of the parameter
- * \return `RCL_RET_OK` if success
- */
-
-rcl_ret_t
-rclc_parameter_get(
-  rclc_parameter_server_t * parameter_server,
-  const char * parameter_name,
-  void * value);
 
 /**
  *  Get the value of an existing a RCLC bool parameter

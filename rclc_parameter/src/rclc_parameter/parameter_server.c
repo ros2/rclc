@@ -181,19 +181,19 @@ void rclc_parameter_server_set_service_callback(
 
         case RCLC_PARAMETER_BOOL:
           ret =
-            rclc_parameter_set(
+            rclc_parameter_set_bool(
             parameter_server, parameter->name.data,
             request->parameters.data[i].value.bool_value);
           break;
         case RCLC_PARAMETER_INT:
           ret =
-            rclc_parameter_set(
+            rclc_parameter_set_int(
             parameter_server, parameter->name.data,
             request->parameters.data[i].value.integer_value);
           break;
         case RCLC_PARAMETER_DOUBLE:
           ret =
-            rclc_parameter_set(
+            rclc_parameter_set_double(
             parameter_server, parameter->name.data,
             request->parameters.data[i].value.double_value);
           break;
@@ -427,57 +427,6 @@ rcl_ret_t rclc_add_parameter(
   return RCL_RET_OK;
 }
 
-rcl_ret_t
-rclc_parameter_set(
-  rclc_parameter_server_t * parameter_server,
-  const char * parameter_name,
-  ...)
-{
-  rcl_ret_t ret = RCL_RET_OK;
-
-  Parameter * parameter =
-    rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
-
-  if (parameter == NULL) {
-    return RCL_RET_ERROR;
-  }
-
-  va_list args;
-  va_start(args, parameter_name);
-
-  switch (parameter->value.type) {
-    case RCLC_PARAMETER_NOT_SET:
-      ret = RCL_RET_INVALID_ARGUMENT;
-      break;
-    case RCLC_PARAMETER_BOOL:
-      parameter->value.bool_value = (bool) va_arg(args, int);
-      break;
-    case RCLC_PARAMETER_INT:
-      parameter->value.integer_value = va_arg(args, int);
-      break;
-    case RCLC_PARAMETER_DOUBLE:
-      parameter->value.double_value = va_arg(args, double);
-      break;
-    default:
-      break;
-  }
-
-  va_end(args);
-
-  if (ret == RCL_RET_OK) {
-    if (parameter_server->notify_changed_over_dds) {
-      rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-      rclc_parameter_service_publish_event(parameter_server);
-    }
-
-    if (parameter_server->on_modification) {
-      parameter_server->on_modification(parameter);
-    }
-  }
-
-  return ret;
-}
-
 rcl_ret_t rclc_parameter_set_bool(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -566,50 +515,6 @@ rcl_ret_t rclc_parameter_set_double(
 
     return RCL_RET_OK;
   }
-}
-
-rcl_ret_t
-rclc_parameter_get(
-  rclc_parameter_server_t * parameter_server,
-  const char * parameter_name,
-  void * value)
-{
-  rcl_ret_t ret = RCL_RET_OK;
-
-  Parameter * parameter =
-    rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
-
-  if (parameter == NULL) {
-    return RCL_RET_ERROR;
-  }
-
-  switch (parameter->value.type) {
-    case RCLC_PARAMETER_NOT_SET:
-      ret = RCL_RET_INVALID_ARGUMENT;
-      break;
-    case RCLC_PARAMETER_BOOL:
-      {
-        bool * aux = (bool *) value;
-        *aux = parameter->value.bool_value;
-      }
-      break;
-    case RCLC_PARAMETER_INT:
-      {
-        int * aux = (int *) value;
-        *aux = (int) parameter->value.integer_value;
-      }
-      break;
-    case RCLC_PARAMETER_DOUBLE:
-      {
-        double * aux = (double *) value;
-        *aux = parameter->value.double_value;
-      }
-      break;
-    default:
-      break;
-  }
-
-  return ret;
 }
 
 rcl_ret_t rclc_parameter_get_bool(
