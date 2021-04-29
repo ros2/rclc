@@ -80,16 +80,6 @@ int main()
     int param2;
     double param3;
 
-    // TODO: We need to choose between this API:
-    rclc_parameter_set_bool(&param_server, "param1", (bool) false);
-    rclc_parameter_set_int(&param_server, "param2", (int64_t) 10);
-    rclc_parameter_set_double(&param_server, "param3", (double) 0.01);
-
-    rclc_parameter_get_bool(&param_server, "param1", &param1);
-    rclc_parameter_get_int(&param_server, "param2", &param2);
-    rclc_parameter_get_double(&param_server, "param3", &param3);
-
-    // Or this API
     rclc_parameter_set_bool(&param_server, "param1", false);
     rclc_parameter_set_int(&param_server, "param2", 10);
     rclc_parameter_set_double(&param_server, "param3", 0.01);
