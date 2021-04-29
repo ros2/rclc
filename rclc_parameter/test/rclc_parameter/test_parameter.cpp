@@ -135,7 +135,9 @@ TEST(Test, rclc_node_init_default) {
 
   expected_type = RCLC_PARAMETER_DOUBLE;
   expected_value.double_value = 0.01;
-  rclc_parameter_set_double(&param_server, "param3", static_cast<double>(expected_value.double_value));
+  rclc_parameter_set_double(
+    &param_server, "param3",
+    static_cast<double>(expected_value.double_value));
 
   // Get parameters
   bool param1;
