@@ -268,16 +268,6 @@ void int32_callback5(const void * msgin)
   }
 }
 
-void int32_callback_with_context(const void * msgin, void * context)
-{
-  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
-  if (msg == NULL) {
-    printf("(int32_callback_with_context): msg is NULL\n");
-  }
-  if (context == NULL) {
-    printf("(int32_callback_with_context): context is NULL\n");
-  }
-}
 
 void service_callback(const void * req_msg, void * resp_msg)
 {
@@ -697,67 +687,6 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rc = rclc_executor_add_subscription(
     &executor, &this->sub1, &this->sub1_msg, NULL,
     ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // tear down
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
-TEST_F(TestDefaultExecutor, executor_add_subscription_with_context) {
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-  // test with normal arguemnt and NULL pointers as arguments
-  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  int sub_context_value = 0;
-  void * sub_context_ptr = reinterpret_cast<void *>( &sub_context_value );
-
-  // normal case
-  rc = rclc_executor_add_subscription_with_context(
-    &executor, &this->sub1, &this->sub1_msg,
-    &int32_callback_with_context, sub_context_ptr, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  size_t num_subscriptions = 1;
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // test NULL pointer for executor
-  rc = rclc_executor_add_subscription_with_context(
-    NULL, &this->sub1, &this->sub1_msg, &int32_callback_with_context,
-    sub_context_ptr, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // test NULL pointer for subscription
-  rc = rclc_executor_add_subscription_with_context(
-    &executor, NULL, &this->sub1_msg, &int32_callback_with_context,
-    sub_context_ptr, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // test NULL pointer for message
-  rc = rclc_executor_add_subscription_with_context(
-    &executor, &this->sub1, NULL, &int32_callback_with_context,
-    sub_context_ptr, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // test NULL pointer for callback
-  rc = rclc_executor_add_subscription_with_context(
-    &executor, &this->sub1, &this->sub1_msg, NULL,
-    sub_context_ptr, ON_NEW_DATA);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
