@@ -627,8 +627,6 @@ rclc_executor_add_guard_condition(
 }
 
 
-
-
 rcl_ret_t
 _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
 {
@@ -644,10 +642,10 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
     return RCL_RET_ERROR;
   }
 
-  //shorten the list of handles without changing the order of remaining handles
+  // shorten the list of handles without changing the order of remaining handles
   executor->index--;
-  for(size_t i=handle_index; i < executor->index; i++) {
-    executor->handles[i] = executor->handles[i+1];
+  for (size_t i = handle_index; i < executor->index; i++) {
+    executor->handles[i] = executor->handles[i + 1];
   }
   ret = rclc_executor_handle_init(&executor->handles[executor->index], executor->max_handles);
 
@@ -665,7 +663,6 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
 }
 
 
-
 rcl_ret_t
 rclc_executor_remove_subscription(
   rclc_executor_t * executor,
@@ -676,8 +673,8 @@ rclc_executor_remove_subscription(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if(SUBSCRIPTION == executor->handles[i].type) {
-      if(subscription == executor->handles[i].subscription) {
+    if (SUBSCRIPTION == executor->handles[i].type) {
+      if (subscription == executor->handles[i].subscription) {
         ret = _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_subscription.");
@@ -703,8 +700,8 @@ rclc_executor_remove_timer(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if(TIMER == executor->handles[i].type) {
-      if(timer == executor->handles[i].timer) {
+    if (TIMER == executor->handles[i].type) {
+      if (timer == executor->handles[i].timer) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_timer.");
@@ -730,8 +727,8 @@ rclc_executor_remove_client(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if(CLIENT == executor->handles[i].type) {
-      if(client == executor->handles[i].client) {
+    if (CLIENT == executor->handles[i].type) {
+      if (client == executor->handles[i].client) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_client.");
@@ -757,8 +754,8 @@ rclc_executor_remove_service(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if(SERVICE == executor->handles[i].type) {
-      if(service == executor->handles[i].service) {
+    if (SERVICE == executor->handles[i].type) {
+      if (service == executor->handles[i].service) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_service.");
@@ -785,8 +782,8 @@ rclc_executor_remove_guard_condition(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if(GUARD_CONDITION == executor->handles[i].type) {
-      if(guard_condition == executor->handles[i].gc) {
+    if (GUARD_CONDITION == executor->handles[i].type) {
+      if (guard_condition == executor->handles[i].gc) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
@@ -801,8 +798,6 @@ rclc_executor_remove_guard_condition(
   RCL_SET_ERROR_MSG("Guard Condition not found in rclc_executor_remove_guard_condition");
   return RCL_RET_ERROR;
 }
-
-
 
 
 /***

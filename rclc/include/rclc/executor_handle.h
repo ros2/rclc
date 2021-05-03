@@ -60,7 +60,7 @@ typedef void (* rclc_callback_t)(const void *);
 
 /// Type definition for subscription callback function
 /// - incoming message
-//typedef void (* rclc_subscription_callback_t)(const void *);
+// typedef void (* rclc_subscription_callback_t)(const void *);
 
 /// Type definition for subscription callback function
 /// - incoming message
