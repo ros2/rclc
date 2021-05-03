@@ -2,7 +2,7 @@ name: CI RCLC Foxy
 
 on:
   push:
-    branches: [ subscription_context ]
+    branches: [ remove_subscription ]
 
 
 jobs:
