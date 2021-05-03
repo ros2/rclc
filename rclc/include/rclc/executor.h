@@ -468,7 +468,6 @@ rclc_executor_add_guard_condition(
   rclc_gc_callback_t callback);
 
 
-
 /**
  *  Removes a subscription from an executor.
  * * An error is returned if {@link rclc_executor_t.handles} array is empty.
