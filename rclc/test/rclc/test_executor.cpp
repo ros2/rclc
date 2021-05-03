@@ -715,7 +715,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_with_context) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
   int sub_context_value = 0;
-  void * sub_context_ptr = (void *) &sub_context_value;
+  void * sub_context_ptr = reinterpret_cast<void *>( &sub_context_value );
 
   // normal case
   rc = rclc_executor_add_subscription_with_context(
