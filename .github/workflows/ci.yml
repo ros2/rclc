@@ -2,9 +2,9 @@ name: CI RCLC Galactic
 
 on:
   push:
-    branches: [ master ]
+    branches: [ galactic ]
   pull_request:
-    branches: [ master ]
+    branches: [ galactic ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -28,6 +28,7 @@ jobs:
     - uses: ros-tooling/setup-ros@0.1.2
       with:
         required-ros-distributions: ${{ matrix.ros_distribution }}
+        use-ros2-testing: true
     - name : Download and install rclc-dependencies
       run: |
         apt-get install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
