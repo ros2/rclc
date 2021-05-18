@@ -160,7 +160,7 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
-  rclc_parameter_options_t * options);
+  const rclc_parameter_options_t * options);
 
 /**
  *  Destroy a RCLC parameter server
