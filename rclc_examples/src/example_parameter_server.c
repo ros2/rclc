@@ -94,13 +94,13 @@ int main()
     rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT);
     rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE);
 
-    bool param1;
-    int param2;
-    double param3;
-
     rclc_parameter_set_bool(&param_server, "param1", false);
     rclc_parameter_set_int(&param_server, "param2", 10);
     rclc_parameter_set_double(&param_server, "param3", 0.01);
+
+    bool param1;
+    int param2;
+    double param3;
 
     rclc_parameter_get_bool(&param_server, "param1", &param1);
     rclc_parameter_get_int(&param_server, "param2", &param2);
