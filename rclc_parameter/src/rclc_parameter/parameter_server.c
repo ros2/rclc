@@ -219,6 +219,11 @@ rcl_ret_t rclc_parameter_server_init_default(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   rclc_parameter_options_t opts = {
     .notify_changed_over_dds = true,
     .max_params = 4
@@ -231,8 +236,12 @@ rcl_ret_t rclc_parameter_server_init_with_option(
   rcl_node_t * node,
   rclc_parameter_options_t * options)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret;
 
@@ -338,8 +347,10 @@ rcl_ret_t rclc_parameter_server_fini(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret;
 
@@ -361,10 +372,12 @@ rcl_ret_t rclc_executor_add_parameter_server(
   rclc_parameter_server_t * parameter_server,
   ModifiedParameter_Callback on_modification)
 {
-  rcl_ret_t ret;
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_server, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(on_modification, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret;
 
   parameter_server->on_modification = on_modification;
 
@@ -404,6 +417,11 @@ rcl_ret_t rclc_add_parameter(
   const char * parameter_name,
   rclc_parameter_type_t type)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   size_t index = parameter_server->parameter_list.size;
 
   if (index >= parameter_server->parameter_list.capacity ||
@@ -432,6 +450,11 @@ rcl_ret_t rclc_parameter_set_bool(
   const char * parameter_name,
   bool value)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -462,6 +485,11 @@ rcl_ret_t rclc_parameter_set_int(
   const char * parameter_name,
   int64_t value)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -492,6 +520,11 @@ rcl_ret_t rclc_parameter_set_double(
   const char * parameter_name,
   double value)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -522,6 +555,13 @@ rcl_ret_t rclc_parameter_get_bool(
   const char * parameter_name,
   bool * output)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    output, "output is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -543,6 +583,13 @@ rcl_ret_t rclc_parameter_get_int(
   const char * parameter_name,
   int * output)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    output, "output is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -564,6 +611,13 @@ rcl_ret_t rclc_parameter_get_double(
   const char * parameter_name,
   double * output)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    output, "output is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   Parameter * parameter =
     rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
 
@@ -583,9 +637,6 @@ rcl_ret_t rclc_parameter_get_double(
 rcl_ret_t rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(&parameter_server->event_publisher, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(&parameter_server->event_list, RCL_RET_INVALID_ARGUMENT);
-
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
   parameter_server->event_list.stamp.sec = ts.tv_sec;
