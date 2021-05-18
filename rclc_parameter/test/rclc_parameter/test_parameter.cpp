@@ -14,11 +14,11 @@
 
 #include <gtest/gtest.h>
 
+#include <rclcpp/rclcpp.hpp>
+
 extern "C"
 {
 #include <rclc/node.h>
-#include <rclcpp/rclcpp.hpp>
-
 #include <rclc_parameter/rclc_parameter.h>
 }
 
