@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <memory>
-#include <vector>
-
 #include <gtest/gtest.h>
 
 #include <rclcpp/rclcpp.hpp>
@@ -25,6 +21,10 @@ extern "C"
 #include <rclc/node.h>
 #include <rclc_parameter/rclc_parameter.h>
 }
+
+#include <string>
+#include <memory>
+#include <vector>
 
 using namespace std::chrono_literals;
 
