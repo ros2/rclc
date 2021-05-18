@@ -660,7 +660,7 @@ rclc_parameter_service_publish_event(
   rcl_ret_t ret = RCL_RET_OK;
 
   rcutils_time_point_value_t now;
-  ret &= rcutils_system_time_now(&now)
+  ret &= rcutils_system_time_now(&now);
 
   parameter_server->event_list.stamp.sec = RCUTILS_NS_TO_S(now);
   parameter_server->event_list.stamp.nanosec = 
