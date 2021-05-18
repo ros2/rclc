@@ -222,7 +222,6 @@ rcl_ret_t rclc_executor_add_parameter_server(
  * \param[in] type type of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter(
@@ -246,7 +245,6 @@ rclc_add_parameter(
  * \param[in] value value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_bool(
@@ -270,7 +268,6 @@ rclc_parameter_set_bool(
  * \param[in] value value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_int(
@@ -294,7 +291,6 @@ rclc_parameter_set_int(
  * \param[in] value value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_double(
@@ -318,7 +314,6 @@ rclc_parameter_set_double(
  * \param[inout] value returns value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_bool(
@@ -342,7 +337,6 @@ rclc_parameter_get_bool(
  * \param[inout] value returns value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_int(
@@ -366,7 +360,6 @@ rclc_parameter_get_int(
  * \param[inout] value returns value of the parameter
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_double(
