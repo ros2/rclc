@@ -244,7 +244,7 @@ rcl_ret_t
 rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
-  rclc_parameter_options_t * options)
+  const rclc_parameter_options_t * options)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
