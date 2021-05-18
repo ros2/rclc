@@ -167,7 +167,7 @@ rcl_ret_t rclc_parameter_server_init_with_option(
 /**
  *  Destroy a RCLC parameter server
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
@@ -187,7 +187,7 @@ rcl_ret_t rclc_parameter_server_fini(
 /**
  *  Adds a RCLC parameter server to an RCLC executor
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
@@ -209,7 +209,7 @@ rcl_ret_t rclc_executor_add_parameter_server(
 /**
  *  Adds a RCLC parameter to a server
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
@@ -233,7 +233,7 @@ rclc_add_parameter(
 /**
  *  Sets the value of an existing a RCLC bool parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
@@ -257,7 +257,7 @@ rclc_parameter_set_bool(
 /**
  *  Sets the value of an existing a RCLC integer parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
@@ -281,7 +281,7 @@ rclc_parameter_set_int(
 /**
  *  Sets the value of an existing a RCLC double parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
@@ -305,7 +305,7 @@ rclc_parameter_set_double(
 /**
  *  Get the value of an existing a RCLC bool parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
@@ -329,7 +329,7 @@ rclc_parameter_get_bool(
 /**
  *  Get the value of an existing a RCLC integer parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
@@ -353,7 +353,7 @@ rclc_parameter_get_int(
 /**
  *  Get the value of an existing a RCLC double parameter
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
