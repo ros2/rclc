@@ -88,7 +88,7 @@ void rclc_parameter_server_get_service_callback(
   void * res,
   void * parameter_server)
 {
-  GetParameters_Request * request = (GetParameters_Request *) req;
+  const GetParameters_Request * request = (const GetParameters_Request *) req;
   GetParameters_Response * response = (GetParameters_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
 
@@ -116,7 +116,7 @@ void rclc_parameter_server_get_types_service_callback(
   void * res,
   void * parameter_server)
 {
-  GetParameterTypes_Request * request = (GetParameterTypes_Request *)  req;
+  const GetParameterTypes_Request * request = (const GetParameterTypes_Request *)  req;
   GetParameterTypes_Response * response = (GetParameterTypes_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
 
@@ -145,7 +145,7 @@ void rclc_parameter_server_set_service_callback(
   void * res,
   void * parameter_server)
 {
-  SetParameters_Request * request = (SetParameters_Request *) req;
+  const SetParameters_Request * request = (const SetParameters_Request *) req;
   SetParameters_Response * response = (SetParameters_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
 
@@ -243,12 +243,12 @@ rcl_ret_t rclc_parameter_server_init_with_option(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret;
+  rcl_ret_t ret = RCL_RET_OK;
 
   const rosidl_service_type_support_t * get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces, srv,
     GetParameters);
-  ret = rclc_parameter_server_init_service(
+  ret &= rclc_parameter_server_init_service(
     &parameter_server->get_service, node, "/get_parameters",
     get_ts);
 
@@ -550,7 +550,8 @@ rcl_ret_t rclc_parameter_set_double(
   }
 }
 
-rcl_ret_t rclc_parameter_get_bool(
+rcl_ret_t
+rclc_parameter_get_bool(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   bool * output)
@@ -578,7 +579,8 @@ rcl_ret_t rclc_parameter_get_bool(
   return ret;
 }
 
-rcl_ret_t rclc_parameter_get_int(
+rcl_ret_t
+rclc_parameter_get_int(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   int * output)

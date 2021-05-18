@@ -125,7 +125,7 @@ typedef struct rclc_parameter_server_t
 /**
  *  Initializes a RCLC parameter server in a node with default configuration
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
@@ -137,7 +137,6 @@ typedef struct rclc_parameter_server_t
  * \param[in] node related node
  * \return `RCL_RET_OK` if the \p parameter_server was initialized successfully
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_init_default(
   rclc_parameter_server_t * parameter_server,
@@ -146,7 +145,7 @@ rcl_ret_t rclc_parameter_server_init_default(
 /**
  *  Initializes a RCLC parameter server in a node with given configuration
  *
- *  * <hr>
+ * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
@@ -159,7 +158,6 @@ rcl_ret_t rclc_parameter_server_init_default(
  * \param[in] options rclc_parameter_options_t struct with parameter options
  * \return `RCL_RET_OK` if the \p parameter_server was initialized successfully
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
@@ -181,7 +179,6 @@ rcl_ret_t rclc_parameter_server_init_with_option(
  * \param[in] node related node
  * \return `RCL_RET_OK` if the \p parameter_server was destroyed successfully
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_fini(
   rclc_parameter_server_t * parameter_server,
@@ -203,7 +200,6 @@ rcl_ret_t rclc_parameter_server_fini(
  * \param[in] on_modification on parameter modification callback
  * \return `RCL_RET_OK` if success
  */
-
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_executor_add_parameter_server(
   rclc_executor_t * executor,

@@ -36,7 +36,8 @@ rclc_parameter_copy(
   Parameter * dst,
   const Parameter * src);
 
-Parameter * rclc_parameter_search(
+Parameter *
+rclc_parameter_search(
   Parameter__Sequence * parameter_list,
   const char * param_name);
 

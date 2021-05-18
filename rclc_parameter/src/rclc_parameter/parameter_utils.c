@@ -59,7 +59,8 @@ rclc_parameter_copy(
   return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
-Parameter * rclc_parameter_search(
+Parameter *
+rclc_parameter_search(
   Parameter__Sequence * parameter_list,
   const char * param_name)
 {
@@ -72,7 +73,8 @@ Parameter * rclc_parameter_search(
   return NULL;
 }
 
-bool rclc_parameter_set_string(
+bool
+rclc_parameter_set_string(
   rosidl_runtime_c__String * str,
   const char * value)
 {
