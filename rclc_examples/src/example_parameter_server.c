@@ -78,10 +78,10 @@ int main()
     // create timer,
     rcl_timer_t timer;
     rclc_timer_init_default(
-		&timer,
-		&support,
-		RCL_MS_TO_NS(1000),
-		timer_callback);
+        &timer,
+        &support,
+        RCL_MS_TO_NS(1000),
+        timer_callback);
 
     // Create executor
     rclc_executor_t executor;

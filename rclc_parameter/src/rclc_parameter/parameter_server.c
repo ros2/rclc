@@ -26,7 +26,7 @@ extern "C"
 
 #define RCLC_PARAMETER_SERVICE_MAX_LENGHT 50
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_server_init_service(
   rcl_service_t * service,
   rcl_node_t * node,
@@ -36,7 +36,7 @@ rclc_parameter_server_init_service(
 rcl_ret_t rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server);
 
-void 
+void
 rclc_parameter_server_describe_service_callback(
   const void * req,
   void * res,
@@ -67,7 +67,7 @@ rclc_parameter_server_describe_service_callback(
   }
 }
 
-void 
+void
 rclc_parameter_server_list_service_callback(
   const void * req,
   void * res,
@@ -87,7 +87,7 @@ rclc_parameter_server_list_service_callback(
   }
 }
 
-void 
+void
 rclc_parameter_server_get_service_callback(
   const void * req,
   void * res,
@@ -116,7 +116,7 @@ rclc_parameter_server_get_service_callback(
   }
 }
 
-void 
+void
 rclc_parameter_server_get_types_service_callback(
   const void * req,
   void * res,
@@ -146,7 +146,7 @@ rclc_parameter_server_get_types_service_callback(
   }
 }
 
-void 
+void
 rclc_parameter_server_set_service_callback(
   const void * req,
   void * res,
@@ -236,11 +236,11 @@ rcl_ret_t rclc_parameter_server_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  return rclc_parameter_server_init_with_option(parameter_server, node, 
+  return rclc_parameter_server_init_with_option(parameter_server, node,
     &DEFAULT_PARAMETER_SERVER_OPTIONS);
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
@@ -353,7 +353,7 @@ rclc_parameter_server_init_with_option(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_server_fini(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node)
@@ -378,7 +378,7 @@ rclc_parameter_server_fini(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
@@ -424,7 +424,7 @@ rclc_executor_add_parameter_server(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_add_parameter(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -458,7 +458,7 @@ rclc_add_parameter(
   return RCL_RET_OK;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_set_bool(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -478,7 +478,7 @@ rclc_parameter_set_bool(
 
   if (parameter->value.type != RCLC_PARAMETER_BOOL) {
     return RCL_RET_INVALID_ARGUMENT;
-  } 
+  }
 
   parameter->value.bool_value = value;
 
@@ -494,7 +494,7 @@ rclc_parameter_set_bool(
   return RCL_RET_OK;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_set_int(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -530,7 +530,7 @@ rclc_parameter_set_int(
   return RCL_RET_OK;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_set_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -624,7 +624,7 @@ rclc_parameter_get_int(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_get_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
@@ -653,7 +653,7 @@ rclc_parameter_get_double(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server)
 {
@@ -663,7 +663,7 @@ rclc_parameter_service_publish_event(
   ret &= rcutils_system_time_now(&now);
 
   parameter_server->event_list.stamp.sec = RCUTILS_NS_TO_S(now);
-  parameter_server->event_list.stamp.nanosec = 
+  parameter_server->event_list.stamp.nanosec =
     now - RCUTILS_S_TO_NS(parameter_server->event_list.stamp.sec);
 
   ret &= rcl_publish(
@@ -673,7 +673,7 @@ rclc_parameter_service_publish_event(
   return ret;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rclc_parameter_server_init_service(
   rcl_service_t * service,
   rcl_node_t * node,
