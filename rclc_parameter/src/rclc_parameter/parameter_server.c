@@ -501,20 +501,20 @@ rcl_ret_t rclc_parameter_set_int(
 
   if (parameter->value.type != RCLC_PARAMETER_INT) {
     return RCL_RET_INVALID_ARGUMENT;
-  } else {
-    parameter->value.integer_value = value;
-
-    if (parameter_server->notify_changed_over_dds) {
-      rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-      rclc_parameter_service_publish_event(parameter_server);
-    }
-
-    if (parameter_server->on_modification) {
-      parameter_server->on_modification(parameter);
-    }
-
-    return RCL_RET_OK;
   }
+
+  parameter->value.integer_value = value;
+
+  if (parameter_server->notify_changed_over_dds) {
+    rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+    rclc_parameter_service_publish_event(parameter_server);
+  }
+
+  if (parameter_server->on_modification) {
+    parameter_server->on_modification(parameter);
+  }
+
+  return RCL_RET_OK;
 }
 
 rcl_ret_t rclc_parameter_set_double(
@@ -536,20 +536,20 @@ rcl_ret_t rclc_parameter_set_double(
 
   if (parameter->value.type != RCLC_PARAMETER_DOUBLE) {
     return RCL_RET_INVALID_ARGUMENT;
-  } else {
-    parameter->value.double_value = value;
-
-    if (parameter_server->notify_changed_over_dds) {
-      rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
-      rclc_parameter_service_publish_event(parameter_server);
-    }
-
-    if (parameter_server->on_modification) {
-      parameter_server->on_modification(parameter);
-    }
-
-    return RCL_RET_OK;
   }
+
+  parameter->value.double_value = value;
+
+  if (parameter_server->notify_changed_over_dds) {
+    rclc_parameter_prepare_parameter_event(&parameter_server->event_list, parameter, false);
+    rclc_parameter_service_publish_event(parameter_server);
+  }
+
+  if (parameter_server->on_modification) {
+    parameter_server->on_modification(parameter);
+  }
+
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
