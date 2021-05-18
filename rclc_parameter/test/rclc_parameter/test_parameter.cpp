@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-#include <rclc_parameter/rclc_parameter.h>
-
-#include <rclc/node.h>
-#include <rclcpp/rclcpp.hpp>
-
 #include <vector>
 #include <memory>
 #include <string>
 #include <chrono>
 #include <thread>
+
+#include <gtest/gtest.h>
+
+#include <rclc/node.h>
+#include <rclcpp/rclcpp.hpp>
+
+#include <rclc_parameter/rclc_parameter.h>
 
 using namespace std::chrono_literals;
 
