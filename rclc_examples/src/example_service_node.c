@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
