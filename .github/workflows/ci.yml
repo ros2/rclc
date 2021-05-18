@@ -4,6 +4,7 @@ on:
   push:
     branches: [ galactic ]
   pull_request:
+    branches: [ galactic ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -16,10 +17,10 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ galactic ]
+        ros_distribution: [ master ]
         include:
           - docker_image: ubuntu:focal
-            ros_distribution: galactic
+            ros_distribution: master
     container:
       image: ${{ matrix.docker_image }}
     steps:
