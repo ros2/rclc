@@ -19,6 +19,7 @@ extern "C"
 
 #include <time.h>
 
+#include <rcutils/time.h>
 #include <rclc_parameter/rclc_parameter.h>
 
 #include "./parameter_utils.h"
@@ -656,12 +657,16 @@ rcl_ret_t
 rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server)
 {
-  struct timespec ts;
-  clock_gettime(CLOCK_REALTIME, &ts);
-  parameter_server->event_list.stamp.sec = ts.tv_sec;
-  parameter_server->event_list.stamp.nanosec = ts.tv_nsec;
+  rcl_ret_t ret = RCL_RET_OK;
 
-  rcl_ret_t ret = rcl_publish(
+  rcutils_time_point_value_t now;
+  ret &= rcutils_system_time_now(&now)
+
+  parameter_server->event_list.stamp.sec = RCUTILS_NS_TO_S(now);
+  parameter_server->event_list.stamp.nanosec = 
+    now - RCUTILS_S_TO_NS(parameter_server->event_list.stamp.sec);
+
+  ret &= rcl_publish(
     &parameter_server->event_publisher, &parameter_server->event_list,
     NULL);
 
