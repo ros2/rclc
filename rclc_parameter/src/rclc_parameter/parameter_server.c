@@ -354,9 +354,9 @@ rcl_ret_t rclc_parameter_server_fini(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret;
+  rcl_ret_t ret = RCL_RET_OK;
 
-  ret = rcl_service_fini(&parameter_server->list_service, node);
+  ret &= rcl_service_fini(&parameter_server->list_service, node);
   ret &= rcl_service_fini(&parameter_server->set_service, node);
   ret &= rcl_service_fini(&parameter_server->get_service, node);
   ret &= rcl_service_fini(&parameter_server->get_types_service, node);
