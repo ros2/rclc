@@ -17,10 +17,10 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ rolling ]
+        ros_distribution: [ galactic ]
         include:
           - docker_image: ubuntu:focal
-            ros_distribution: rolling
+            ros_distribution: galactic
     container:
       image: ${{ matrix.docker_image }}
     steps:
