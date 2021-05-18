@@ -215,6 +215,11 @@ void rclc_parameter_server_set_service_callback(
   }
 }
 
+const rclc_parameter_options_t DEFAULT_PARAMETER_SERVER_OPTIONS = {
+  .notify_changed_over_dds = true,
+  .max_params = 4
+};
+
 rcl_ret_t rclc_parameter_server_init_default(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node)
@@ -224,11 +229,8 @@ rcl_ret_t rclc_parameter_server_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  rclc_parameter_options_t opts = {
-    .notify_changed_over_dds = true,
-    .max_params = 4
-  };
-  return rclc_parameter_server_init_with_option(parameter_server, node, &opts);
+  return rclc_parameter_server_init_with_option(parameter_server, node, 
+    &DEFAULT_PARAMETER_SERVER_OPTIONS);
 }
 
 rcl_ret_t rclc_parameter_server_init_with_option(
