@@ -236,8 +236,8 @@ rcl_ret_t rclc_parameter_server_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
-  return rclc_parameter_server_init_with_option(parameter_server, node,
-    &DEFAULT_PARAMETER_SERVER_OPTIONS);
+  return rclc_parameter_server_init_with_option(
+    parameter_server, node, &DEFAULT_PARAMETER_SERVER_OPTIONS);
 }
 
 rcl_ret_t
