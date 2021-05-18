@@ -41,6 +41,8 @@ extern "C"
 #include <rosidl_runtime_c/string_functions.h>
 #include <rosidl_runtime_c/primitives_sequence_functions.h>
 
+#include <rclc_parameter/visibility_control.h>
+
 // Alias for rcl_interfaces types
 
 typedef struct rcl_interfaces__srv__GetParameters_Request GetParameters_Request;
@@ -136,6 +138,7 @@ typedef struct rclc_parameter_server_t
  * \return `RCL_RET_OK` if the \p parameter_server was initialized successfully
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_init_default(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node);
@@ -157,6 +160,7 @@ rcl_ret_t rclc_parameter_server_init_default(
  * \return `RCL_RET_OK` if the \p parameter_server was initialized successfully
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
@@ -178,6 +182,7 @@ rcl_ret_t rclc_parameter_server_init_with_option(
  * \return `RCL_RET_OK` if the \p parameter_server was destroyed successfully
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_parameter_server_fini(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node);
@@ -199,6 +204,7 @@ rcl_ret_t rclc_parameter_server_fini(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
@@ -221,6 +227,7 @@ rcl_ret_t rclc_executor_add_parameter_server(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter(
   rclc_parameter_server_t * parameter_server,
@@ -244,6 +251,7 @@ rclc_add_parameter(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_bool(
   rclc_parameter_server_t * parameter_server,
@@ -267,6 +275,7 @@ rclc_parameter_set_bool(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_int(
   rclc_parameter_server_t * parameter_server,
@@ -290,6 +299,7 @@ rclc_parameter_set_int(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_set_double(
   rclc_parameter_server_t * parameter_server,
@@ -313,6 +323,7 @@ rclc_parameter_set_double(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_bool(
   rclc_parameter_server_t * parameter_server,
@@ -336,6 +347,7 @@ rclc_parameter_get_bool(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_int(
   rclc_parameter_server_t * parameter_server,
@@ -359,6 +371,7 @@ rclc_parameter_get_int(
  * \return `RCL_RET_OK` if success
  */
 
+RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_parameter_get_double(
   rclc_parameter_server_t * parameter_server,
