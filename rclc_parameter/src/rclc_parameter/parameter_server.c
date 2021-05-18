@@ -25,7 +25,8 @@ extern "C"
 
 #define RCLC_PARAMETER_SERVICE_MAX_LENGHT 50
 
-rcl_ret_t rclc_parameter_server_init_service(
+rcl_ret_t 
+rclc_parameter_server_init_service(
   rcl_service_t * service,
   rcl_node_t * node,
   char * service_name,
@@ -34,7 +35,8 @@ rcl_ret_t rclc_parameter_server_init_service(
 rcl_ret_t rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server);
 
-void rclc_parameter_server_describe_service_callback(
+void 
+rclc_parameter_server_describe_service_callback(
   const void * req,
   void * res,
   void * parameter_server)
@@ -64,7 +66,8 @@ void rclc_parameter_server_describe_service_callback(
   }
 }
 
-void rclc_parameter_server_list_service_callback(
+void 
+rclc_parameter_server_list_service_callback(
   const void * req,
   void * res,
   void * parameter_server)
@@ -83,7 +86,8 @@ void rclc_parameter_server_list_service_callback(
   }
 }
 
-void rclc_parameter_server_get_service_callback(
+void 
+rclc_parameter_server_get_service_callback(
   const void * req,
   void * res,
   void * parameter_server)
@@ -111,7 +115,8 @@ void rclc_parameter_server_get_service_callback(
   }
 }
 
-void rclc_parameter_server_get_types_service_callback(
+void 
+rclc_parameter_server_get_types_service_callback(
   const void * req,
   void * res,
   void * parameter_server)
@@ -140,7 +145,8 @@ void rclc_parameter_server_get_types_service_callback(
   }
 }
 
-void rclc_parameter_server_set_service_callback(
+void 
+rclc_parameter_server_set_service_callback(
   const void * req,
   void * res,
   void * parameter_server)
@@ -233,7 +239,8 @@ rcl_ret_t rclc_parameter_server_init_default(
     &DEFAULT_PARAMETER_SERVER_OPTIONS);
 }
 
-rcl_ret_t rclc_parameter_server_init_with_option(
+rcl_ret_t 
+rclc_parameter_server_init_with_option(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
   rclc_parameter_options_t * options)
@@ -345,7 +352,8 @@ rcl_ret_t rclc_parameter_server_init_with_option(
   return ret;
 }
 
-rcl_ret_t rclc_parameter_server_fini(
+rcl_ret_t 
+rclc_parameter_server_fini(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node)
 {
@@ -369,7 +377,8 @@ rcl_ret_t rclc_parameter_server_fini(
   return ret;
 }
 
-rcl_ret_t rclc_executor_add_parameter_server(
+rcl_ret_t 
+rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
   ModifiedParameter_Callback on_modification)
@@ -414,7 +423,8 @@ rcl_ret_t rclc_executor_add_parameter_server(
   return ret;
 }
 
-rcl_ret_t rclc_add_parameter(
+rcl_ret_t 
+rclc_add_parameter(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   rclc_parameter_type_t type)
@@ -447,7 +457,8 @@ rcl_ret_t rclc_add_parameter(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_bool(
+rcl_ret_t 
+rclc_parameter_set_bool(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   bool value)
@@ -482,7 +493,8 @@ rcl_ret_t rclc_parameter_set_bool(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_int(
+rcl_ret_t 
+rclc_parameter_set_int(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   int64_t value)
@@ -517,7 +529,8 @@ rcl_ret_t rclc_parameter_set_int(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_parameter_set_double(
+rcl_ret_t 
+rclc_parameter_set_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   double value)
@@ -610,7 +623,8 @@ rclc_parameter_get_int(
   return ret;
 }
 
-rcl_ret_t rclc_parameter_get_double(
+rcl_ret_t 
+rclc_parameter_get_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   double * output)
@@ -638,7 +652,8 @@ rcl_ret_t rclc_parameter_get_double(
   return ret;
 }
 
-rcl_ret_t rclc_parameter_service_publish_event(
+rcl_ret_t 
+rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server)
 {
   struct timespec ts;
@@ -653,7 +668,8 @@ rcl_ret_t rclc_parameter_service_publish_event(
   return ret;
 }
 
-rcl_ret_t rclc_parameter_server_init_service(
+rcl_ret_t 
+rclc_parameter_server_init_service(
   rcl_service_t * service,
   rcl_node_t * node,
   char * service_name,
