@@ -108,6 +108,13 @@ TEST(Test, rclc_node_init_default) {
   // Fail on duplicated name
   rc = rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_DOUBLE);
   EXPECT_EQ(RCL_RET_ERROR, rc);
+  // Fail on name length
+  char overflow_name[RCLC_PARAMETER_MAX_STRING_LENGHT + 1];
+  memset(overflow_name, ' ',  RCLC_PARAMETER_MAX_STRING_LENGHT + 1);
+  overflow_name[RCLC_PARAMETER_MAX_STRING_LENGHT] = '\0';
+  
+  rc = rclc_add_parameter(&param_server, overflow_name, RCLC_PARAMETER_BOOL);
+  EXPECT_EQ(RCL_RET_ERROR, rc);
 
   // Add more parameters
   rc = rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT);

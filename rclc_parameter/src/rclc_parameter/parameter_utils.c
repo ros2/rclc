@@ -55,7 +55,10 @@ rclc_parameter_copy(
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
 
-  rclc_parameter_set_string(&dst->name, src->name.data);
+  if (!rclc_parameter_set_string(&dst->name, src->name.data))
+  {
+    return RCL_RET_ERROR;
+  }
   return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
@@ -78,14 +81,13 @@ rclc_parameter_set_string(
   rosidl_runtime_c__String * str,
   const char * value)
 {
-  // Try to reuse allocated memory instead of reallocating
   if (str->capacity >= (strlen(value) + 1)) {
     memcpy(str->data, value, strlen(value) + 1);
     str->size = strlen(str->data);
     return true;
   }
 
-  return rosidl_runtime_c__String__assign(str, value);
+  return false;
 }
 
 void rclc_parameter_prepare_parameter_event(
