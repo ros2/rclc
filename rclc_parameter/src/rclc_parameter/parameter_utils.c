@@ -55,10 +55,10 @@ rclc_parameter_copy(
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
 
-  if (!rclc_parameter_set_string(&dst->name, src->name.data))
-  {
+  if (!rclc_parameter_set_string(&dst->name, src->name.data)) {
     return RCL_RET_ERROR;
   }
+
   return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
