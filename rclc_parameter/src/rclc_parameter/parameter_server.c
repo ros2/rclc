@@ -507,7 +507,10 @@ rclc_add_parameter(
     return RCL_RET_ERROR;
   }
 
-  if (! rclc_parameter_set_string(&parameter_server->parameter_list.data[index].name, parameter_name)) {
+  if (!rclc_parameter_set_string(
+      &parameter_server->parameter_list.data[index].name,
+      parameter_name))
+  {
     return RCL_RET_ERROR;
   }
 

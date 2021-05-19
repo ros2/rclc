@@ -111,7 +111,7 @@ TEST(Test, rclc_node_init_default) {
 
   // Fail on name length
   char overflow_name[RCLC_PARAMETER_MAX_STRING_LENGHT + 1];
-  memset(overflow_name, ' ',  RCLC_PARAMETER_MAX_STRING_LENGHT + 1);
+  memset(overflow_name, ' ', RCLC_PARAMETER_MAX_STRING_LENGHT + 1);
   overflow_name[RCLC_PARAMETER_MAX_STRING_LENGHT] = '\0';
 
   rc = rclc_add_parameter(&param_server, overflow_name, RCLC_PARAMETER_BOOL);
