@@ -79,9 +79,8 @@ rclc_parameter_set_string(
   const char * value)
 {
   // Try to reuse allocated memory instead of reallocating
-  if (str->capacity > strlen(value))
-  {
-    strcpy(str->data, value);
+  if (str->capacity >= (strlen(value) + 1)) {
+    memcpy(str->data, value, strlen(value) + 1);
     str->size = strlen(str->data);
     return true;
   }

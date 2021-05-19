@@ -302,7 +302,7 @@ rclc_parameter_server_init_with_option(
 
   static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT];
   memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGHT);
-  empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT-1] = '\0';
+  empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT - 1] = '\0';
 
   rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
@@ -310,8 +310,7 @@ rclc_parameter_server_init_with_option(
   parameter_server->parameter_list.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->parameter_list.data[i].name,
       (const char *) empty_string);
@@ -325,8 +324,7 @@ rclc_parameter_server_init_with_option(
   parameter_server->list_response.result.names.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->list_response.result.names.data[i],
       (const char *) empty_string);
@@ -344,8 +342,7 @@ rclc_parameter_server_init_with_option(
   parameter_server->get_response.values.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->get_request.names.data[i],
       (const char *) empty_string);
@@ -363,8 +360,7 @@ rclc_parameter_server_init_with_option(
   parameter_server->set_response.results.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->set_request.parameters.data[i].name,
       (const char *) empty_string);
@@ -384,8 +380,7 @@ rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->get_types_response.types.size = 0;
 
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->get_types_request.names.data[i],
       (const char *) empty_string);
@@ -402,8 +397,7 @@ rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->describe_response.descriptors.size = 0;
 
-  for (size_t i = 0; i < options->max_params; i++)
-  {
+  for (size_t i = 0; i < options->max_params; i++) {
     rosidl_runtime_c__String__assign(
       &parameter_server->describe_request.names.data[i],
       (const char *) empty_string);
