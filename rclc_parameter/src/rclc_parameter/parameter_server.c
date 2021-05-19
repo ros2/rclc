@@ -24,8 +24,6 @@ extern "C"
 
 #include "./parameter_utils.h"
 
-#define RCLC_PARAMETER_SERVICE_MAX_LENGHT 50
-
 rcl_ret_t
 rclc_parameter_server_init_service(
   rcl_service_t * service,
@@ -302,10 +300,22 @@ rclc_parameter_server_init_with_option(
       "/parameter_events");
   }
 
+  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT];
+  memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGHT);
+  empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT-1] = '\0';
+
   rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
     options->max_params);
   parameter_server->parameter_list.size = 0;
+
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->parameter_list.data[i].name,
+      (const char *) empty_string);
+  }
 
   rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
   rcl_interfaces__srv__ListParameters_Response__init(&parameter_server->list_response);
@@ -314,33 +324,93 @@ rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->list_response.result.names.size = 0;
 
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->list_response.result.names.data[i],
+      (const char *) empty_string);
+  }
+
   rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
   rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
+  rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->get_request.names,
+    options->max_params);
+  parameter_server->get_request.names.size = 0;
   rcl_interfaces__msg__ParameterValue__Sequence__init(
     &parameter_server->get_response.values,
     options->max_params);
   parameter_server->get_response.values.size = 0;
 
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->get_request.names.data[i],
+      (const char *) empty_string);
+  }
+
   rcl_interfaces__srv__SetParameters_Request__init(&parameter_server->set_request);
   rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
+  rcl_interfaces__msg__Parameter__Sequence__init(
+    &parameter_server->set_request.parameters,
+    options->max_params);
+  parameter_server->set_request.parameters.size = 0;
   rcl_interfaces__msg__SetParametersResult__Sequence__init(
     &parameter_server->set_response.results,
     options->max_params);
   parameter_server->set_response.results.size = 0;
 
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->set_request.parameters.data[i].name,
+      (const char *) empty_string);
+    rosidl_runtime_c__String__assign(
+      &parameter_server->set_response.results.data[i].reason,
+      (const char *) empty_string);
+  }
+
   rcl_interfaces__srv__GetParameterTypes_Request__init(&parameter_server->get_types_request);
   rcl_interfaces__srv__GetParameterTypes_Response__init(&parameter_server->get_types_response);
+  rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->get_types_request.names,
+    options->max_params);
+  parameter_server->get_types_request.names.size = 0;
   rosidl_runtime_c__uint8__Sequence__init(
     &parameter_server->get_types_response.types,
     options->max_params);
   parameter_server->get_types_response.types.size = 0;
 
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->get_types_request.names.data[i],
+      (const char *) empty_string);
+  }
+
   rcl_interfaces__srv__DescribeParameters_Request__init(&parameter_server->describe_request);
   rcl_interfaces__srv__DescribeParameters_Response__init(&parameter_server->describe_response);
+  rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->describe_request.names,
+    options->max_params);
+  parameter_server->describe_request.names.size = 0;
   rcl_interfaces__msg__ParameterDescriptor__Sequence__init(
     &parameter_server->describe_response.descriptors,
     options->max_params);
   parameter_server->describe_response.descriptors.size = 0;
+
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    rosidl_runtime_c__String__assign(
+      &parameter_server->describe_request.names.data[i],
+      (const char *) empty_string);
+    rosidl_runtime_c__String__assign(
+      &parameter_server->describe_response.descriptors.data[i].name,
+      (const char *) empty_string);
+  }
 
   rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
   if (!rosidl_runtime_c__String__assign(
@@ -682,8 +752,8 @@ rclc_parameter_server_init_service(
 {
   const char * node_name = rcl_node_get_name(node);
 
-  char get_service_name[RCLC_PARAMETER_SERVICE_MAX_LENGHT];
-  memset(get_service_name, 0, RCLC_PARAMETER_SERVICE_MAX_LENGHT);
+  static char get_service_name[RCLC_PARAMETER_MAX_STRING_LENGHT];
+  memset(get_service_name, 0, RCLC_PARAMETER_MAX_STRING_LENGHT);
   memcpy(get_service_name, node_name, strlen(node_name) + 1);
   memcpy((get_service_name + strlen(node_name)), service_name, strlen(service_name) + 1);
   return rclc_service_init_default(service, node, srv_type, get_service_name);

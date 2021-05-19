@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 project(rclc_parameter)
 
 #################################################
+# package options
+#################################################
+set(RCLC_PARAMETER_MAX_STRING_LENGHT 50 CACHE STRING "Set the maximum length for strings.")
+add_compile_definitions(RCLC_PARAMETER_MAX_STRING_LENGHT=${RCLC_PARAMETER_MAX_STRING_LENGHT})
+
+#################################################
 # compiler settings
 #################################################
 

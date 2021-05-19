@@ -78,6 +78,14 @@ rclc_parameter_set_string(
   rosidl_runtime_c__String * str,
   const char * value)
 {
+  // Try to reuse allocated memory instead of reallocating
+  if (str->capacity > strlen(value))
+  {
+    strcpy(str->data, value);
+    str->size = strlen(str->data);
+    return true;
+  }
+
   return rosidl_runtime_c__String__assign(str, value);
 }
 
