@@ -25,15 +25,14 @@ jobs:
       image: ${{ matrix.docker_image }}
     steps:
     - uses: actions/checkout@v2
-    - uses: ros-tooling/setup-ros@master
+    - uses: ros-tooling/setup-ros@0.2.0
       with:
         required-ros-distributions: ${{ matrix.ros_distribution }}
-        use-ros2-testing: true
     - name : Download and install rclc-dependencies
       run: |
         apt-get install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
         apt-get install ros-${{ matrix.ros_distribution }}-test-msgs
-    - uses : ros-tooling/action-ros-ci@master
+    - uses : ros-tooling/action-ros-ci@0.2.1
       with:
         package-name: "rclc rclc_examples rclc_lifecycle"
         vcs-repo-file-url: dependencies.repos
