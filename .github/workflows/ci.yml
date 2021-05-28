@@ -2,9 +2,9 @@ name: CI RCLC Galactic
 
 on:
   push:
-    branches: [ master ]
+    branches: [ galactic ]
   pull_request:
-    branches: [ master ]
+    branches: [ galactic ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
