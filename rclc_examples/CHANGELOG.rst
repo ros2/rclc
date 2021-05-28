@@ -16,6 +16,10 @@ Changelog for package rclc_examples
 * Added example for quality of service entity creation API
 * Added example for subscription with context
 
+2.0.1 (2021-05-28)
+------------------
+* added quality declaration
+
 2.0.0 (2021-04-23)
 ------------------
 * added codecov support
