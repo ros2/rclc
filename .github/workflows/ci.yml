@@ -43,7 +43,7 @@ jobs:
               "mixin": [ "coverage-gcc" ]
             }
           }
-        colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/galactic/index.yaml
+        colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
     - uses: codecov/codecov-action@v1
       with:
         file: ros_ws/lcov/total_coverage.info
