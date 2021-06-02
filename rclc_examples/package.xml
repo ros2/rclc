@@ -27,6 +27,8 @@
   <exec_depend>lifecycle_msgs</exec_depend>
   <exec_depend>example_interfaces</exec_depend>
 
+  <depend>rclc_parameter</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>
