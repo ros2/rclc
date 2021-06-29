@@ -169,6 +169,8 @@ rclc_parameter_server_set_service_callback(
       request->parameters.data[i].name.data);
     rcl_ret_t ret = RCL_RET_OK;
 
+    rclc_parameter_set_string(message, "");
+
     if (parameter != NULL) {
       response->results.data[i].successful = true;
 
