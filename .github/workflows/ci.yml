@@ -2,8 +2,12 @@ name: CI RCLC Foxy
 
 on:
   push:
-    branches: [ subscription_context ]
-
+    branches: [ foxy ]
+  pull_request:
+    branches: [ foxy ]
+  schedule:
+    # Run once per day to detect broken dependencies.
+    - cron: '33 6 * * *'
 
 jobs:
   build:
