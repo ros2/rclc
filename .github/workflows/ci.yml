@@ -35,7 +35,7 @@ jobs:
     - uses : ros-tooling/action-ros-ci@0.2.1
       with:
         package-name: "rclc rclc_examples rclc_lifecycle"
-        vcs-repo-file-url: dependencies.repos
+        vcs-repo-file-url: ""
         target-ros2-distro: ${{ matrix.ros_distribution }}
         colcon-defaults: |
           {
