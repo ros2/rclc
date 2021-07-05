@@ -17,30 +17,32 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ foxy, dashing ]
+        ros_distribution: [ foxy ]
         include:
-          - docker_image: ubuntu:bionic
-            ros_distribution: dashing
-
           - docker_image: ubuntu:focal
             ros_distribution: foxy
     container:
       image: ${{ matrix.docker_image }}
     steps:
     - uses: actions/checkout@v2
-    - uses: ros-tooling/setup-ros@0.1.2
+    - uses: ros-tooling/setup-ros@0.2.1
       with:
         required-ros-distributions: ${{ matrix.ros_distribution }}
     - name : Download and install rclc-dependencies
       run: |
         apt-get install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
         apt-get install ros-${{ matrix.ros_distribution }}-test-msgs
-    - uses : ros-tooling/action-ros-ci@0.1.0
+    - uses : ros-tooling/action-ros-ci@0.2.1
       with:
         package-name: "rclc rclc_examples rclc_lifecycle"
         vcs-repo-file-url: ""
         target-ros2-distro: ${{ matrix.ros_distribution }}
-        colcon-mixin-name: coverage-gcc
+        colcon-defaults: |
+          {
+            "build": {
+              "mixin": [ "coverage-gcc" ]
+            }
+          }
         colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
     - uses: codecov/codecov-action@v1
       with:
