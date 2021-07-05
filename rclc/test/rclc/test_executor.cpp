@@ -809,7 +809,10 @@ TEST_F(TestDefaultExecutor, executor_remove_subscription) {
   num_subscriptions = 2;
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
     "number of subscriptions is expected to be two";
-
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
   // test: restore last subscription - execution order is still 1,2,3
   rc = rclc_executor_add_subscription(
     &executor, &this->sub3, &this->sub3_msg,
@@ -833,7 +836,10 @@ TEST_F(TestDefaultExecutor, executor_remove_subscription) {
   num_subscriptions = 2;
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
     "number of subscriptions is expected to be two";
-
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub3) <<
+    "expect to find sub3 in second handle";
   // test: restore (push) sub2 subscription - this changes the order of excution to 1,3,2
   rc = rclc_executor_add_subscription(
     &executor, &this->sub2, &this->sub2_msg,
@@ -857,7 +863,10 @@ TEST_F(TestDefaultExecutor, executor_remove_subscription) {
   num_subscriptions = 2;
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
     "number of subscriptions is expected to be two";
-
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub3) <<
+    "expect to find sub3 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
   // test: restore (push) sub1 subscription - this changes the order of excution to 3,2,1
   rc = rclc_executor_add_subscription(
     &executor, &this->sub1, &this->sub1_msg,
