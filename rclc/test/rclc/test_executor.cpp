@@ -728,6 +728,178 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
+TEST_F(TestDefaultExecutor, executor_remove_subscription) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+
+  // insert one handle, add two subscriptions
+  rc = rclc_executor_init(&executor, &this->context, 3, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // add subscription
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub1, &this->sub1_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  size_t num_subscriptions = 1;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be one";
+
+  // test: remove subscription
+  rc = rclc_executor_remove_subscription(&executor, &this->sub1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 0;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be zero";
+
+  // test: remove non-existant should error
+  rc = rclc_executor_remove_subscription(&executor, &this->sub1);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be zero";
+
+  // test: remove from NULL executor should error
+  rc = rclc_executor_remove_subscription(NULL, &this->sub1);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  // test: remove null subscription should error
+  rc = rclc_executor_remove_subscription(&executor, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test: add first subscription again
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub1, &this->sub1_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 1;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be one";
+
+  // test: add second subscription
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub2, &this->sub2_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 2;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be two";
+
+  // test: add third subscription - execution order is 1,2,3
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub3, &this->sub3_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 3;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be three";
+
+  // test: the handles are in the expected order
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
+  EXPECT_EQ(executor.handles[2].subscription, &this->sub3) <<
+    "expect to find sub3 in third handle";
+
+  // test: remove last handle
+  rc = rclc_executor_remove_subscription(&executor, &this->sub3);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 2;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be two";
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
+  // test: restore last subscription - execution order is still 1,2,3
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub3, &this->sub3_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 3;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be three";
+
+  // test: the handles are in the expected order
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
+  EXPECT_EQ(executor.handles[2].subscription, &this->sub3) <<
+    "expect to find sub3 in third handle";
+
+  // test: remove middle handle
+  rc = rclc_executor_remove_subscription(&executor, &this->sub2);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 2;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be two";
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub3) <<
+    "expect to find sub3 in second handle";
+  // test: restore (push) sub2 subscription - this changes the order of excution to 1,3,2
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub2, &this->sub2_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 3;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be three";
+
+  // test: the handles are in the expected order
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub1) <<
+    "expect to find sub1 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub3) <<
+    "expect to find sub3 in second handle";
+  EXPECT_EQ(executor.handles[2].subscription, &this->sub2) <<
+    "expect to find sub2 in third handle";
+
+  // test: remove first handle
+  rc = rclc_executor_remove_subscription(&executor, &this->sub1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 2;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be two";
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub3) <<
+    "expect to find sub3 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
+  // test: restore (push) sub1 subscription - this changes the order of excution to 3,2,1
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub1, &this->sub1_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 3;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be three";
+
+  // test: the handles are in the expected order
+  EXPECT_EQ(executor.handles[0].subscription, &this->sub3) <<
+    "expect to find sub3 in first handle";
+  EXPECT_EQ(executor.handles[1].subscription, &this->sub2) <<
+    "expect to find sub2 in second handle";
+  EXPECT_EQ(executor.handles[2].subscription, &this->sub1) <<
+    "expect to find sub1 in third handle";
+
+
+  // tear down
+  // remove all subscriptions
+  rc = rclc_executor_remove_subscription(&executor, &this->sub1);
+  rc = rclc_executor_remove_subscription(&executor, &this->sub2);
+  rc = rclc_executor_remove_subscription(&executor, &this->sub3);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  num_subscriptions = 0;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be zero";
+
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
 TEST_F(TestDefaultExecutor, executor_add_timer) {
   rcl_ret_t rc;
   rclc_executor_t executor;
@@ -740,6 +912,47 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   exp_number_of_timers = 1;
   EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_remove_timer) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // setup with one timer
+  size_t exp_number_of_timers = 0;
+  EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#times should be 0";
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  exp_number_of_timers = 1;
+  EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
+
+  // test removing from NULL executor
+  rc = rclc_executor_remove_timer(NULL, &this->timer1);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  // test removing NULL timer
+  rc = rclc_executor_remove_timer(&executor, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  exp_number_of_timers = 1;
+  EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
+
+  // test removing timer
+  rc = rclc_executor_remove_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  exp_number_of_timers = 0;
+  EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 0";
+
+  // test removing non-existent timer
+  rc = rclc_executor_remove_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
 
   // tear down
   rc = rclc_executor_fini(&executor);
@@ -789,6 +1002,61 @@ TEST_F(TestDefaultExecutor, executor_add_client) {
 
   rc = rclc_executor_add_client(&executor, &client, &res, NULL);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // tear down
+  rc = rcl_client_fini(&client, &this->node);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_remove_client) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  const char * client_name = "/addtwoints";
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  const rosidl_service_type_support_t * client_type_support =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
+  rc = rcl_client_init(&client, &this->node, client_type_support, client_name, &client_options);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Response res;
+  example_interfaces__srv__AddTwoInts_Response__init(&res);
+
+  size_t number_of_clients = 0;
+  rc = rclc_executor_add_client(&executor, &client, &res, &client_callback);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  number_of_clients = 1;
+  EXPECT_EQ(executor.info.number_of_clients, number_of_clients) << " should be 1";
+  EXPECT_EQ(executor.info.number_of_services, (size_t) 0) << "should be 0 ";
+
+  // test removing from NULL executor
+  rc = rclc_executor_remove_client(NULL, &client);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test removing NULL client
+  rc = rclc_executor_remove_client(&executor, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test removing actual client
+  rc = rclc_executor_remove_client(&executor, &client);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  number_of_clients = 0;
+  EXPECT_EQ(executor.info.number_of_clients, number_of_clients) << " should be 0";
+  EXPECT_EQ(executor.info.number_of_services, (size_t) 0) << "should be 0 ";
+
+  // test removing non-existent client
+  rc = rclc_executor_remove_client(&executor, &client);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
   // tear down
@@ -857,6 +1125,66 @@ TEST_F(TestDefaultExecutor, executor_add_service) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
+TEST_F(TestDefaultExecutor, executor_remove_service) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+
+  const char * service_name = "/addtwoints";
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  const rosidl_service_type_support_t * service_type_support =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
+  rc =
+    rcl_service_init(&service, &this->node, service_type_support, service_name, &service_options);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  example_interfaces__srv__AddTwoInts_Request req;
+  example_interfaces__srv__AddTwoInts_Request__init(&req);
+
+  example_interfaces__srv__AddTwoInts_Response resp;
+  example_interfaces__srv__AddTwoInts_Response__init(&resp);
+
+  size_t number_of_services = 0;
+  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
+  EXPECT_EQ(executor.info.number_of_services, number_of_services) << "should be 0";
+
+  rc = rclc_executor_add_service(&executor, &service, &req, &resp, &service_callback);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  number_of_services = 1;
+  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
+  EXPECT_EQ(executor.info.number_of_services, number_of_services) << "should be 1";
+
+  // test removing from NULL executor
+  rc = rclc_executor_remove_service(NULL, &service);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test removing NULL service
+  rc = rclc_executor_remove_service(&executor, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test remove service
+  rc = rclc_executor_remove_service(&executor, &service);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  number_of_services = 0;
+  EXPECT_EQ(executor.info.number_of_clients, (size_t) 0);
+  EXPECT_EQ(executor.info.number_of_services, number_of_services) << "should be 0";
+
+  // test remove non-existent service
+  rc = rclc_executor_remove_service(&executor, &service);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // tear down
+  rc = rcl_service_fini(&service, &this->node);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
 
 TEST_F(TestDefaultExecutor, executor_spin_some_API) {
   rcl_ret_t rc;
@@ -2165,6 +2493,51 @@ TEST_F(TestDefaultExecutor, executor_test_guard_condition) {
   std::this_thread::sleep_for(rclc_test_sleep_time);
   rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
   EXPECT_EQ(gc1_cnt, (unsigned int) 1);
+
+  // tear down
+  rc = rcl_guard_condition_fini(&guard_cond);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_test_remove_guard_condition) {
+  // Test guard_condition.
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // initialize guard condition
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  rc = rcl_guard_condition_init(
+    &guard_cond, &this->context, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  rc = rclc_executor_add_guard_condition(&executor, &guard_cond, &gc_callback);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 1);
+
+  // test remove guard condition - invalid args
+  rc = rclc_executor_remove_guard_condition(&executor, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  rc = rclc_executor_remove_guard_condition(NULL, &guard_cond);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // test remove guard condition - valid args
+  rc = rclc_executor_remove_guard_condition(&executor, &guard_cond);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_guard_conditions, (size_t) 0);
+
+  // test remove non-existent guard condition
+  rc = rclc_executor_remove_guard_condition(&executor, &guard_cond);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
 
   // tear down
   rc = rcl_guard_condition_fini(&guard_cond);
