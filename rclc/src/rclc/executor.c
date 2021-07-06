@@ -780,7 +780,7 @@ rclc_executor_remove_guard_condition(
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
     if (GUARD_CONDITION == executor->handles[i].type) {
-      if (guard_condition == executor->handles[i].guard_condition) {
+      if (guard_condition == executor->handles[i].gc) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
