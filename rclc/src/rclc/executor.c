@@ -993,6 +993,9 @@ _rclc_execute(rclc_executor_handle_t * handle)
                 handle->callback_context);
             }
             break;
+          default:
+            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
+            break;
         }
         break;
 
