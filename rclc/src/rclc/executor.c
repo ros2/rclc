@@ -284,7 +284,7 @@ rclc_executor_add_subscription_with_context(
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription.");
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription_with_context.");
       return ret;
     }
   }
@@ -780,7 +780,7 @@ rclc_executor_remove_guard_condition(
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
     if (GUARD_CONDITION == executor->handles[i].type) {
-      if (guard_condition == executor->handles[i].gc) {
+      if (guard_condition == executor->handles[i].guard_condition) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
           RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
