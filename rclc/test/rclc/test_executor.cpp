@@ -971,53 +971,6 @@ TEST_F(TestDefaultExecutor, executor_remove_subscription) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
-TEST_F(TestDefaultExecutor, executor_remove_subscription) {
-  rcl_ret_t rc;
-  rclc_executor_t executor;
-
-  // insert one handle, add two subscriptions
-  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-
-  // add subscription
-  rc = rclc_executor_add_subscription(
-    &executor, &this->sub1, &this->sub1_msg,
-    &CALLBACK_1, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  size_t num_subscriptions = 1;
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // test: remove subscription
-  rc = rclc_executor_remove_subscription(
-    &executor, &this->sub1);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  num_subscriptions = 0;
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be zero";
-
-  // test: remove non-existant should error
-  rc = rclc_executor_remove_subscription(
-    &executor, &this->sub1);
-  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
-  rcutils_reset_error();
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be zero";
-
-  // test: add subscription again
-  rc = rclc_executor_add_subscription(
-    &executor, &this->sub1, &this->sub1_msg,
-    &CALLBACK_1, ON_NEW_DATA);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  num_subscriptions = 1;
-  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions is expected to be one";
-
-  // tear down
-  rc = rclc_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-}
-
 TEST_F(TestDefaultExecutor, executor_add_timer) {
   rcl_ret_t rc;
   rclc_executor_t executor;
