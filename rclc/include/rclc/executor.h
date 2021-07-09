@@ -94,6 +94,15 @@ rclc_executor_get_zero_initialized_executor(void);
  *  Initializes an executor.
  *  It creates a dynamic array with size \p number_of_handles using the
  *  \p allocator.
+ * As the Executor is intended for embedded controllers, dynamic memory management is crucial.
+ *  Therefore at initialization of the RCLC-Executor, the user defines the total \p number_of_handles.
+ * A handle is a term for subscriptions, timers, services, clients and guard conditions. The
+ * heap will be allocated only in this phase and no more memory will be allocated in the
+ * running phase in the executor. However, the heap memory of corresponding wait-set is
+ * allocated in the first iteration of a spin-method. This makes this Executor static in
+ * terms of memory allocation, in the sense, that during runtime no heap allocations occur.
+ * You can add, however, at runtime as many handles, e.g. subscriptions, to the executor
+ * until the maximum number of handles is reached.
  *
  *
  *  * <hr>
