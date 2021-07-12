@@ -118,28 +118,28 @@ TEST(Test, rclc_subscription_init_qos) {
 
   // test with valid arguments
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  const rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  const rmw_qos_profile_t * qos_profile = &rmw_qos_profile_default;
   const rosidl_message_type_support_t * type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  rc = rclc_subscription_init(&subscription, &node, type_support, "topic1", &rmw_qos_profile_default);
+  rc = rclc_subscription_init(&subscription, &node, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_OK, rc);
   const rcl_subscription_options_t * sub_options = rcl_subscription_get_options(&subscription);
   EXPECT_EQ(sub_options->qos.reliability, rmw_qos_profile_default.reliability);
 
   // tests with invalid arguments
-  rc = rclc_subscription_init_best_effort(nullptr, &node, type_support, "topic1", &rmw_qos_profile_default);
+  rc = rclc_subscription_init(nullptr, &node, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_best_effort(&subscription, nullptr, type_support, "topic1", &rmw_qos_profile_default);
+  rc = rclc_subscription_init(&subscription, nullptr, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_best_effort(&subscription, &node, nullptr, "topic1", &rmw_qos_profile_default);
+  rc = rclc_subscription_init(&subscription, &node, nullptr, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_best_effort(&subscription, &node, type_support, nullptr, &rmw_qos_profile_default);
+  rc = rclc_subscription_init(&subscription, &node, type_support, nullptr, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_subscription_init_best_effort(&subscription, &node, type_support, "topic1", nullptr);
+  rc = rclc_subscription_init(&subscription, &node, type_support, "topic1", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
 

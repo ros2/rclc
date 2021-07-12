@@ -119,10 +119,10 @@ TEST(Test, rclc_publisher_init_qos) {
 
   // test with valid arguments
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  const rmw_qos_profile_t * qos_profile = &rmw_qos_profile_default;
   const rosidl_message_type_support_t * type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
-  rc = rclc_publisher_init(&publisher, &node, type_support, "topic1", &qos_profile);
+  rc = rclc_publisher_init(&publisher, &node, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // check for qos-option best effort
@@ -130,19 +130,19 @@ TEST(Test, rclc_publisher_init_qos) {
   EXPECT_EQ(pub_options->qos.reliability, rmw_qos_profile_default.reliability);
 
   // tests with invalid arguments
-  rc = rclc_publisher_init_best_effort(nullptr, &node, type_support, "topic1" &qos_profile);
+  rc = rclc_publisher_init(nullptr, &node, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_publisher_init_best_effort(&publisher, nullptr, type_support, "topic1", &qos_profile);
+  rc = rclc_publisher_init(&publisher, nullptr, type_support, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_publisher_init_best_effort(&publisher, &node, nullptr, "topic1", &qos_profile);
+  rc = rclc_publisher_init(&publisher, &node, nullptr, "topic1", qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_publisher_init_best_effort(&publisher, &node, type_support, nullptr, &qos_profile);
+  rc = rclc_publisher_init(&publisher, &node, type_support, nullptr, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_publisher_init_best_effort(&publisher, &node, type_support, "topic1", nullptr);
+  rc = rclc_publisher_init(&publisher, &node, type_support, "topic1", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
 

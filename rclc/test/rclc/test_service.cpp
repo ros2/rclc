@@ -141,10 +141,10 @@ TEST(Test, rclc_service_init_qos) {
 
   // test with valid arguments
   rcl_service_t service = rcl_get_zero_initialized_service();
-  const rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  const rmw_qos_profile_t * qos_profile = &rmw_qos_profile_default;
   const rosidl_service_type_support_t * type_support =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
-  rc = rclc_service_init(&service, &node, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_service_init(&service, &node, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // check for qos-option best effort
@@ -159,19 +159,19 @@ TEST(Test, rclc_service_init_qos) {
   rcl_reset_error();
 
   // tests with invalid arguments
-  rc = rclc_service_init_default(nullptr, &node, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_service_init(nullptr, &node, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_service_init_default(&service, nullptr, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_service_init(&service, nullptr, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_service_init_default(&service, &node, nullptr, topic_name, &rmw_qos_profile_default);
+  rc = rclc_service_init(&service, &node, nullptr, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_service_init_default(&service, &node, type_support, nullptr, &rmw_qos_profile_default);
+  rc = rclc_service_init(&service, &node, type_support, nullptr, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_service_init_default(&service, &node, type_support, topic_name, nullptr);
+  rc = rclc_service_init(&service, &node, type_support, topic_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
 

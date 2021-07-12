@@ -155,10 +155,10 @@ TEST(Test, rclc_client_init_best_effort) {
 
   // test with valid arguments
   rcl_client_t client = rcl_get_zero_initialized_client();
-  const rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  const rmw_qos_profile_t * qos_profile = &rmw_qos_profile_default;
   const rosidl_service_type_support_t * type_support =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
-  rc = rclc_client_init_best_effort(&client, &node, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_client_init(&client, &node, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // test client topic name
@@ -181,19 +181,19 @@ TEST(Test, rclc_client_init_best_effort) {
   EXPECT_EQ(cli_options->qos.reliability, rmw_qos_profile_default.reliability);
 
   // tests with invalid arguments
-  rc = rclc_client_init_best_effort(nullptr, &node, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_client_init(nullptr, &node, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_client_init_best_effort(&client, nullptr, type_support, topic_name, &rmw_qos_profile_default);
+  rc = rclc_client_init(&client, nullptr, type_support, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_client_init_best_effort(&client, &node, nullptr, topic_name, &rmw_qos_profile_default);
+  rc = rclc_client_init(&client, &node, nullptr, topic_name, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_client_init_best_effort(&client, &node, type_support, nullptr, &rmw_qos_profile_default);
+  rc = rclc_client_init(&client, &node, type_support, nullptr, qos_profile);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_client_init_best_effort(&client, &node, type_support, topic_name, nullptr);
+  rc = rclc_client_init(&client, &node, type_support, topic_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
 
