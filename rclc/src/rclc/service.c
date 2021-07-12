@@ -79,3 +79,37 @@ rclc_service_init_best_effort(
   }
   return rc;
 }
+
+rcl_ret_t
+rclc_service_init(
+  rcl_service_t * service,
+  const rcl_node_t * node,
+  const rosidl_service_type_support_t * type_support,
+  const char * service_name,
+  const rmw_qos_profile_t * qos_profile)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    qos_profile, "qos_profile is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  (*service) = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_opt = rcl_service_get_default_options();
+  service_opt.qos = *qos_profile;
+  rcl_ret_t rc = rcl_service_init(
+    service,
+    node,
+    type_support,
+    service_name,
+    &service_opt);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(rclc_service_init_best_effort, rcl_service_init);
+  }
+  return rc;
+}
