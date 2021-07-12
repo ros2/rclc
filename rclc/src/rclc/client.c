@@ -80,6 +80,7 @@ rclc_client_init_best_effort(
   return rc;
 }
 
+rcl_ret_t
 rclc_client_init(
   rcl_client_t * client,
   const rcl_node_t * node,
