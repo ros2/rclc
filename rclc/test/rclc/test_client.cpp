@@ -139,7 +139,7 @@ TEST(Test, rclc_client_init_best_effort) {
   EXPECT_EQ(RCL_RET_OK, rc);
 }
 
-TEST(Test, rclc_client_init_best_effort) {
+TEST(Test, rclc_client_init_qos) {
   rclc_support_t support;
   rcl_ret_t rc;
 
