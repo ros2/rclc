@@ -113,4 +113,3 @@ rclc_publisher_init(
   }
   return rc;
 }
-
