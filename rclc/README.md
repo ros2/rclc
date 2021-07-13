@@ -273,7 +273,7 @@ Returns a zero initialized executor object.
 **rclc_executor_init(rclc_executor_t * executor, rcl_context_t * context, const size_t number_of_handles, const rcl_allocator_t * allocator)**
 
 As the Executor is intended for embedded controllers, dynamic memory management is crucial.
-Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`. A handle is a term for subscriptions, timers, services, clients and guard conditions. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. The corresponding wait-set is allocated in the first execution of the spin-method.
+Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`. A handle is a term for subscriptions, timers, services, clients and guard conditions. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. The corresponding wait-set is allocated in the first execution of the spin-method or in the optional call to `rclc_executor_prepare` .
 This makes this Executor static in the sense, that during runtime no heap allocations occur. You can add, however, at runtime as many handles, e.g. subscriptions, to the executor until the maximum number of handles is reached.
 The `context` is the RCL context, and `allocator` points to a memory allocator.
 
