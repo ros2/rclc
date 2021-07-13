@@ -18,6 +18,7 @@
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
+#include <rmw/qos_profiles.h>
 
 rcl_ret_t
 rclc_service_init_default(
@@ -26,27 +27,7 @@ rclc_service_init_default(
   const rosidl_service_type_support_t * type_support,
   const char * service_name)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  (*service) = rcl_get_zero_initialized_service();
-  rcl_service_options_t service_options = rcl_service_get_default_options();
-  rcl_ret_t rc = rcl_service_init(
-    service,
-    node,
-    type_support,
-    service_name,
-    &service_options);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_service_init_default, rcl_service_init);
-  }
-  return rc;
+  return rclc_service_init(service, node, type_support, service_name, &rmw_qos_profile_services_default);
 }
 
 rcl_ret_t
@@ -56,28 +37,10 @@ rclc_service_init_best_effort(
   const rosidl_service_type_support_t * type_support,
   const char * service_name)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  rmw_qos_profile_t rmw_qos_profile_services_best_effort = rmw_qos_profile_services_default;
+  rmw_qos_profile_services_best_effort.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
 
-  (*service) = rcl_get_zero_initialized_service();
-  rcl_service_options_t service_opt = rcl_service_get_default_options();
-  service_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  rcl_ret_t rc = rcl_service_init(
-    service,
-    node,
-    type_support,
-    service_name,
-    &service_opt);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_service_init_best_effort, rcl_service_init);
-  }
-  return rc;
+  return rclc_service_init(service, node, type_support, service_name, &rmw_qos_profile_services_best_effort);
 }
 
 rcl_ret_t
