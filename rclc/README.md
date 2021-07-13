@@ -322,6 +322,9 @@ The second option is useful for example when the callback is expected to be call
 
 For a timer, only the rcl timer object `timer` is needed.
 
+**rclc_executor_prepare(rclc_executor_t * executor)**
+
+The function `rclc_executor_prepare` prepares the internal RCL wait set allocating the required dynamic memory. Its use is optional becouse it also will be checked in the spin functions. If used and no entities are added to the executor during running phase, no dynamic allocations are guaranteed during the running phase.
 #### Running phase
 
 **rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)**
@@ -394,7 +397,7 @@ void my_timer_cb(rcl_timer_t * timer, int64_t last_call_time)
 }
 
 // necessary ROS 2 objects
-rcl_context_t context;   
+rcl_context_t context;
 rcl_node_t node;
 rcl_subscription_t sub1, sub2, sub3;
 rcl_timer_t timer;

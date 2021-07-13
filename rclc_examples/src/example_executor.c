@@ -184,6 +184,9 @@ int main(int argc, const char * argv[])
     printf("Error in rclc_executor_add_timer.\n");
   }
 
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
+
   for (unsigned int i = 0; i < 10; i++) {
     // timeout specified in ns (here 1s)
     rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
