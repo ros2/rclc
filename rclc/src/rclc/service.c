@@ -27,7 +27,9 @@ rclc_service_init_default(
   const rosidl_service_type_support_t * type_support,
   const char * service_name)
 {
-  return rclc_service_init(service, node, type_support, service_name, &rmw_qos_profile_services_default);
+  return rclc_service_init(
+    service, node, type_support, service_name,
+    &rmw_qos_profile_services_default);
 }
 
 rcl_ret_t
@@ -40,7 +42,9 @@ rclc_service_init_best_effort(
   rmw_qos_profile_t rmw_qos_profile_services_best_effort = rmw_qos_profile_services_default;
   rmw_qos_profile_services_best_effort.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
 
-  return rclc_service_init(service, node, type_support, service_name, &rmw_qos_profile_services_best_effort);
+  return rclc_service_init(
+    service, node, type_support, service_name,
+    &rmw_qos_profile_services_best_effort);
 }
 
 rcl_ret_t

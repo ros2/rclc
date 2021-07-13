@@ -27,7 +27,9 @@ rclc_publisher_init_default(
   const rosidl_message_type_support_t * type_support,
   const char * topic_name)
 {
-  return rclc_publisher_init(publisher, node, type_support, topic_name, &rmw_qos_profile_default);
+  return rclc_publisher_init(
+    publisher, node, type_support, topic_name,
+    &rmw_qos_profile_default);
 }
 
 rcl_ret_t
@@ -37,7 +39,9 @@ rclc_publisher_init_best_effort(
   const rosidl_message_type_support_t * type_support,
   const char * topic_name)
 {
-  return rclc_publisher_init(publisher, node, type_support, topic_name, &rmw_qos_profile_sensor_data);
+  return rclc_publisher_init(
+    publisher, node, type_support, topic_name,
+    &rmw_qos_profile_sensor_data);
 }
 
 rcl_ret_t
