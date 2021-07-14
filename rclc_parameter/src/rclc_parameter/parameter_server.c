@@ -297,9 +297,10 @@ rclc_parameter_server_init_with_option(
       rcl_interfaces,
       msg,
       ParameterEvent);
-    ret &= rclc_publisher_init_default(
+    ret &= rclc_publisher_init(
       &parameter_server->event_publisher, node, event_ts,
-      "/parameter_events");
+      "/parameter_events",
+      &rmw_qos_profile_parameter_events);
   }
 
   static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT];
@@ -758,7 +759,7 @@ rclc_parameter_server_init_service(
   memset(get_service_name, 0, RCLC_PARAMETER_MAX_STRING_LENGHT);
   memcpy(get_service_name, node_name, strlen(node_name) + 1);
   memcpy((get_service_name + strlen(node_name)), service_name, strlen(service_name) + 1);
-  return rclc_service_init_default(service, node, srv_type, get_service_name);
+  return rclc_service_init(service, node, srv_type, get_service_name, &rmw_qos_profile_parameters);
 }
 
 #if __cplusplus
