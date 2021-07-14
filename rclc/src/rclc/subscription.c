@@ -18,6 +18,7 @@
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
+#include <rmw/qos_profiles.h>
 
 rcl_ret_t
 rclc_subscription_init_default(
@@ -26,27 +27,9 @@ rclc_subscription_init_default(
   const rosidl_message_type_support_t * type_support,
   const char * topic_name)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription, "subscription is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  (*subscription) = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t sub_opt = rcl_subscription_get_default_options();
-  rcl_ret_t rc = rcl_subscription_init(
-    subscription,
-    node,
-    type_support,
-    topic_name,
-    &sub_opt);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_subscription_init_default, rcl_subscription_init);
-  }
-  return rc;
+  return rclc_subscription_init(
+    subscription, node, type_support, topic_name,
+    &rmw_qos_profile_default);
 }
 
 rcl_ret_t
@@ -56,6 +39,19 @@ rclc_subscription_init_best_effort(
   const rosidl_message_type_support_t * type_support,
   const char * topic_name)
 {
+  return rclc_subscription_init(
+    subscription, node, type_support, topic_name,
+    &rmw_qos_profile_sensor_data);
+}
+
+rcl_ret_t
+rclc_subscription_init(
+  rcl_subscription_t * subscription,
+  rcl_node_t * node,
+  const rosidl_message_type_support_t * type_support,
+  const char * topic_name,
+  const rmw_qos_profile_t * qos_profile)
+{
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -64,10 +60,12 @@ rclc_subscription_init_best_effort(
     type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     topic_name, "topic_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    qos_profile, "qos_profile is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   (*subscription) = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_opt = rcl_subscription_get_default_options();
-  sub_opt.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  sub_opt.qos = *qos_profile;
   rcl_ret_t rc = rcl_subscription_init(
     subscription,
     node,

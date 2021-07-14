@@ -11,10 +11,8 @@
 
   <author email="jan.staschulat@de.bosch.com">Jan Staschulat</author>
   <author email="william@osrfoundation.org">William Woodall</author>
- 
+
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
-
-
 
   <build_depend>rcl</build_depend>
   <build_depend>rcutils</build_depend>
