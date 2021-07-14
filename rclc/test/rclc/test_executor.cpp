@@ -2616,6 +2616,31 @@ TEST_F(TestDefaultExecutor, executor_test_guard_condition) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
+TEST_F(TestDefaultExecutor, prepare_executor_test) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 1, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // initialize guard condition
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  rc = rcl_guard_condition_init(
+    &guard_cond, &this->context, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // prepare executor
+  rc = rclc_executor_prepare(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // spin once
+  rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
 TEST_F(TestDefaultExecutor, executor_test_remove_guard_condition) {
   // Test guard_condition.
   rcl_ret_t rc;

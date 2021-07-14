@@ -73,6 +73,9 @@ int main(int argc, const char * const * argv)
 
   RCCHECK(rclc_executor_add_service(&executor, &service, &req, &res, service_callback));
 
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
+
   rclc_executor_spin(&executor);
 
   RCCHECK(rcl_service_fini(&service, &node));

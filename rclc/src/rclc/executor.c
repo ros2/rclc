@@ -1151,11 +1151,11 @@ _rclc_let_scheduling(rclc_executor_t * executor)
 }
 
 rcl_ret_t
-rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
+rclc_executor_prepare(rclc_executor_t * executor)
 {
   rcl_ret_t rc = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "executor_prepare");
 
   // initialize wait_set if
   // (1) this is the first invocation of executor_spin_some()
@@ -1183,6 +1183,18 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
       return rc;
     }
   }
+
+  return rc;
+}
+
+rcl_ret_t
+rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
+{
+  rcl_ret_t rc = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
+
+  rclc_executor_prepare(executor);
 
   // set rmw fields to NULL
   rc = rcl_wait_set_clear(&executor->wait_set);

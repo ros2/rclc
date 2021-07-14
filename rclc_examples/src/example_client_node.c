@@ -75,6 +75,9 @@ int main(int argc, const char * const * argv)
   RCCHECK(rcl_send_request(&client, &req, &seq))
   printf("Send service request %ld + %ld.\n", req.a, req.b);
 
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
+
   rclc_executor_spin(&executor);
 
   RCCHECK(rcl_client_fini(&client, &node));
