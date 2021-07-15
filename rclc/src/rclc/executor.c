@@ -222,6 +222,7 @@ rclc_executor_add_subscription(
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
 
@@ -234,6 +235,56 @@ rclc_executor_add_subscription(
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_subscriptions++;
+
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a subscription.");
+  return ret;
+}
+
+
+rcl_ret_t
+rclc_executor_add_subscription_with_context(
+  rclc_executor_t * executor,
+  rcl_subscription_t * subscription,
+  void * msg,
+  rclc_subscription_callback_with_context_t callback,
+  void * context,
+  rclc_executor_handle_invocation_t invocation)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return RCL_RET_ERROR;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = SUBSCRIPTION;
+  executor->handles[executor->index].subscription = subscription;
+  executor->handles[executor->index].data = msg;
+  executor->handles[executor->index].subscription_callback_with_context = callback;
+  executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
+  executor->handles[executor->index].invocation = invocation;
+  executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = context;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription_with_context.");
       return ret;
     }
   }
@@ -460,7 +511,7 @@ rclc_executor_add_service_with_context(
   executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
-  executor->handles[executor->index].service_context = context;
+  executor->handles[executor->index].callback_context = context;
 
   // increase index of handle array
   executor->index++;
@@ -923,10 +974,28 @@ _rclc_execute(rclc_executor_handle_t * handle)
   if (invoke_callback) {
     switch (handle->type) {
       case SUBSCRIPTION:
-        if (handle->data_available) {
-          handle->callback(handle->data);
-        } else {
-          handle->callback(NULL);
+        switch (handle->callback_type) {
+          case CB_WITHOUT_REQUEST_ID:
+            if (handle->data_available) {
+              handle->callback(handle->data);
+            } else {
+              handle->callback(NULL);
+            }
+            break;
+          case CB_WITH_CONTEXT:
+            if (handle->data_available) {
+              handle->subscription_callback_with_context(
+                handle->data,
+                handle->callback_context);
+            } else {
+              handle->subscription_callback_with_context(
+                NULL,
+                handle->callback_context);
+            }
+            break;
+          default:
+            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
+            break;
         }
         break;
 
@@ -955,7 +1024,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
             handle->service_callback_with_context(
               handle->data,
               handle->data_response_msg,
-              handle->service_context);
+              handle->callback_context);
             break;
           default:
             PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);

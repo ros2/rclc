@@ -48,7 +48,7 @@ rclc_executor_handle_init(
 
   handle->data = NULL;
   handle->data_response_msg = NULL;
-  handle->service_context = NULL;
+  handle->callback_context = NULL;
 
   handle->callback = NULL;
   // because of union structure:
