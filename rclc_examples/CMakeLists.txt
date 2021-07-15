@@ -49,6 +49,8 @@ ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc 
 
 add_executable(example_parameter_server src/example_parameter_server.c)
 ament_target_dependencies(example_parameter_server rclc rclc_parameter)
+add_executable(example_sub_context src/example_sub_context.c)
+ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 
 add_executable(example_sub_context src/example_sub_context.c)
 ament_target_dependencies(example_sub_context rcl rclc std_msgs)
