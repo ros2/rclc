@@ -303,9 +303,9 @@ rclc_parameter_server_init_with_option(
       &rmw_qos_profile_parameter_events);
   }
 
-  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT];
-  memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGHT);
-  empty_string[RCLC_PARAMETER_MAX_STRING_LENGHT - 1] = '\0';
+  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH];
+  memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGTH);
+  empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH - 1] = '\0';
 
   rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
@@ -755,8 +755,8 @@ rclc_parameter_server_init_service(
 {
   const char * node_name = rcl_node_get_name(node);
 
-  static char get_service_name[RCLC_PARAMETER_MAX_STRING_LENGHT];
-  memset(get_service_name, 0, RCLC_PARAMETER_MAX_STRING_LENGHT);
+  static char get_service_name[RCLC_PARAMETER_MAX_STRING_LENGTH];
+  memset(get_service_name, 0, RCLC_PARAMETER_MAX_STRING_LENGTH);
   memcpy(get_service_name, node_name, strlen(node_name) + 1);
   memcpy((get_service_name + strlen(node_name)), service_name, strlen(service_name) + 1);
   return rclc_service_init(service, node, srv_type, get_service_name, &rmw_qos_profile_parameters);
