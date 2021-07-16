@@ -4,8 +4,8 @@ project(rclc_parameter)
 #################################################
 # package options
 #################################################
-set(RCLC_PARAMETER_MAX_STRING_LENGHT 50 CACHE STRING "Set the maximum length for strings.")
-add_definitions(-DRCLC_PARAMETER_MAX_STRING_LENGHT=${RCLC_PARAMETER_MAX_STRING_LENGHT})
+set(RCLC_PARAMETER_MAX_STRING_LENGTH 50 CACHE STRING "Set the maximum length for strings.")
+add_definitions(-DRCLC_PARAMETER_MAX_STRING_LENGTH=${RCLC_PARAMETER_MAX_STRING_LENGTH})
 
 #################################################
 # compiler settings
