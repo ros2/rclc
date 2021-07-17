@@ -2,6 +2,10 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2021-07-17)
+------------------
+* Bumped version (tag with version 1.0.1 already exists)
+
 1.0.1 (2021-07-17)
 ------------------
 * Added quality of service entity creation API
