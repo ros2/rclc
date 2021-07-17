@@ -1,10 +1,10 @@
-name: CI RCLC Foxy
+name: CI RCLC Dashing
 
 on:
   push:
-    branches: [ foxy ]
+    branches: [ dashing ]
   pull_request:
-    branches: [ foxy ]
+    branches: [ dashing ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -17,10 +17,10 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ foxy ]
+        ros_distribution: [ dashing ]
         include:
           - docker_image: ubuntu:focal
-            ros_distribution: foxy
+            ros_distribution: dashing
     container:
       image: ${{ matrix.docker_image }}
     steps:
