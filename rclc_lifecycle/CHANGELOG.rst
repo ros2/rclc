@@ -1,6 +1,12 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.0.1 (2021-07-17)
+------------------
+* Added quality declaration statement
+* Added windows compatability
+
 1.0.0 (2021-03-04)
 ------------------
 * Updated version
