@@ -2,6 +2,16 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2021-07-17)
+------------------
+* Added rclc_parameter package
+* Added quality of service entity creation API
+* Addded executor_prepare API
+* Added support for removing subscription from executor
+* Added support for subscription with context
+* Updated compatability function for sleep
+* Removed duplicate NOTICE files
+
 2.0.1 (2021-05-28)
 ------------------
 * added quality declaration
