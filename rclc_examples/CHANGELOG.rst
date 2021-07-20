@@ -1,6 +1,17 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.0.2 (2021-07-17)
+------------------
+* Bumped version (tag with version 1.0.1 already exists)
+
+1.0.1 (2021-07-17)
+------------------
+* Added example for quality of service entity creation API
+* Added example for executor prepare API
+* Added example for subscription with context
+
 1.0.0 (2021-03-04)
 ------------------
 * Updated version
