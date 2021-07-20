@@ -1,4 +1,5 @@
 ignore:
-  - "rclc_examples"
-  - "rclc/test"
-  - "rclc_lifecycle/test"
+  - "rclc_examples/**/*"
+  - "rclc/test/**/*"
+  - "rclc_lifecycle/test/**/*"
+  - "rclc_parameter/test/**/*"
