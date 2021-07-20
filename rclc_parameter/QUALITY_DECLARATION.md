@@ -102,7 +102,9 @@ Each part of the public API has tests, and new additions or changes to the publi
 
 ### Coverage [4.iii]
 
-Coverage checks for `rclc_parameter` have not been implemented.
+The coverage report is available in the [../README.md](../README.md).
+
+`rclc_parameter` checks the coverage of every commit. Last coverage assessment can be seen in [Codecov](https://app.codecov.io/gh/ros2/rclc/commits).
 
 ### Coverage [4.iv]
 
