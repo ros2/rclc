@@ -71,9 +71,8 @@ Bloom release status of all packages in repository [github.com/ros2/rclc/](https
 | | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) | 
 |     |     |   |   |    
 | [rclc_parameter](https://github.com/ros2/rclc/tree/master/rclc_parameter) 
-| | Foxy | x |  x |
-| | Galactic | x |  x |
-| | Rolling | x |  x |
+| | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary/) |
+| | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary/)
 
 ## Code coverage
 The code coverage is tested with every commit, pull request. Results are available at [codecov](https://app.codecov.io/gh/ros2/rclc/branch/master/).
