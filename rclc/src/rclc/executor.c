@@ -621,14 +621,23 @@ rclc_executor_add_guard_condition(
   return ret;
 }
 
-
+static
 rcl_ret_t
-_rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
+_rclc_executor_remove_handle(rclc_executor_t * executor, rclc_executor_handle_t * handle)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+
   rcl_ret_t ret = RCL_RET_OK;
 
-  if (handle_index >= executor->index) {
+  // NULL will be returned by _rclc_executor_find_handle if the handle is not found
+  if (NULL == handle) {
+    RCL_SET_ERROR_MSG("handle not found in rclc_executor_remove_handle");
+    return RCL_RET_ERROR;
+  }
+
+  if ((handle >= &executor->handles[executor->index]) ||
+    (handle < executor->handles))
+  {
     RCL_SET_ERROR_MSG("Handle out of bounds");
     return RCL_RET_ERROR;
   }
@@ -639,8 +648,11 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
 
   // shorten the list of handles without changing the order of remaining handles
   executor->index--;
-  for (size_t i = handle_index; i < executor->index; i++) {
-    executor->handles[i] = executor->handles[i + 1];
+  for (rclc_executor_handle_t * handle_dest = handle;
+    handle_dest < &executor->handles[executor->index];
+    handle_dest++)
+  {
+    *handle_dest = *(handle_dest + 1);
   }
   ret = rclc_executor_handle_init(&executor->handles[executor->index], executor->max_handles);
 
@@ -657,6 +669,23 @@ _rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
   return ret;
 }
 
+static
+rclc_executor_handle_t *
+_rclc_executor_find_handle(
+  rclc_executor_t * executor,
+  const void * rcl_handle)
+{
+  for (rclc_executor_handle_t * test_handle = executor->handles;
+    test_handle < &executor->handles[executor->index];
+    test_handle++)
+  {
+    if (rcl_handle == rclc_executor_handle_get_ptr(test_handle)) {
+      return test_handle;
+    }
+  }
+  return NULL;
+}
+
 
 rcl_ret_t
 rclc_executor_remove_subscription(
@@ -667,25 +696,15 @@ rclc_executor_remove_subscription(
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    // XXX redundant because subscription is unique
-    if ((SUBSCRIPTION == executor->handles[i].type) ||
-      (SUBSCRIPTION_WITH_CONTEXT == executor->handles[i].type) )
-    {
-      if (subscription == executor->handles[i].subscription) {
-        ret = _rclc_executor_remove_handle(executor, i);
-        if (RCL_RET_OK != ret) {
-          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_subscription.");
-          return ret;
-        }
-        executor->info.number_of_subscriptions--;
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a subscription.");
-        return ret;
-      }
-    }
+  rclc_executor_handle_t * handle = _rclc_executor_find_handle(executor, subscription);
+  ret = _rclc_executor_remove_handle(executor, handle);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_subscription.");
+    return ret;
   }
-  RCL_SET_ERROR_MSG("Subscription not found in rclc_executor_remove_subscription");
-  return RCL_RET_ERROR;
+  executor->info.number_of_subscriptions--;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a subscription.");
+  return ret;
 }
 
 rcl_ret_t
@@ -697,22 +716,15 @@ rclc_executor_remove_timer(
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if (TIMER == executor->handles[i].type) {
-      if (timer == executor->handles[i].timer) {
-        _rclc_executor_remove_handle(executor, i);
-        if (RCL_RET_OK != ret) {
-          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_timer.");
-          return ret;
-        }
-        executor->info.number_of_timers--;
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a timer.");
-        return ret;
-      }
-    }
+  rclc_executor_handle_t * handle = _rclc_executor_find_handle(executor, timer);
+  ret = _rclc_executor_remove_handle(executor, handle);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_timer.");
+    return ret;
   }
-  RCL_SET_ERROR_MSG("Timer not found in rclc_executor_remove_timer");
-  return RCL_RET_ERROR;
+  executor->info.number_of_timers--;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a timer.");
+  return ret;
 }
 
 rcl_ret_t
@@ -724,25 +736,15 @@ rclc_executor_remove_client(
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    // XXX redundant because client is unique
-    if ((CLIENT == executor->handles[i].type) ||
-      (CLIENT_WITH_REQUEST_ID == executor->handles[i].type))
-    {
-      if (client == executor->handles[i].client) {
-        _rclc_executor_remove_handle(executor, i);
-        if (RCL_RET_OK != ret) {
-          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_client.");
-          return ret;
-        }
-        executor->info.number_of_clients--;
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a client.");
-        return ret;
-      }
-    }
+  rclc_executor_handle_t * handle = _rclc_executor_find_handle(executor, client);
+  ret = _rclc_executor_remove_handle(executor, handle);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_client.");
+    return ret;
   }
-  RCL_SET_ERROR_MSG("Client not found in rclc_executor_remove_client");
-  return RCL_RET_ERROR;
+  executor->info.number_of_clients--;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a client.");
+  return ret;
 }
 
 rcl_ret_t
@@ -754,26 +756,15 @@ rclc_executor_remove_service(
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    // XXX redundant because service is unique
-    if ((SERVICE == executor->handles[i].type) ||
-      (SERVICE_WITH_REQUEST_ID == executor->handles[i].type) ||
-      (SERVICE_WITH_CONTEXT == executor->handles[i].type))
-    {
-      if (service == executor->handles[i].service) {
-        _rclc_executor_remove_handle(executor, i);
-        if (RCL_RET_OK != ret) {
-          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_service.");
-          return ret;
-        }
-        executor->info.number_of_services--;
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a service.");
-        return ret;
-      }
-    }
+  rclc_executor_handle_t * handle = _rclc_executor_find_handle(executor, service);
+  ret = _rclc_executor_remove_handle(executor, handle);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_service.");
+    return ret;
   }
-  RCL_SET_ERROR_MSG("Service not found in rclc_executor_remove_service");
-  return RCL_RET_ERROR;
+  executor->info.number_of_services--;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a service.");
+  return ret;
 }
 
 
@@ -786,22 +777,15 @@ rclc_executor_remove_guard_condition(
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if (GUARD_CONDITION == executor->handles[i].type) {
-      if (guard_condition == executor->handles[i].gc) {
-        _rclc_executor_remove_handle(executor, i);
-        if (RCL_RET_OK != ret) {
-          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
-          return ret;
-        }
-        executor->info.number_of_guard_conditions--;
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a guard condition.");
-        return ret;
-      }
-    }
+  rclc_executor_handle_t * handle = _rclc_executor_find_handle(executor, guard_condition);
+  ret = _rclc_executor_remove_handle(executor, handle);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
+    return ret;
   }
-  RCL_SET_ERROR_MSG("Guard Condition not found in rclc_executor_remove_guard_condition");
-  return RCL_RET_ERROR;
+  executor->info.number_of_guard_conditions--;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a guard condition.");
+  return ret;
 }
 
 
