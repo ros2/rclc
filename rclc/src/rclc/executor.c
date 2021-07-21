@@ -222,9 +222,9 @@ rclc_executor_add_subscription(
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].callback = callback;
-  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -267,11 +267,10 @@ rclc_executor_add_subscription_with_context(
   }
 
   // assign data fields
-  executor->handles[executor->index].type = SUBSCRIPTION;
+  executor->handles[executor->index].type = SUBSCRIPTION_WITH_CONTEXT;
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].subscription_callback_with_context = callback;
-  executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
   executor->handles[executor->index].callback_context = context;
@@ -317,6 +316,7 @@ rclc_executor_add_timer(
   executor->handles[executor->index].timer = timer;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // i.e. when timer elapsed
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -359,10 +359,9 @@ rclc_executor_add_client(
   executor->handles[executor->index].client = client;
   executor->handles[executor->index].data = response_msg;
   executor->handles[executor->index].client_callback = callback;
-  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // i.e. when request came in
   executor->handles[executor->index].initialized = true;
-
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -402,13 +401,13 @@ rclc_executor_add_client_with_request_id(
   }
 
   // assign data fields
-  executor->handles[executor->index].type = CLIENT;
+  executor->handles[executor->index].type = CLIENT_WITH_REQUEST_ID;
   executor->handles[executor->index].client = client;
   executor->handles[executor->index].data = response_msg;
   executor->handles[executor->index].client_callback_with_reqid = callback;
-  executor->handles[executor->index].callback_type = CB_WITH_REQUEST_ID;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // i.e. when request came in
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -456,9 +455,9 @@ rclc_executor_add_service(
   // TODO(jst3si) new type with req and resp message in data field.
   executor->handles[executor->index].data_response_msg = response_msg;
   executor->handles[executor->index].service_callback = callback;
-  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -492,7 +491,6 @@ rclc_executor_add_service_with_context(
   RCL_CHECK_ARGUMENT_FOR_NULL(request_msg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(response_msg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);  //?
   rcl_ret_t ret = RCL_RET_OK;
   // array bound check
   if (executor->index >= executor->max_handles) {
@@ -502,13 +500,12 @@ rclc_executor_add_service_with_context(
   }
 
   // assign data fields
-  executor->handles[executor->index].type = SERVICE;
+  executor->handles[executor->index].type = SERVICE_WITH_CONTEXT;
   executor->handles[executor->index].service = service;
   executor->handles[executor->index].data = request_msg;
   // TODO(jst3si) new type with req and resp message in data field.
   executor->handles[executor->index].data_response_msg = response_msg;
   executor->handles[executor->index].service_callback_with_context = callback;
-  executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
   executor->handles[executor->index].callback_context = context;
@@ -553,15 +550,15 @@ rclc_executor_add_service_with_request_id(
   }
 
   // assign data fields
-  executor->handles[executor->index].type = SERVICE;
+  executor->handles[executor->index].type = SERVICE_WITH_REQUEST_ID;
   executor->handles[executor->index].service = service;
   executor->handles[executor->index].data = request_msg;
   // TODO(jst3si) new type with req and resp message in data field.
   executor->handles[executor->index].data_response_msg = response_msg;
   executor->handles[executor->index].service_callback_with_reqid = callback;
-  executor->handles[executor->index].callback_type = CB_WITH_REQUEST_ID;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -604,6 +601,7 @@ rclc_executor_add_guard_condition(
   executor->handles[executor->index].gc_callback = callback;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = NULL;
 
   // increase index of handle array
   executor->index++;
@@ -670,7 +668,10 @@ rclc_executor_remove_subscription(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if (SUBSCRIPTION == executor->handles[i].type) {
+    // XXX redundant because subscription is unique
+    if ((SUBSCRIPTION == executor->handles[i].type) ||
+      (SUBSCRIPTION_WITH_CONTEXT == executor->handles[i].type) )
+    {
       if (subscription == executor->handles[i].subscription) {
         ret = _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
@@ -724,7 +725,10 @@ rclc_executor_remove_client(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if (CLIENT == executor->handles[i].type) {
+    // XXX redundant because client is unique
+    if ((CLIENT == executor->handles[i].type) ||
+      (CLIENT_WITH_REQUEST_ID == executor->handles[i].type))
+    {
       if (client == executor->handles[i].client) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
@@ -751,7 +755,11 @@ rclc_executor_remove_service(
   rcl_ret_t ret = RCL_RET_OK;
 
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
-    if (SERVICE == executor->handles[i].type) {
+    // XXX redundant because service is unique
+    if ((SERVICE == executor->handles[i].type) ||
+      (SERVICE_WITH_REQUEST_ID == executor->handles[i].type) ||
+      (SERVICE_WITH_CONTEXT == executor->handles[i].type))
+    {
       if (service == executor->handles[i].service) {
         _rclc_executor_remove_handle(executor, i);
         if (RCL_RET_OK != ret) {
@@ -815,12 +823,14 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
 
   switch (handle->type) {
     case SUBSCRIPTION:
+    case SUBSCRIPTION_WITH_CONTEXT:
       if (wait_set->subscriptions[handle->index]) {
         handle->data_available = true;
       }
       break;
 
     case TIMER:
+      // case TIMER_WITH_CONTEXT:
       if (wait_set->timers[handle->index]) {
         bool timer_is_ready = false;
         rc = rcl_timer_is_ready(handle->timer, &timer_is_ready);
@@ -841,18 +851,23 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
       break;
 
     case SERVICE:
+    case SERVICE_WITH_REQUEST_ID:
+    case SERVICE_WITH_CONTEXT:
       if (wait_set->services[handle->index]) {
         handle->data_available = true;
       }
       break;
 
     case CLIENT:
+    case CLIENT_WITH_REQUEST_ID:
+      // case CLIENT_WITH_CONTEXT:
       if (wait_set->clients[handle->index]) {
         handle->data_available = true;
       }
       break;
 
     case GUARD_CONDITION:
+      // case GUARD_CONDITION_WITH_CONTEXT:
       if (wait_set->guard_conditions[handle->index]) {
         handle->data_available = true;
       }
@@ -880,6 +895,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
 
   switch (handle->type) {
     case SUBSCRIPTION:
+    case SUBSCRIPTION_WITH_CONTEXT:
       if (wait_set->subscriptions[handle->index]) {
         rmw_message_info_t messageInfo;
         rc = rcl_take(
@@ -897,11 +913,14 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
       break;
 
     case TIMER:
+      // case TIMER_WITH_CONTEXT:
       // nothing to do
       // notification, that timer is ready already done in _rclc_evaluate_data_availability()
       break;
 
     case SERVICE:
+    case SERVICE_WITH_REQUEST_ID:
+    case SERVICE_WITH_CONTEXT:
       if (wait_set->services[handle->index]) {
         rc = rcl_take_request(
           handle->service, &handle->req_id, handle->data);
@@ -917,6 +936,8 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
       break;
 
     case CLIENT:
+    case CLIENT_WITH_REQUEST_ID:
+      // case CLIENT_WITH_CONTEXT:
       if (wait_set->clients[handle->index]) {
         rc = rcl_take_response(
           handle->client, &handle->req_id, handle->data);
@@ -932,6 +953,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
       break;
 
     case GUARD_CONDITION:
+      // case GUARD_CONDITION_WITH_CONTEXT:
       // nothing to do
       break;
 
@@ -974,32 +996,27 @@ _rclc_execute(rclc_executor_handle_t * handle)
   if (invoke_callback) {
     switch (handle->type) {
       case SUBSCRIPTION:
-        switch (handle->callback_type) {
-          case CB_WITHOUT_REQUEST_ID:
-            if (handle->data_available) {
-              handle->callback(handle->data);
-            } else {
-              handle->callback(NULL);
-            }
-            break;
-          case CB_WITH_CONTEXT:
-            if (handle->data_available) {
-              handle->subscription_callback_with_context(
-                handle->data,
-                handle->callback_context);
-            } else {
-              handle->subscription_callback_with_context(
-                NULL,
-                handle->callback_context);
-            }
-            break;
-          default:
-            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
-            break;
+        if (handle->data_available) {
+          handle->callback(handle->data);
+        } else {
+          handle->callback(NULL);
+        }
+        break;
+
+      case SUBSCRIPTION_WITH_CONTEXT:
+        if (handle->data_available) {
+          handle->subscription_callback_with_context(
+            handle->data,
+            handle->callback_context);
+        } else {
+          handle->subscription_callback_with_context(
+            NULL,
+            handle->callback_context);
         }
         break;
 
       case TIMER:
+        // case TIMER_WITH_CONTEXT:
         rc = rcl_timer_call(handle->timer);
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_execute, rcl_timer_call);
@@ -1008,29 +1025,31 @@ _rclc_execute(rclc_executor_handle_t * handle)
         break;
 
       case SERVICE:
-        switch (handle->callback_type) {
-          case CB_WITHOUT_REQUEST_ID:
+      case SERVICE_WITH_REQUEST_ID:
+      case SERVICE_WITH_CONTEXT:
+        // differentiate user-side service types
+        switch (handle->type) {
+          case SERVICE:
             handle->service_callback(
               handle->data,
               handle->data_response_msg);
             break;
-          case CB_WITH_REQUEST_ID:
+          case SERVICE_WITH_REQUEST_ID:
             handle->service_callback_with_reqid(
               handle->data,
               &handle->req_id,
               handle->data_response_msg);
             break;
-          case CB_WITH_CONTEXT:
+          case SERVICE_WITH_CONTEXT:
             handle->service_callback_with_context(
               handle->data,
               handle->data_response_msg,
               handle->callback_context);
             break;
           default:
-            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
-            break;
+            break;  // flow can't reach here
         }
-
+        // handle rcl-side services
         rc = rcl_send_response(handle->service, &handle->req_id, handle->data_response_msg);
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_execute, rcl_send_response);
@@ -1039,18 +1058,22 @@ _rclc_execute(rclc_executor_handle_t * handle)
         break;
 
       case CLIENT:
-        if (handle->callback_type == CB_WITHOUT_REQUEST_ID ||
-          handle->callback_type == CB_WITH_CONTEXT)
-        {
-          handle->client_callback(handle->data);
-        } else if (handle->callback_type == CB_WITH_REQUEST_ID) {
-          handle->client_callback_with_reqid(handle->data, &handle->req_id);
-        }
+        handle->client_callback(handle->data);
         break;
+
+      case CLIENT_WITH_REQUEST_ID:
+        handle->client_callback_with_reqid(handle->data, &handle->req_id);
+        break;
+
+      // case CLIENT_WITH_CONTEXT:   //TODO
+      //   break;
 
       case GUARD_CONDITION:
         handle->gc_callback();
         break;
+
+      // case GUARD_CONDITION_WITH_CONTEXT:  //TODO
+      //   break;
 
       default:
         RCUTILS_LOG_DEBUG_NAMED(
@@ -1209,6 +1232,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "wait_set_add_* %d", executor->handles[i].type);
     switch (executor->handles[i].type) {
       case SUBSCRIPTION:
+      case SUBSCRIPTION_WITH_CONTEXT:
         // add subscription to wait_set and save index
         rc = rcl_wait_set_add_subscription(
           &executor->wait_set, executor->handles[i].subscription,
@@ -1225,6 +1249,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         break;
 
       case TIMER:
+        // case TIMER_WITH_CONTEXT:
         // add timer to wait_set and save index
         rc = rcl_wait_set_add_timer(
           &executor->wait_set, executor->handles[i].timer,
@@ -1240,6 +1265,8 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         break;
 
       case SERVICE:
+      case SERVICE_WITH_REQUEST_ID:
+      case SERVICE_WITH_CONTEXT:
         // add service to wait_set and save index
         rc = rcl_wait_set_add_service(
           &executor->wait_set, executor->handles[i].service,
@@ -1256,6 +1283,8 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
 
 
       case CLIENT:
+      case CLIENT_WITH_REQUEST_ID:
+        // case CLIENT_WITH_CONTEXT:
         // add client to wait_set and save index
         rc = rcl_wait_set_add_client(
           &executor->wait_set, executor->handles[i].client,
@@ -1271,6 +1300,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         break;
 
       case GUARD_CONDITION:
+        // case GUARD_CONDITION_WITH_CONTEXT:
         // add guard_condition to wait_set and save index
         rc = rcl_wait_set_add_guard_condition(
           &executor->wait_set, executor->handles[i].gc,
@@ -1434,20 +1464,13 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
       if (handles[i].data_available == true) {
-        switch (handles[i].type) {
-          case SUBSCRIPTION:
-            if (handles[i].subscription == obj) {
-              return true;
-            }
-            break;
-          case TIMER:
-            if (handles[i].timer == obj) {
-              return true;
-            }
-            break;
-          default:
-            // non-supported type
-            return false;
+        void * handle_obj_ptr = rclc_executor_handle_get_ptr(&handles[i]);
+        if (NULL == handle_obj_ptr) {
+          // rclc_executor_handle_get_ptr returns null for unsupported types
+          return false;
+        }
+        if (obj == handle_obj_ptr) {
+          return true;
         }
       }
     } else {

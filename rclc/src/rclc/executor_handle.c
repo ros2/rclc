@@ -60,7 +60,6 @@ rclc_executor_handle_init(
   handle->index = max_handles;
   handle->initialized = false;
   handle->data_available = false;
-  handle->callback_type = CB_UNDEFINED;
   return RCL_RET_OK;
 }
 
@@ -89,18 +88,25 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
       typeName = "None";
       break;
     case SUBSCRIPTION:
+    case SUBSCRIPTION_WITH_CONTEXT:
       typeName = "Sub";
       break;
     case TIMER:
+      // case TIMER_WITH_CONTEXT:
       typeName = "Timer";
       break;
     case CLIENT:
+    case CLIENT_WITH_REQUEST_ID:
+      // case CLIENT_WITH_CONTEXT:
       typeName = "Client";
       break;
     case SERVICE:
+    case SERVICE_WITH_REQUEST_ID:
+    case SERVICE_WITH_CONTEXT:
       typeName = "Service";
       break;
     case GUARD_CONDITION:
+      // case GUARD_CONDITION_WITH_CONTEXT:
       typeName = "GuardCondition";
       break;
     default:
@@ -123,20 +129,28 @@ rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle)
   void * ptr;
   switch (handle->type) {
     case SUBSCRIPTION:
+    case SUBSCRIPTION_WITH_CONTEXT:
       ptr = handle->subscription;
       break;
     case TIMER:
+      // case TIMER_WITH_CONTEXT:
       ptr = handle->timer;
       break;
     case CLIENT:
+    case CLIENT_WITH_REQUEST_ID:
+      // case CLIENT_WITH_CONTEXT:
       ptr = handle->client;
       break;
     case SERVICE:
+    case SERVICE_WITH_REQUEST_ID:
+    case SERVICE_WITH_CONTEXT:
       ptr = handle->service;
       break;
     case GUARD_CONDITION:
+      // case GUARD_CONDITION_WITH_CONTEXT:
       ptr = handle->gc;
       break;
+    case NONE:
     default:
       ptr = NULL;
   }
