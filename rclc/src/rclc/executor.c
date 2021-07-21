@@ -28,6 +28,7 @@
 // default timeout for rcl_wait() is 1000ms
 #define DEFAULT_WAIT_TIMEOUT_NS 1000000000
 
+
 // declarations of helper functions
 /*
 /// get new data from DDS queue for handle i
