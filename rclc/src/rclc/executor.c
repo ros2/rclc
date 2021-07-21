@@ -106,6 +106,12 @@ rclc_executor_init(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
+  int x = 0;
+  // just a test
+  if (executor == NULL) {
+    x = 1;
+  }
+
   rcl_ret_t ret = RCL_RET_OK;
   (*executor) = rclc_executor_get_zero_initialized_executor();
   executor->context = context;
