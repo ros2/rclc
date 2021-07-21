@@ -112,7 +112,6 @@ rclc_executor_init(
     ret = RCL_RET_INVALID_ARGUMENT;
   }
 
-  rcl_ret_t ret = RCL_RET_OK;
   (*executor) = rclc_executor_get_zero_initialized_executor();
   executor->context = context;
   executor->max_handles = number_of_handles;
