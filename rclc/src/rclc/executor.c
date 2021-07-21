@@ -106,10 +106,10 @@ rclc_executor_init(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  int x = 0;
+  rcl_ret_t ret = RCL_RET_OK;
   // just a test
   if (executor == NULL) {
-    x = 1;
+    ret = RCL_RET_INVALID_ARGUMENT;
   }
 
   rcl_ret_t ret = RCL_RET_OK;
