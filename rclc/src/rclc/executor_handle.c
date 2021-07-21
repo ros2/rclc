@@ -50,7 +50,7 @@ rclc_executor_handle_init(
   handle->data_response_msg = NULL;
   handle->callback_context = NULL;
 
-  handle->callback = NULL;
+  handle->subscription_callback = NULL;
   // because of union structure:
   //   handle->service_callback == NULL;
   //   handle->client_callback == NULL;

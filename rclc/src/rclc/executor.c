@@ -203,7 +203,7 @@ rclc_executor_add_subscription(
   rclc_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
-  rclc_callback_t callback,
+  rclc_subscription_callback_t callback,
   rclc_executor_handle_invocation_t invocation)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
@@ -221,7 +221,7 @@ rclc_executor_add_subscription(
   executor->handles[executor->index].type = SUBSCRIPTION;
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
-  executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].subscription_callback = callback;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
   executor->handles[executor->index].callback_context = NULL;
@@ -997,9 +997,9 @@ _rclc_execute(rclc_executor_handle_t * handle)
     switch (handle->type) {
       case SUBSCRIPTION:
         if (handle->data_available) {
-          handle->callback(handle->data);
+          handle->subscription_callback(handle->data);
         } else {
-          handle->callback(NULL);
+          handle->subscription_callback(NULL);
         }
         break;
 

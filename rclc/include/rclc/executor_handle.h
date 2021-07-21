@@ -53,12 +53,13 @@ typedef enum
   ALWAYS
 } rclc_executor_handle_invocation_t;
 
-/// Type definition for callback function.
-typedef void (* rclc_callback_t)(const void *);
-
 /// Type definition for subscription callback function
 /// - incoming message
-// typedef void (* rclc_subscription_callback_t)(const void *);
+typedef void (* rclc_subscription_callback_t)(const void *);
+
+/// Type definition (duplicate) for subscription callback function (alias for foxy and galactic).
+/// - incoming message
+typedef rclc_subscription_callback_t rclc_callback_t;
 
 /// Type definition for subscription callback function
 /// - incoming message
@@ -135,7 +136,7 @@ typedef struct
 
   /// Storage for callbacks
   union {
-    rclc_callback_t callback;
+    rclc_subscription_callback_t subscription_callback;
     rclc_subscription_callback_with_context_t subscription_callback_with_context;
     rclc_service_callback_t service_callback;
     rclc_service_callback_with_request_id_t service_callback_with_reqid;

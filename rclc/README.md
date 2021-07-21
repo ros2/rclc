@@ -308,7 +308,7 @@ With `rclc_executor_trigger_any` being the default trigger condition, the curren
 With the `rclc_executor_trigger_one` trigger, the handle to trigger is specified with `trigger_object`.
 In the other cases of the trigger conditions this parameter shall be `NULL`.
 
-**rclc_executor_add_subscription(rclc_executor_t * executor, rcl_subscription_t * subscription, void * msg, rclc_callback_t callback, rclc_executor_handle_invocation_t invocation)**
+**rclc_executor_add_subscription(rclc_executor_t * executor, rcl_subscription_t * subscription, void * msg, rclc_subscription_callback_t callback, rclc_executor_handle_invocation_t invocation)**
 
 **rclc_executor_add_timer(  rclc_executor_t * executor, rcl_timer_t * timer)**
 
