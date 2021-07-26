@@ -2,6 +2,10 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2021-07-26)
+------------------
+* Bumped version
+
 2.0.2 (2021-07-17)
 ------------------
 * Bumped version
