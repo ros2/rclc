@@ -4,7 +4,8 @@ Changelog for package rclc
 
 3.0.2 (2021-07-26)
 ------------------
-* Version bump
+* Updated codecov to ignore test folders
+* Updated bloom release status table
 
 3.0.1 (2021-07-17)
 ------------------
