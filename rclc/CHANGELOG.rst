@@ -2,6 +2,10 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.2 (2021-07-26)
+------------------
+* Version bump
+
 3.0.1 (2021-07-17)
 ------------------
 * Added rclc_parameter package
