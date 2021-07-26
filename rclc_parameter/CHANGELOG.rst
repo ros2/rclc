@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2021-07-26)
+------------------
+* Added test dependencies for rclc_parameter
+
 2.0.2 (2021-07-17)
 ------------------
 * Removed shared from rclc_parameter
