@@ -28,7 +28,6 @@
 // default timeout for rcl_wait() is 1000ms
 #define DEFAULT_WAIT_TIMEOUT_NS 1000000000
 
-
 // declarations of helper functions
 /*
 /// get new data from DDS queue for handle i
@@ -107,10 +106,6 @@ rclc_executor_init(
   }
 
   rcl_ret_t ret = RCL_RET_OK;
-  // just a test
-  if (executor == NULL) {
-    ret = RCL_RET_INVALID_ARGUMENT;
-  }
 
   (*executor) = rclc_executor_get_zero_initialized_executor();
   executor->context = context;
