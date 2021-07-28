@@ -1,5 +1,5 @@
 fixes:
-  - "ros_ws/src/*/::"
+  - "ros_ws/src/*/rclc::"
 
 ignore:
   - "rclc_examples/**/*"
