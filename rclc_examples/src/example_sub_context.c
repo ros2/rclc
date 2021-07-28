@@ -25,9 +25,10 @@
 
 // Instead of creating some global variables,
 //   we can define some data structures point to the local state info we care about
-typedef struct {
+typedef struct
+{
   int some_int;
-  char* some_text;
+  char * some_text;
 } sub_context_t;
 
 
@@ -36,7 +37,7 @@ typedef struct {
 // subscriptions with context allow you to pass
 //   additional state information to your subscription callback
 
-void my_subscriber_callback_with_context(const void * msgin, void* context_void_ptr)
+void my_subscriber_callback_with_context(const void * msgin, void * context_void_ptr)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
   if (msg == NULL) {
@@ -49,7 +50,7 @@ void my_subscriber_callback_with_context(const void * msgin, void* context_void_
     printf("Callback: context is empty\n");
   } else {
     // cast the context pointer into the appropriate type
-    sub_context_t * context_ptr = (sub_context_t * ) context_void_ptr;
+    sub_context_t * context_ptr = (sub_context_t *) context_void_ptr;
     // then you can access the context data
     printf("Callback: context contains: %s\n", context_ptr->some_text);
     printf("Callback: context also contains: %d\n", context_ptr->some_int);
@@ -66,12 +67,12 @@ int main(int argc, const char * argv[])
   rcl_ret_t rc;
 
   // within main, we can create the state information our subscriptions work with
-  const unsigned int n_topics=3;
+  const unsigned int n_topics = 3;
   const char * topic_names[] = {"topic_foo", "topic_bar", "topic_baz"};
-  sub_context_t my_contexts[]= {
-    {0,"foo counting from zero"},
-    {100,"bar counting from 100"},
-    {300,"baz counting from 300"},
+  sub_context_t my_contexts[] = {
+    {0, "foo counting from zero"},
+    {100, "bar counting from 100"},
+    {300, "baz counting from 300"},
   };
   rcl_publisher_t my_pubs[n_topics];
   std_msgs__msg__String pub_msgs[n_topics];
@@ -97,7 +98,7 @@ int main(int argc, const char * argv[])
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
 
   //initialise each publisher and subscriber
-  for(unsigned int i=0; i<n_topics; i++){
+  for (unsigned int i = 0; i < n_topics; i++) {
     rc = rclc_publisher_init_default(
       &(my_pubs[i]),
       &my_node,
@@ -108,11 +109,13 @@ int main(int argc, const char * argv[])
       return -1;
     }
     // assign message to publisher
-    std_msgs__msg__String__init( &( pub_msgs[i] ) );
+    std_msgs__msg__String__init(&( pub_msgs[i] ) );
     const unsigned int PUB_MSG_CAPACITY = 40;
     pub_msgs[i].data.data = malloc(PUB_MSG_CAPACITY);
     pub_msgs[i].data.capacity = PUB_MSG_CAPACITY;
-    snprintf(pub_msgs[i].data.data, pub_msgs[i].data.capacity, "Hello World! on %s", topic_names[i]);
+    snprintf(
+      pub_msgs[i].data.data, pub_msgs[i].data.capacity, "Hello World! on %s",
+      topic_names[i]);
     pub_msgs[i].data.size = strlen(pub_msgs[i].data.data);
 
     // create subscription
@@ -130,7 +133,7 @@ int main(int argc, const char * argv[])
     }
 
     // one string message for subscriber
-    std_msgs__msg__String__init( &( sub_msgs[i] ) );
+    std_msgs__msg__String__init(&( sub_msgs[i] ) );
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -144,11 +147,11 @@ int main(int argc, const char * argv[])
   rclc_executor_init(&executor, &support.context, num_handles, &allocator);
 
   // add subscriptions to executor
-  for(unsigned int i=0; i<n_topics; i++){
+  for (unsigned int i = 0; i < n_topics; i++) {
     // create a void* pointer to any information you want in your callback
     //   make sure you cast back to the the same type before accessing it.
     sub_context_t * context_ptr = &( my_contexts[i] );
-    void* context_void_ptr = (void*) context_ptr;
+    void * context_void_ptr = (void *) context_ptr;
 
     // add subscription to executor
     rc = rclc_executor_add_subscription_with_context(
@@ -166,7 +169,7 @@ int main(int argc, const char * argv[])
     // timeout specified in nanoseconds (here 1s)
     rc = rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
 
-    for(unsigned int i=0;i<n_topics; i++) {
+    for (unsigned int i = 0; i < n_topics; i++) {
       //publish once for each topic
       rc = rcl_publish(&my_pubs[i], &pub_msgs[i], NULL);
       if (rc == RCL_RET_OK) {
@@ -183,14 +186,14 @@ int main(int argc, const char * argv[])
   // clean up
   rc = rclc_executor_fini(&executor);
 
-  for(unsigned int i=0;i<n_topics; i++) {
+  for (unsigned int i = 0; i < n_topics; i++) {
     rc += rcl_publisher_fini(&(my_pubs[i]), &my_node);
     rc += rcl_subscription_fini(&(my_subs[i]), &my_node);
   }
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
 
-  for(unsigned int i=0;i<n_topics; i++) {
+  for (unsigned int i = 0; i < n_topics; i++) {
     std_msgs__msg__String__fini(&(pub_msgs[i]));
     std_msgs__msg__String__fini(&(sub_msgs[i]));
   }
