@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -153,6 +153,9 @@ int main(int argc, const char * argv[])
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_timer.\n");
   }
+
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
 
   for (unsigned int i = 0; i < 10; i++) {
     // timeout specified in nanoseconds (here 1s)

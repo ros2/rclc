@@ -15,9 +15,6 @@
 // limitations under the License.
 
 #include "rclc/executor.h"
-
-#include <unistd.h>
-
 #include <rcutils/time.h>
 
 // Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
@@ -225,6 +222,7 @@ rclc_executor_add_subscription(
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].callback_type = CB_WITHOUT_REQUEST_ID;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].initialized = true;
 
@@ -237,6 +235,56 @@ rclc_executor_add_subscription(
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription.");
+      return ret;
+    }
+  }
+
+  executor->info.number_of_subscriptions++;
+
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a subscription.");
+  return ret;
+}
+
+
+rcl_ret_t
+rclc_executor_add_subscription_with_context(
+  rclc_executor_t * executor,
+  rcl_subscription_t * subscription,
+  void * msg,
+  rclc_subscription_callback_with_context_t callback,
+  void * context,
+  rclc_executor_handle_invocation_t invocation)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(msg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+  // array bound check
+  if (executor->index >= executor->max_handles) {
+    RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
+    return RCL_RET_ERROR;
+  }
+
+  // assign data fields
+  executor->handles[executor->index].type = SUBSCRIPTION;
+  executor->handles[executor->index].subscription = subscription;
+  executor->handles[executor->index].data = msg;
+  executor->handles[executor->index].subscription_callback_with_context = callback;
+  executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
+  executor->handles[executor->index].invocation = invocation;
+  executor->handles[executor->index].initialized = true;
+  executor->handles[executor->index].callback_context = context;
+
+  // increase index of handle array
+  executor->index++;
+
+  // invalidate wait_set so that in next spin_some() call the
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_subscription_with_context.");
       return ret;
     }
   }
@@ -463,7 +511,7 @@ rclc_executor_add_service_with_context(
   executor->handles[executor->index].callback_type = CB_WITH_CONTEXT;
   executor->handles[executor->index].invocation = ON_NEW_DATA;  // invoce when request came in
   executor->handles[executor->index].initialized = true;
-  executor->handles[executor->index].service_context = context;
+  executor->handles[executor->index].callback_context = context;
 
   // increase index of handle array
   executor->index++;
@@ -574,6 +622,181 @@ rclc_executor_add_guard_condition(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a guard_condition.");
   return ret;
 }
+
+
+rcl_ret_t
+_rclc_executor_remove_handle(rclc_executor_t * executor, size_t handle_index)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  if (handle_index >= executor->index) {
+    RCL_SET_ERROR_MSG("Handle out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (0 == executor->index) {
+    RCL_SET_ERROR_MSG("No handles to remove");
+    return RCL_RET_ERROR;
+  }
+
+  // shorten the list of handles without changing the order of remaining handles
+  executor->index--;
+  for (size_t i = handle_index; i < executor->index; i++) {
+    executor->handles[i] = executor->handles[i + 1];
+  }
+  ret = rclc_executor_handle_init(&executor->handles[executor->index], executor->max_handles);
+
+  // force a refresh of the wait set
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    ret = rcl_wait_set_fini(&executor->wait_set);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Could not reset wait_set in _rclc_executor_remove_handle.");
+      return ret;
+    }
+  }
+
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a handle.");
+  return ret;
+}
+
+
+rcl_ret_t
+rclc_executor_remove_subscription(
+  rclc_executor_t * executor,
+  const rcl_subscription_t * subscription)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    if (SUBSCRIPTION == executor->handles[i].type) {
+      if (subscription == executor->handles[i].subscription) {
+        ret = _rclc_executor_remove_handle(executor, i);
+        if (RCL_RET_OK != ret) {
+          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_subscription.");
+          return ret;
+        }
+        executor->info.number_of_subscriptions--;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a subscription.");
+        return ret;
+      }
+    }
+  }
+  RCL_SET_ERROR_MSG("Subscription not found in rclc_executor_remove_subscription");
+  return RCL_RET_ERROR;
+}
+
+rcl_ret_t
+rclc_executor_remove_timer(
+  rclc_executor_t * executor,
+  const rcl_timer_t * timer)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    if (TIMER == executor->handles[i].type) {
+      if (timer == executor->handles[i].timer) {
+        _rclc_executor_remove_handle(executor, i);
+        if (RCL_RET_OK != ret) {
+          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_timer.");
+          return ret;
+        }
+        executor->info.number_of_timers--;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a timer.");
+        return ret;
+      }
+    }
+  }
+  RCL_SET_ERROR_MSG("Timer not found in rclc_executor_remove_timer");
+  return RCL_RET_ERROR;
+}
+
+rcl_ret_t
+rclc_executor_remove_client(
+  rclc_executor_t * executor,
+  const rcl_client_t * client)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    if (CLIENT == executor->handles[i].type) {
+      if (client == executor->handles[i].client) {
+        _rclc_executor_remove_handle(executor, i);
+        if (RCL_RET_OK != ret) {
+          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_client.");
+          return ret;
+        }
+        executor->info.number_of_clients--;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a client.");
+        return ret;
+      }
+    }
+  }
+  RCL_SET_ERROR_MSG("Client not found in rclc_executor_remove_client");
+  return RCL_RET_ERROR;
+}
+
+rcl_ret_t
+rclc_executor_remove_service(
+  rclc_executor_t * executor,
+  const rcl_service_t * service)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    if (SERVICE == executor->handles[i].type) {
+      if (service == executor->handles[i].service) {
+        _rclc_executor_remove_handle(executor, i);
+        if (RCL_RET_OK != ret) {
+          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_service.");
+          return ret;
+        }
+        executor->info.number_of_services--;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a service.");
+        return ret;
+      }
+    }
+  }
+  RCL_SET_ERROR_MSG("Service not found in rclc_executor_remove_service");
+  return RCL_RET_ERROR;
+}
+
+
+rcl_ret_t
+rclc_executor_remove_guard_condition(
+  rclc_executor_t * executor,
+  const rcl_guard_condition_t * guard_condition)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
+  rcl_ret_t ret = RCL_RET_OK;
+
+  for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
+    if (GUARD_CONDITION == executor->handles[i].type) {
+      if (guard_condition == executor->handles[i].gc) {
+        _rclc_executor_remove_handle(executor, i);
+        if (RCL_RET_OK != ret) {
+          RCL_SET_ERROR_MSG("Failed to remove handle in rclc_executor_remove_guard_condition.");
+          return ret;
+        }
+        executor->info.number_of_guard_conditions--;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Removed a guard condition.");
+        return ret;
+      }
+    }
+  }
+  RCL_SET_ERROR_MSG("Guard Condition not found in rclc_executor_remove_guard_condition");
+  return RCL_RET_ERROR;
+}
+
+
 /***
  * operates on handle executor->handles[i]
  * - evaluates the status bit in the wait_set for this handle
@@ -751,10 +974,28 @@ _rclc_execute(rclc_executor_handle_t * handle)
   if (invoke_callback) {
     switch (handle->type) {
       case SUBSCRIPTION:
-        if (handle->data_available) {
-          handle->callback(handle->data);
-        } else {
-          handle->callback(NULL);
+        switch (handle->callback_type) {
+          case CB_WITHOUT_REQUEST_ID:
+            if (handle->data_available) {
+              handle->callback(handle->data);
+            } else {
+              handle->callback(NULL);
+            }
+            break;
+          case CB_WITH_CONTEXT:
+            if (handle->data_available) {
+              handle->subscription_callback_with_context(
+                handle->data,
+                handle->callback_context);
+            } else {
+              handle->subscription_callback_with_context(
+                NULL,
+                handle->callback_context);
+            }
+            break;
+          default:
+            PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
+            break;
         }
         break;
 
@@ -783,7 +1024,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
             handle->service_callback_with_context(
               handle->data,
               handle->data_response_msg,
-              handle->service_context);
+              handle->callback_context);
             break;
           default:
             PRINT_RCLC_ERROR(rclc_execute, unknown_callback_type);
@@ -910,11 +1151,11 @@ _rclc_let_scheduling(rclc_executor_t * executor)
 }
 
 rcl_ret_t
-rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
+rclc_executor_prepare(rclc_executor_t * executor)
 {
   rcl_ret_t rc = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "executor_prepare");
 
   // initialize wait_set if
   // (1) this is the first invocation of executor_spin_some()
@@ -934,12 +1175,26 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
       executor->info.number_of_guard_conditions, executor->info.number_of_timers,
       executor->info.number_of_clients, executor->info.number_of_services,
       executor->info.number_of_events,
-      executor->context, rcl_get_default_allocator());
+      executor->context,
+      *executor->allocator);
+
     if (rc != RCL_RET_OK) {
       PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_init);
       return rc;
     }
   }
+
+  return rc;
+}
+
+rcl_ret_t
+rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
+{
+  rcl_ret_t rc = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
+
+  rclc_executor_prepare(executor);
 
   // set rmw fields to NULL
   rc = rcl_wait_set_clear(&executor->wait_set);
@@ -1106,7 +1361,7 @@ rclc_executor_spin_one_period(rclc_executor_t * executor, const uint64_t period)
   ret = rcutils_system_time_now(&end_time_point);
   sleep_time = (executor->invocation_time + period) - end_time_point;
   if (sleep_time > 0) {
-    usleep(sleep_time / 1000);
+    rclc_sleep_ms(sleep_time / 1000000);
   }
   executor->invocation_time += period;
   return ret;

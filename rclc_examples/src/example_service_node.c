@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include "example_interfaces/srv/add_two_ints.h"
 
 #include <stdio.h>
-#include <unistd.h>
 
 #define RCCHECK(fn) {rcl_ret_t temp_rc = fn; if ((temp_rc != RCL_RET_OK)) {printf( \
         "Failed status on line %d: %d. Aborting.\n", __LINE__, (int)temp_rc); return 1;}}
@@ -73,6 +72,9 @@ int main(int argc, const char * const * argv)
   RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
 
   RCCHECK(rclc_executor_add_service(&executor, &service, &req, &res, service_callback));
+
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
 
   rclc_executor_spin(&executor);
 

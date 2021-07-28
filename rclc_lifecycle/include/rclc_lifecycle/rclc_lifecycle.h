@@ -29,6 +29,7 @@
 
 #include <rclc/node.h>
 #include <rclc/executor.h>
+#include "rclc_lifecycle/visibility_control.h"
 
 typedef struct rclc_lifecycle_callback_map_t
 {
@@ -58,88 +59,63 @@ typedef struct rclc_lifecycle_service_context_t
   rclc_lifecycle_node_t * lifecycle_node;
 } rclc_lifecycle_service_context_t;
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator,
+  bool enable_communication_interface);
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_change_state(
   rclc_lifecycle_node_t * lifecycle_node,
   unsigned int transition_id,
   bool publish_update);
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_register_callback(
   rclc_lifecycle_node_t * lifecycle_node,
   unsigned int goal_state,
   int (* cb)(void));
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_register_on_configure(
   rclc_lifecycle_node_t * node,
   int (* cb)(void));
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_register_on_activate(
   rclc_lifecycle_node_t * node,
   int (* cb)(void));
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_register_on_deactivate(
   rclc_lifecycle_node_t * node,
   int (* cb)(void));
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_register_on_cleanup(
   rclc_lifecycle_node_t * node,
   int (* cb)(void));
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_execute_callback(
   rclc_lifecycle_node_t * lifecycle_node,
   unsigned int transition_id);
 
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_lifecycle_node_fini(
   rclc_lifecycle_node_t * node,
   rcl_allocator_t * allocator);
-
-/// Lifecycle services
-
-rcl_ret_t
-rclc_lifecycle_add_get_state_service(
-  rclc_lifecycle_node_t * lifecycle_node,
-  rclc_executor_t * executor);
-
-rcl_ret_t
-rclc_lifecycle_add_get_available_states_service(
-  rclc_lifecycle_node_t * lifecycle_node,
-  rclc_executor_t * executor);
-
-rcl_ret_t
-rclc_lifecycle_add_change_state_service(
-  rclc_lifecycle_node_t * lifecycle_node,
-  rclc_executor_t * executor);
-
-void
-rclc_lifecycle_get_state_callback(
-  const void * request,
-  void * response,
-  void * service_context);
-
-void
-rclc_lifecycle_get_available_states_callback(
-  const void * request,
-  void * response,
-  void * service_context);
-
-void
-rclc_lifecycle_change_state_callback(
-  const void * request,
-  void * response,
-  void * service_context);
 
 #endif  // RCLC_LIFECYCLE__RCLC_LIFECYCLE_H_

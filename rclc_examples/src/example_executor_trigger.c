@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <stdio.h>
-#include <unistd.h>
 
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
@@ -373,7 +372,7 @@ int main(int argc, const char * argv[])
   for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
     rclc_executor_spin_some(&executor_pub, 1000 * (1000 * 1000));
-    usleep(1000); // 1ms
+    rclc_sleep_ms(1); // 1ms
     rclc_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
   }
 
