@@ -2,10 +2,5 @@ fixes:
   - "ros_ws/src/*/rclc::"
 ignore:
   - "rclc/test/**/*"
-<<<<<<< HEAD
-  - "rclc_lifecycle/test/**/*"
-=======
   - "rclc_examples/**/*"
   - "rclc_lifecycle/test/*"
-  - "rclc_parameter/test/**/*"
->>>>>>> 359c265 (Fix codecov to ignore unit tests and rclc_examples package (#155))
