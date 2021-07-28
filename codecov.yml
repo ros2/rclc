@@ -1,5 +1,5 @@
 ignore:
-  - "ros_ws/src/**/rclc/test/**/*"
-  - "ros_ws/src/**/rclc_examples/**/*"
-  - "ros_ws/src/**/rclc_lifecycle/test/**/*"
-  - "ros_ws/src/**/rclc_parameter/test/**/*"
+  - "ros_ws/src/**/rclc/rclc/test/**/*"
+  - "ros_ws/src/**/rclc/rclc_examples/**/*"
+  - "ros_ws/src/**/rclc/rclc_lifecycle/test/**/*"
+  - "ros_ws/src/**/rclc/rclc_parameter/test/**/*"
