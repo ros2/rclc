@@ -1201,6 +1201,11 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
 
+  if (!rcl_context_is_valid(executor->context)) {
+    PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_context_not_valid);
+    return RCL_RET_ERROR;
+  }
+
   rclc_executor_prepare(executor);
 
   // set rmw fields to NULL
@@ -1336,7 +1341,7 @@ rclc_executor_spin(rclc_executor_t * executor)
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
   printf("INFO: rcl_wait timeout %ld ms\n", ((executor->timeout_ns / 1000) / 1000));
-  while (rcl_context_is_valid(executor->context) ) {
+  while (true) {
     ret = rclc_executor_spin_some(executor, executor->timeout_ns);
     if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
       RCL_SET_ERROR_MSG("rclc_executor_spin_some error");
@@ -1385,8 +1390,13 @@ rcl_ret_t
 rclc_executor_spin_period(rclc_executor_t * executor, const uint64_t period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
-  while (rcl_context_is_valid(executor->context) ) {
-    rclc_executor_spin_one_period(executor, period);
+  rcl_ret_t ret;
+  while (true) {
+    ret = rclc_executor_spin_one_period(executor, period);
+    if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
+      RCL_SET_ERROR_MSG("rclc_executor_spin_one_period error");
+      return ret;
+    }
   }
   // never get here
   return RCL_RET_OK;
