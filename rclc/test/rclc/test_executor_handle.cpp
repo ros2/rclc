@@ -54,7 +54,7 @@ TEST(Test, executor_handle_init) {
   EXPECT_EQ(handle.gc, nullptr);
 
   EXPECT_EQ(handle.data, nullptr);
-  EXPECT_EQ(handle.callback, nullptr);
+  EXPECT_EQ(handle.subscription_callback, nullptr);
   EXPECT_EQ(handle.index, max_handles);
   EXPECT_EQ(handle.initialized, false);
   EXPECT_EQ(handle.data_available, false);
