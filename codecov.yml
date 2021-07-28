@@ -1,3 +1,6 @@
+fixes:
+  - "ros_ws/src/*/::"
+
 ignore:
   - "rclc_examples/**/*"
   - "rclc/test/**/*"
