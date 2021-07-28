@@ -107,10 +107,10 @@ int main()
   rclc_parameter_get_int(&param_server, "param2", &param2);
   rclc_parameter_get_double(&param_server, "param3", &param3);
 
-    // Optional prepare for avoiding allocations during spin
-    rclc_executor_prepare(&executor);
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
 
-    rclc_executor_spin(&executor);
+  rclc_executor_spin(&executor);
 
   // clean up
   rc = rclc_executor_fini(&executor);
