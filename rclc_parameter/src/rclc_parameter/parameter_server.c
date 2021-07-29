@@ -321,8 +321,10 @@ rclc_parameter_server_init_with_option(
       (const char *) empty_string);
   }
 
-  mem_allocs_ok &= rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
-  mem_allocs_ok &= rcl_interfaces__srv__ListParameters_Response__init(&parameter_server->list_response);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
+  mem_allocs_ok &= rcl_interfaces__srv__ListParameters_Response__init(
+    &parameter_server->list_response);
   mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
     &parameter_server->list_response.result.names,
     options->max_params);
@@ -336,7 +338,8 @@ rclc_parameter_server_init_with_option(
   }
 
   mem_allocs_ok &= rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
   mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
     &parameter_server->get_request.names,
     options->max_params);
@@ -354,7 +357,8 @@ rclc_parameter_server_init_with_option(
   }
 
   mem_allocs_ok &= rcl_interfaces__srv__SetParameters_Request__init(&parameter_server->set_request);
-  mem_allocs_ok &= rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
   mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->set_request.parameters,
     options->max_params);
@@ -374,8 +378,10 @@ rclc_parameter_server_init_with_option(
       (const char *) empty_string);
   }
 
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Request__init(&parameter_server->get_types_request);
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Response__init(&parameter_server->get_types_response);
+  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Request__init(
+    &parameter_server->get_types_request);
+  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Response__init(
+    &parameter_server->get_types_response);
   mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
     &parameter_server->get_types_request.names,
     options->max_params);
@@ -391,8 +397,10 @@ rclc_parameter_server_init_with_option(
       (const char *) empty_string);
   }
 
-  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Request__init(&parameter_server->describe_request);
-  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Response__init(&parameter_server->describe_response);
+  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Request__init(
+    &parameter_server->describe_request);
+  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Response__init(
+    &parameter_server->describe_response);
   mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
     &parameter_server->describe_request.names,
     options->max_params);
@@ -413,11 +421,10 @@ rclc_parameter_server_init_with_option(
 
   mem_allocs_ok &= rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
   mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->event_list.node,
-      rcl_node_get_name(node));
+    &parameter_server->event_list.node,
+    rcl_node_get_name(node));
 
-  if (!mem_allocs_ok)
-  {
+  if (!mem_allocs_ok) {
     ret = RCL_RET_ERROR;
   }
 
