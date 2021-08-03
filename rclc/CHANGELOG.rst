@@ -2,6 +2,17 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2021-07-28)
+------------------
+* Checking for valid ROS context in spin_some
+* Refactoring executor (removing callback_type)
+* Fixing codecov config
+
+3.0.2 (2021-07-26)
+------------------
+* Updated codecov to ignore test folders
+* Updated bloom release status table
+
 3.0.1 (2021-07-17)
 ------------------
 * Added rclc_parameter package
