@@ -60,6 +60,27 @@ typedef struct rclc_lifecycle_service_context_t
 } rclc_lifecycle_service_context_t;
 
 RCLC_LIFECYCLE_PUBLIC
+void
+rclc_lifecycle_get_state_callback(
+  const void * req,
+  void * res,
+  void * context);
+RCLC_LIFECYCLE_PUBLIC
+
+void
+rclc_lifecycle_get_available_states_callback(
+  const void * req,
+  void * res,
+  void * context);
+RCLC_LIFECYCLE_PUBLIC
+
+void
+rclc_lifecycle_change_state_callback(
+  const void * req,
+  void * res,
+  void * context);
+
+RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
