@@ -253,73 +253,164 @@ int main(int argc, const char * argv[])
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
-  rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
-  unsigned int num_handles = 2 + 2;
-  printf("Debug: number of DDS handles: %u\n", num_handles);
-  rclc_executor_init(&executor, &support.context, num_handles, &allocator);
+  bool oneExecutor = false;
+  if (oneExecutor)
+  {
+    rclc_executor_t executor;
+    executor = rclc_executor_get_zero_initialized_executor();
+    // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
+    unsigned int num_handles = 2 + 2;
+    printf("Debug: number of DDS handles: %u\n", num_handles);
+    rclc_executor_init(&executor, &support.context, num_handles, &allocator);
 
-//add publisher (timer)
- rc= rclc_executor_add_timer(&executor, &ping_timer);
+  //add publisher (timer)
+  rc= rclc_executor_add_timer(&executor, &ping_timer);
 
-  if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_add_timer.\n");
-  }
- rc= rclc_executor_add_timer(&executor, &pong_timer);
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_timer.\n");
+    }
+  rc= rclc_executor_add_timer(&executor, &pong_timer);
 
-  if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_add_timer.\n");
-  }
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_timer.\n");
+    }
 
-  // add subscription to executor
-  rc = rclc_executor_add_subscription(
-    &executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
-    ON_NEW_DATA);
-
-if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_add_subscription. \n");
-  }
-  
+    // add subscription to executor
     rc = rclc_executor_add_subscription(
-    &executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
-    ON_NEW_DATA);
+      &executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
+      ON_NEW_DATA);
 
-  if (rc != RCL_RET_OK) {
-    printf("Error in rclc_executor_add_subscription. \n");
-  }
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_subscription. \n");
+    }
+    
+      rc = rclc_executor_add_subscription(
+      &executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
+      ON_NEW_DATA);
 
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_subscription. \n");
+    }
+
+  
+    // Optional prepare for avoiding allocations during spin
+    rclc_executor_prepare(&executor);
+
+    // rclc_executor_spin(&executor ); end less loop
+
+    for (unsigned int i = 0; i < 10; i++) {
+        // timeout specified in nanoseconds (here 1s)
+      rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
+    }
+
+    // clean up
+    rc = rclc_executor_fini(&executor);
+    rc += rcl_publisher_fini(&ping_publisher, &ping_node);
+    rc += rcl_publisher_fini(&pong_publisher, &pong_node);
+    rc += rcl_timer_fini(&ping_timer);
+    rc += rcl_timer_fini(&pong_timer);
+    rc += rcl_subscription_fini(&pong_subscription, &ping_node);
+    rc += rcl_subscription_fini(&ping_subscription, &pong_node);
+    rc += rcl_node_fini(&ping_node);
+    rc += rcl_node_fini(&pong_node);
+    rc += rclc_support_fini(&support);
+
+    std_msgs__msg__String__fini(&pingNode_ping_msg);
+    std_msgs__msg__String__fini(&pingNode_pong_msg);
+    std_msgs__msg__String__fini(&pongNode_ping_msg);
+    std_msgs__msg__String__fini(&pongNode_pong_msg);
+
+    if (rc != RCL_RET_OK) {
+      printf("Error while cleaning up!\n");
+      return -1;
+    }
+  } else {
+    // use two executors
+
+    // executor for ping node 
+    rclc_executor_t ping_executor;
+    ping_executor = rclc_executor_get_zero_initialized_executor();
+    // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
+    unsigned int pingNode_num_handles = 1 + 1;
+    printf("Debug: number of DDS handles: %u\n", pingNode_num_handles);
+    rclc_executor_init(&ping_executor, &support.context, pingNode_num_handles, &allocator);
+
+    //add publisher (timer) for ping_msg
+    rc= rclc_executor_add_timer(&ping_executor, &ping_timer);
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_timer.\n");
+    }
  
-  // Optional prepare for avoiding allocations during spin
-  rclc_executor_prepare(&executor);
+    // add subscription for pong_msg
+    rc = rclc_executor_add_subscription(
+      &ping_executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
+      ON_NEW_DATA);
 
- // rclc_executor_spin(&executor ); end less loop
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_subscription. \n");
+    }
+    
 
-  for (unsigned int i = 0; i < 10; i++) {
-      // timeout specified in nanoseconds (here 1s)
-     rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
+
+    // pong node
+    rclc_executor_t pong_executor;
+    pong_executor = rclc_executor_get_zero_initialized_executor();
+    // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
+    unsigned int pongNode_num_handles = 1 + 1;
+    printf("Debug: number of DDS handles: %u\n", pongNode_num_handles);
+    rclc_executor_init(&pong_executor, &support.context, pongNode_num_handles, &allocator);
+    
+    // add subscription of ping_msg
+    rc = rclc_executor_add_subscription(
+    &pong_executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
+    ON_NEW_DATA);
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_subscription. \n");
+    }
+    // add publisher (timer) of pong_msg
+    rc= rclc_executor_add_timer(&pong_executor, &pong_timer);
+    if (rc != RCL_RET_OK) {
+      printf("Error in rclc_executor_add_timer.\n");
+    }
+
+  
+    // Optional prepare for avoiding allocations during spin
+    rclc_executor_prepare(&ping_executor);
+    rclc_executor_prepare(&pong_executor);
+
+    // rclc_executor_spin(&executor ); end less loop
+
+    for (unsigned int i = 0; i < 10; i++) {
+        // timeout specified in nanoseconds (here 1s)
+      rclc_executor_spin_some(&ping_executor, RCL_MS_TO_NS( 1000 ));
+      rclc_executor_spin_some(&pong_executor, RCL_MS_TO_NS( 1000 ));
+    }
+
+    // clean up
+    rc = rclc_executor_fini(&ping_executor);
+    rc = rclc_executor_fini(&pong_executor);
+
+    rc += rcl_publisher_fini(&ping_publisher, &ping_node);
+    rc += rcl_publisher_fini(&pong_publisher, &pong_node);
+    rc += rcl_timer_fini(&ping_timer);
+    rc += rcl_timer_fini(&pong_timer);
+    rc += rcl_subscription_fini(&pong_subscription, &ping_node);
+    rc += rcl_subscription_fini(&ping_subscription, &pong_node);
+    rc += rcl_node_fini(&ping_node);
+    rc += rcl_node_fini(&pong_node);
+    rc += rclc_support_fini(&support);
+
+    std_msgs__msg__String__fini(&pingNode_ping_msg);
+    std_msgs__msg__String__fini(&pingNode_pong_msg);
+    std_msgs__msg__String__fini(&pongNode_ping_msg);
+    std_msgs__msg__String__fini(&pongNode_pong_msg);
+
+    if (rc != RCL_RET_OK) {
+      printf("Error while cleaning up!\n");
+      return -1;
+    }
+
   }
 
-  // clean up
-  rc = rclc_executor_fini(&executor);
-  rc += rcl_publisher_fini(&ping_publisher, &ping_node);
-  rc += rcl_publisher_fini(&pong_publisher, &pong_node);
-  rc += rcl_timer_fini(&ping_timer);
-  rc += rcl_timer_fini(&pong_timer);
-  rc += rcl_subscription_fini(&pong_subscription, &ping_node);
-  rc += rcl_subscription_fini(&ping_subscription, &pong_node);
-  rc += rcl_node_fini(&ping_node);
-  rc += rcl_node_fini(&pong_node);
-  rc += rclc_support_fini(&support);
-
-  std_msgs__msg__String__fini(&pingNode_ping_msg);
-  std_msgs__msg__String__fini(&pingNode_pong_msg);
-  std_msgs__msg__String__fini(&pongNode_ping_msg);
-  std_msgs__msg__String__fini(&pongNode_pong_msg);
-
-  if (rc != RCL_RET_OK) {
-    printf("Error while cleaning up!\n");
-    return -1;
-  }
   return 0;
 }
