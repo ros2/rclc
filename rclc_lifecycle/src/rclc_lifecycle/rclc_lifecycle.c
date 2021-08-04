@@ -43,6 +43,8 @@ rclc_make_node_a_lifecycle_node(
   bool enable_communication_interface
 )
 {
+  lifecycle_node->node = node;
+
   rcl_lifecycle_state_machine_options_t state_machine_options =
     rcl_lifecycle_get_default_state_machine_options();
   state_machine_options.enable_com_interface = enable_communication_interface;
@@ -67,8 +69,33 @@ rclc_make_node_a_lifecycle_node(
     return RCL_RET_ERROR;
   }
 
-  lifecycle_node->node = node;
   lifecycle_node->state_machine = state_machine;
+
+  // Pre-init messages and strings
+  static char empty_string[RCLC_LIFECYCLE_MAX_STRING_LENGTH];
+  memset(empty_string, ' ', RCLC_LIFECYCLE_MAX_STRING_LENGTH);
+  empty_string[RCLC_LIFECYCLE_MAX_STRING_LENGTH - 1] = '\0';
+
+  lifecycle_msgs__srv__ChangeState_Request__init(&lifecycle_node->cs_req);
+  lifecycle_msgs__srv__ChangeState_Response__init(&lifecycle_node->cs_res);
+
+  lifecycle_msgs__srv__GetState_Request__init(&lifecycle_node->gs_req);
+  lifecycle_msgs__srv__GetState_Response__init(&lifecycle_node->gs_res);
+  rosidl_runtime_c__String__assign(
+    &lifecycle_node->gs_res.current_state.label,
+    (const char *) empty_string);
+
+  lifecycle_msgs__srv__GetAvailableStates_Request__init(&lifecycle_node->gas_req);
+  lifecycle_msgs__srv__GetAvailableStates_Response__init(&lifecycle_node->gas_res);
+  lifecycle_msgs__msg__State__Sequence__init(
+    &lifecycle_node->gas_res.available_states,
+    RCLC_LIFECYCLE_MAX_STATES);
+  lifecycle_node->gas_res.available_states.size = 0;
+  for (size_t i = 0; i < RCLC_LIFECYCLE_MAX_STATES; ++i) {
+  rosidl_runtime_c__String__assign(
+    &lifecycle_node->gas_res.available_states.data[i].label,
+    (const char *) empty_string);
+  }
 
   return RCL_RET_OK;
 }
@@ -279,7 +306,7 @@ rclc_lifecycle_execute_callback(
 }
 
 rcl_ret_t
-rclc_lifecycle_add_get_state_service(
+rclc_lifecycle_init_get_state_server(
   rclc_lifecycle_node_t * lifecycle_node,
   rclc_executor_t * executor)
 {
@@ -328,7 +355,7 @@ rclc_lifecycle_get_state_callback(
 }
 
 rcl_ret_t
-rclc_lifecycle_add_get_available_states_service(
+rclc_lifecycle_init_get_available_states_server(
   rclc_lifecycle_node_t * lifecycle_node,
   rclc_executor_t * executor)
 {
@@ -386,7 +413,7 @@ rclc_lifecycle_get_available_states_callback(
 }
 
 rcl_ret_t
-rclc_lifecycle_add_change_state_service(
+rclc_lifecycle_init_change_state_server(
   rclc_lifecycle_node_t * lifecycle_node,
   rclc_executor_t * executor)
 {
