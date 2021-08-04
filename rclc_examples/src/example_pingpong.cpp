@@ -12,11 +12,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include<iostream>
+#include<functional>
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
-#include "example_pingpong_helper.h"
+// #include "example_pingpong_helper.h"
 
 
 // these data structures for the publisher and subscriber are global, so that
@@ -34,7 +36,22 @@ std_msgs__msg__String pongNode_ping_msg;
 std_msgs__msg__String pongNode_pong_msg;
 
 
+class MySubscription {
+public: 
+  MySubscription(){};
+  static void on_update(const void * msgin) {
+    const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
+    if (msg == NULL) {
+      printf("Callback: msg NULL\n");
+    } else {
+      printf("CLASS Callback: I heard: %s\n", msg->data.data);
+    }
+    // number++; not possible to use member variables
+  }
+  private:
+    int number;
 
+};
 
 /***************************** PING NODE CALLBACKS ***********************************/
 
@@ -57,15 +74,15 @@ void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 
 void pong_subscription_callback(const void * msgin)
 {
-   pong_subscription_callback_on_update(msgin);
-  /*
+  // pong_subscription_callback_on_update(msgin);
+  
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
   if (msg == NULL) {
     printf("Callback: msg NULL\n");
   } else {
     printf("Callback: I heard: %s\n", msg->data.data);
   }
-  */
+  
 }
 
 
@@ -164,7 +181,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pingNode_ping_msg);
   const unsigned int PUB_MSG_CAPACITY = 20;
-  pingNode_ping_msg.data.data = malloc(PUB_MSG_CAPACITY);
+  pingNode_ping_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
   pingNode_ping_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pingNode_ping_msg.data.data, pingNode_ping_msg.data.capacity, "AAAAAAAAAAAAAAAAAAA");
   pingNode_ping_msg.data.size = strlen(pingNode_ping_msg.data.data);
@@ -241,7 +258,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pongNode_pong_msg);
   //const unsigned int PUB_MSG_CAPACITY = 20;
-  pongNode_pong_msg.data.data = malloc(PUB_MSG_CAPACITY);
+  pongNode_pong_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
   pongNode_pong_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pongNode_pong_msg.data.data, pongNode_pong_msg.data.capacity, "BAAAAAAAAAAAAAAAAAAA");
   pongNode_pong_msg.data.size = strlen(pongNode_pong_msg.data.data);
@@ -271,7 +288,7 @@ int main(int argc, const char * argv[])
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
-  bool oneExecutor = false;
+  bool oneExecutor = false; // false => using two exectors
   if (oneExecutor)
   {
     rclc_executor_t executor;
@@ -360,8 +377,12 @@ int main(int argc, const char * argv[])
     }
  
     // add subscription for pong_msg
+    // rc = rclc_executor_add_subscription(
+    //   &ping_executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
+    //  ON_NEW_DATA);
+
     rc = rclc_executor_add_subscription(
-      &ping_executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
+      &ping_executor, &pong_subscription, &pingNode_pong_msg, &MySubscription::on_update,
       ON_NEW_DATA);
 
     if (rc != RCL_RET_OK) {

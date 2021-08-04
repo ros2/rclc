@@ -53,7 +53,7 @@ ament_target_dependencies(example_parameter_server rclc rclc_parameter)
 add_executable(example_sub_context src/example_sub_context.c)
 ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 
-add_executable(example_pingpong src/example_pingpong.c src/example_pingpong_helper.c)
+add_executable(example_pingpong src/example_pingpong.cpp)
 ament_target_dependencies(example_pingpong rcl rclc std_msgs)
 
 install(TARGETS
