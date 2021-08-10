@@ -223,3 +223,52 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   res = rcl_init_options_fini(&init_options);
   EXPECT_EQ(RCL_RET_OK, res);
 }
+
+TEST(TestRclcLifecycle, lifecycle_node_servers) {
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  rcl_ret_t res = rcl_init_options_init(&init_options, allocator);
+  res += rcl_init(0, nullptr, &init_options, &context);
+
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_ops = rcl_node_get_default_options();
+  res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+
+  rclc_lifecycle_node_t lifecycle_node;
+  rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
+
+  res += rclc_make_node_a_lifecycle_node(
+    &lifecycle_node,
+    &my_node,
+    &state_machine_,
+    &allocator,
+    true);
+
+  // register callbacks
+  rclc_lifecycle_register_on_configure(&lifecycle_node, &callback_mockup_0);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &callback_mockup_1);
+  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &callback_mockup_2);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &callback_mockup_3);
+
+  // create lifecycle servers
+  rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+
+  // Too little executor handles
+  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_ERROR, res);
+
+  // Now with correct number of handles
+  rclc_executor_init(
+    &executor,
+    &context,
+    4,  // 1 for the node + 1 for each lifecycle service
+    &allocator);
+  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+}

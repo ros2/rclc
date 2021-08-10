@@ -322,7 +322,7 @@ rclc_lifecycle_init_get_state_server(
     &context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
-    return -1;
+    return RCL_RET_ERROR;
   }
 
   return rc;
@@ -371,7 +371,7 @@ rclc_lifecycle_init_get_available_states_server(
     &context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
-    return -1;
+    return RCL_RET_ERROR;
   }
 
   return rc;
@@ -429,7 +429,7 @@ rclc_lifecycle_init_change_state_server(
     &context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
-    return -1;
+    return RCL_RET_ERROR;
   }
 
   return rc;
