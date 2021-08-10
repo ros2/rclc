@@ -92,9 +92,9 @@ rclc_make_node_a_lifecycle_node(
     RCLC_LIFECYCLE_MAX_STATES);
   lifecycle_node->gas_res.available_states.size = 0;
   for (size_t i = 0; i < RCLC_LIFECYCLE_MAX_STATES; ++i) {
-  rosidl_runtime_c__String__assign(
-    &lifecycle_node->gas_res.available_states.data[i].label,
-    (const char *) empty_string);
+    rosidl_runtime_c__String__assign(
+      &lifecycle_node->gas_res.available_states.data[i].label,
+      (const char *) empty_string);
   }
 
   return RCL_RET_OK;

@@ -108,9 +108,9 @@ int main(int argc, const char * argv[])
 
   // Register lifecycle services
   printf("registering lifecycle services...\n");
-  RCCHECK(rclc_lifecycle_add_get_state_service(&lifecycle_node, &executor));
-  RCCHECK(rclc_lifecycle_add_get_available_states_service(&lifecycle_node, &executor));
-  RCCHECK(rclc_lifecycle_add_change_state_service(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor));
 
   // Register lifecycle service callbacks
   printf("registering callbacks...\n");
