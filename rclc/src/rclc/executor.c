@@ -891,6 +891,10 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
+          // invalidate that data is available, because rcl_take failed
+          if (rc == RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+            handle->data_available = false;
+          }
           return rc;
         }
       }
@@ -913,6 +917,10 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           if (rc != RCL_RET_SERVICE_TAKE_FAILED) {
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take_request);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+          }
+          // invalidate that data is available, because rcl_take failed
+          if (rc == RCL_RET_SERVICE_TAKE_FAILED) {
+            handle->data_available = false;
           }
           return rc;
         }
@@ -1097,7 +1105,9 @@ _rclc_default_scheduling(rclc_executor_t * executor)
     // take new input data from DDS-queue and execute the corresponding callback of the handle
     for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
       rc = _rclc_take_new_data(&executor->handles[i], &executor->wait_set);
-      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) &&
+        (rc != RCL_RET_SERVICE_TAKE_FAILED))
+      {
         return rc;
       }
       rc = _rclc_execute(&executor->handles[i]);
