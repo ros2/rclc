@@ -76,7 +76,7 @@ int main(int argc, const char * const * argv)
   // Optional prepare for avoiding allocations during spin
   rclc_executor_prepare(&executor);
 
-  rclc_executor_spin(&executor);
+  RCSOFTCHECK(rclc_executor_spin(&executor));
 
   RCCHECK(rcl_service_fini(&service, &node));
   RCCHECK(rcl_node_fini(&node));
