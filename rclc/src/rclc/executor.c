@@ -1097,7 +1097,9 @@ _rclc_default_scheduling(rclc_executor_t * executor)
     // take new input data from DDS-queue and execute the corresponding callback of the handle
     for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
       rc = _rclc_take_new_data(&executor->handles[i], &executor->wait_set);
-      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+      if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) &&
+        (rc != RCL_RET_SERVICE_TAKE_FAILED))
+      {
         return rc;
       }
       rc = _rclc_execute(&executor->handles[i]);
