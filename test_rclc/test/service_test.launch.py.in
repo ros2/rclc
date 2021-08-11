@@ -1,0 +1,73 @@
+import os
+
+import unittest
+
+import ament_index_python
+import launch
+import launch_ros
+import launch_testing
+import launch_testing.actions
+import launch_testing.asserts
+import launch_testing.util
+import launch_testing_ros
+
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess
+from launch.events import matches_action
+from launch.events.process import ShutdownProcess
+
+import launch_system_modes
+
+import lifecycle_msgs.msg
+
+
+def generate_test_description():
+    os.environ['OSPL_VERBOSITY'] = '8'
+    os.environ['RCUTILS_CONSOLE_OUTPUT_FORMAT'] = '{message}'
+
+    modelfile = '@MODELFILE@'
+
+    # Setup
+    server = launch_ros.actions.Node(
+        package='rclc_examples',
+        executable='example_service_node',
+        emulate_tty=True,
+        output='screen'
+        )
+    client = launch_ros.actions.Node(
+        package='rclc_examples',
+        executable='example_client_node',
+        emulate_tty=True,
+        output='screen'
+        )
+
+    launch_description = LaunchDescription()
+    launch_description.add_action(server)
+    launch_description.add_action(client)
+    launch_description.add_action(launch_testing.util.KeepAliveProc())
+    launch_description.add_action(launch_testing.actions.ReadyToTest())
+
+    return launch_description, locals()
+
+class TestModeManagement(unittest.TestCase):
+
+    def test_processes_output(self, proc_output, client):
+        """Check client logging output for expected strings."""
+
+        from launch_testing.tools.output import get_default_filtered_prefixes
+        output_filter = launch_testing_ros.tools.basic_output_filter(
+            filtered_prefixes=get_default_filtered_prefixes() + ['service not available, waiting...'],
+            filtered_rmw_implementation='@rmw_implementation@'
+        )
+        proc_output.assertWaitFor(
+            expected_output=launch_testing.tools.expected_output_from_file(path="@EXPECTED_OUTPUT@"),
+            process=client,
+            output_filter=output_filter,
+            timeout=10
+        )
+
+@launch_testing.post_shutdown_test()
+class TestModeManagementShutdown(unittest.TestCase):
+
+    def test_last_process_exit_code(self, proc_info, server):
+        launch_testing.asserts.assertExitCodes(proc_info, process=server)
