@@ -12,13 +12,8 @@ import launch_testing.util
 import launch_testing_ros
 
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess
 from launch.events import matches_action
 from launch.events.process import ShutdownProcess
-
-import launch_system_modes
-
-import lifecycle_msgs.msg
 
 
 def generate_test_description():
@@ -27,7 +22,6 @@ def generate_test_description():
 
     modelfile = '@MODELFILE@'
 
-    # Setup
     server = launch_ros.actions.Node(
         package='rclc_examples',
         executable='example_service_node',
