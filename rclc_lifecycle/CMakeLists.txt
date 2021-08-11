@@ -82,7 +82,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
-    test/test_lifecycle.cpp)
+    test/rclc_lifecycle/test_lifecycle.cpp)
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
