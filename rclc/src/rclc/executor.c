@@ -891,6 +891,10 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
+          // invalidate that data is available, because rcl_take failed
+          if (rc == RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+            handle->data_available = false;
+          }
           return rc;
         }
       }
@@ -913,6 +917,10 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           if (rc != RCL_RET_SERVICE_TAKE_FAILED) {
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_take_request);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+          }
+          // invalidate that data is available, because rcl_take failed
+          if (rc == RCL_RET_SERVICE_TAKE_FAILED) {
+            handle->data_available = false;
           }
           return rc;
         }
