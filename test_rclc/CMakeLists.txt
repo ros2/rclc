@@ -25,6 +25,19 @@ if(BUILD_TESTING)
     TARGET "service_test"
     TIMEOUT 30
     ENV)
+
+    # Test rclc lifecycle services
+    file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/test/lifecycle_services_test_expected_output" EXPECTED_OUTPUT)
+    configure_file(
+        "test/lifecycle_services_test.launch.py.in"
+        "test/lifecycle_services_test.launch.py"
+        @ONLY
+      )
+    add_launch_test(
+      "${CMAKE_CURRENT_BINARY_DIR}/test/lifecycle_services_test.launch.py"
+      TARGET "lifecycle_services_test"
+      TIMEOUT 30
+      ENV)
 endif()
 
 ament_export_include_directories(include)

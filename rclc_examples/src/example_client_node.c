@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.#include <rcl/rcl.h>
 #include <rcl/error_handling.h>
+#include <rcutils/logging_macros.h>
+
 #include <rclc/rclc.h>
 #include <rclc/types.h>
 #include <rclc/executor.h>
