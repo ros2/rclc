@@ -1706,8 +1706,8 @@ TEST_F(TestDefaultExecutor, spin_period) {
   }
   // compute avarage time duration between calls to spin_period_callback
   uint64_t duration = test_case_evaluate_spin_period();
-  printf("expected  'spin_period' : %ld ns\n", spin_period);
-  printf("actual (%d iterations) : %lld ns\n", TC_SPIN_PERIOD_MAX_INVOCATIONS, duration);
+  printf("expected  'spin_period' : %lu ns\n", spin_period);
+  printf("actual (%d iterations) : %lu ns\n", TC_SPIN_PERIOD_MAX_INVOCATIONS, duration);
 
   uint64_t delta = 5000000;  // 5 ms interval
   EXPECT_LE(duration, spin_period + delta);
