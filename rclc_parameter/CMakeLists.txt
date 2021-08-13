@@ -65,13 +65,17 @@ ament_target_dependencies(${PROJECT_NAME}
   rosidl_runtime_c
 )
 
+
+
 #################################################
 # install
 #################################################
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME}
-  PRIVATE "RCLC_PARAMETER_BUILDING_LIBRARY")
+  PUBLIC "RCLC_PARAMETER_BUILDING_LIBRARY")
+# this alternative would also work
+#add_definitions(-DRCLC_PARAMETER_BUILDING_LIBRARY)
 
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -112,6 +116,7 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
     rclcpp
+    rclc
     rcl
     rcutils
     rosidl_generator_c
