@@ -46,8 +46,17 @@ ament_target_dependencies(example_client_node rcl rclc example_interfaces)
 add_executable(example_lifecycle_node src/example_lifecycle_node.c)
 ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
 
+<<<<<<< HEAD
+=======
+add_executable(example_parameter_server src/example_parameter_server.c)
+ament_target_dependencies(example_parameter_server rclc rclc_parameter)
+
+>>>>>>> e0252bd (added pingpong example (#172))
 add_executable(example_sub_context src/example_sub_context.c)
 ament_target_dependencies(example_sub_context rcl rclc std_msgs)
+
+add_executable(example_pingpong src/example_pingpong.cpp)
+ament_target_dependencies(example_pingpong rcl rclc std_msgs)
 
 install(TARGETS
   example_executor
@@ -57,6 +66,7 @@ install(TARGETS
   example_service_node
   example_client_node
   example_sub_context
+  example_pingpong
   DESTINATION lib/${PROJECT_NAME}
 )
 
