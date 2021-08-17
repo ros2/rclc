@@ -308,7 +308,6 @@ rclc_parameter_server_init_with_option(
   empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH - 1] = '\0';
 
   bool mem_allocs_ok = true;
-
   mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
     options->max_params);
