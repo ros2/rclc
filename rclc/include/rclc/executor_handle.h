@@ -22,6 +22,7 @@ extern "C"
 #endif
 
 #include <rcl/rcl.h>
+#include <sched.h>
 
 /// TODO (jst3si) Where is this defined? - in my build environment this variable is not set.
 // #define ROS_PACKAGE_NAME "rclc"

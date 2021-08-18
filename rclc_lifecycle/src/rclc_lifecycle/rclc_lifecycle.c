@@ -38,6 +38,13 @@ rclc_make_node_a_lifecycle_node(
   rcl_allocator_t * allocator
 )
 {
+  // hack this will create a merge conflict with ROLLING
+  rcl_lifecycle_state_machine_options_t state_machine_options =
+    rcl_lifecycle_get_default_state_machine_options();
+  state_machine_options.enable_com_interface = true;  // HACK !!!
+  state_machine_options.allocator = *allocator;
+
+
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
     node,
@@ -47,8 +54,7 @@ rclc_make_node_a_lifecycle_node(
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableStates),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions),
-    true,
-    allocator);
+    &state_machine_options);
   if (rcl_ret != RCL_RET_OK) {
     // state machine not initialized, return uninitilized
     // @todo(anordman): how/what to return in this case?
@@ -228,12 +234,11 @@ rcl_lifecycle_node_fini(
 )
 {
   rcl_ret_t rcl_ret = RCL_RET_OK;
-
+  RCLC_UNUSED(allocator);
   // Cleanup statemachine
   rcl_ret = rcl_lifecycle_state_machine_fini(
     lifecycle_node->state_machine,
-    lifecycle_node->node,
-    allocator);
+    lifecycle_node->node);
   if (rcl_ret != RCL_RET_OK) {
     return RCL_RET_ERROR;
   }

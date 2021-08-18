@@ -101,8 +101,6 @@ typedef struct
   // rcl_guard_condition_t gc_some_thread_is_ready;
   pthread_mutex_t thread_state_mutex;
   pthread_mutex_t micro_ros_mutex;
-
-
 } rclc_executor_t;
 
 /**
@@ -713,8 +711,8 @@ rcl_ret_t
 rclc_executor_start_multi_threading_for_nuttx(rclc_executor_t * e);
 
 
-
-rcl_ret_t rclc_executor_publish(const rcl_publisher_t * publisher, const void * ros_message, 
+rcl_ret_t rclc_executor_publish(
+  const rcl_publisher_t * publisher, const void * ros_message,
   rmw_publisher_allocation_t * allocation);
 #if __cplusplus
 }
