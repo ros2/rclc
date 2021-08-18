@@ -16,6 +16,16 @@
 #include <gtest/gtest.h>
 #include "rclc/executor_handle.h"
 
+TEST(Test, executor_handle_reduced_type) {
+  rclc_executor_handle_type_t full_type;
+  rclc_executor_handle_type_t reduced_type;
+  for (int i = -10; i < 30; i++) {
+    full_type = (rclc_executor_handle_type_t) i;
+    reduced_type = rclc_executor_handle_reduced_type(full_type);
+    EXPECT_EQ(reduced_type, rclc_executor_handle_reduced_type(reduced_type)) <<
+      "idempotency violation";
+  }
+}
 
 TEST(Test, executor_handle_counters_zero_init) {
   rcl_ret_t rc;
