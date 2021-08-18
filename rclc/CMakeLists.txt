@@ -57,6 +57,7 @@ add_library(${PROJECT_NAME}
   src/rclc/node.c
   src/rclc/executor_handle.c
   src/rclc/executor.c
+  src/rclc/multi_threaded_executor.c
 )
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)

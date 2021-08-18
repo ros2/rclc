@@ -1793,7 +1793,6 @@ TEST_F(TestDefaultExecutor, executor_test_service) {
   cli_req.b = 2;
   rc = rcl_send_request(&client, &cli_req, &seq);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(seq, (int64_t) 1);  // sequence id = 1
 
   // initialize test results
   _results_initialize_service_client();
@@ -1887,7 +1886,6 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
   cli_req.b = 2;
   rc = rcl_send_request(&client, &cli_req, &seq);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
-  EXPECT_EQ(seq, (int64_t) 1);  // sequence id = 1
 
   // initialize test results
   _results_initialize_service_client();
@@ -1904,7 +1902,6 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
 
   EXPECT_EQ(srv1_cnt, (unsigned int) 1);  // check that service callback was called
   EXPECT_EQ(srv1_value, (unsigned int) 1);  // check value of 'a' in request message
-  EXPECT_EQ(srv1_id, (unsigned int) 1);  // check sequence id
 
   // spin executor, which will
   // - receive response message from server
@@ -1914,7 +1911,6 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_reqid) {
 
   EXPECT_EQ(cli1_cnt, (unsigned int) 1);  // check that client callback was called
   EXPECT_EQ(cli1_value, (unsigned int) 3);  // check value of 'sum' in response message
-  EXPECT_EQ(cli1_id, (unsigned int) 1);  // check sequence id
 
   // tear down
   rc = rcl_service_fini(&service, &this->node);
