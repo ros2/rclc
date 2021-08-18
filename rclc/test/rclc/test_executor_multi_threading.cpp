@@ -343,6 +343,7 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb2_int_value, (unsigned int) 772);
   _executor_results_print();
   */
+  RCLC_UNUSED(_executor_results_print);
   // clean
   rc = rclc_executor_fini(&executor);
 }

@@ -74,7 +74,7 @@ rclc_executor_add_subscription_multi_threaded(
   executor->handles[executor->index].type = SUBSCRIPTION;
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
-  executor->handles[executor->index].callback = callback;
+  executor->handles[executor->index].subscription_callback = callback;
   executor->handles[executor->index].invocation = invocation;
   executor->handles[executor->index].sparam = sparam;
   executor->handles[executor->index].initialized = true;
@@ -336,7 +336,7 @@ void * rclc_executor_worker_thread(void * p)
 
     // execute subscription callback
     // pthread_mutex_lock(param->micro_ros_mutex);
-    param->handle->callback(param->handle->data);
+    param->handle->subscription_callback(param->handle->data);
     // pthread_mutex_unlock(param->micro_ros_mutex);
 
     // change_worker thread state and signal guard condition

@@ -175,8 +175,6 @@ typedef struct
   /// Interval variable. Flag, which is true, if new data is available from DDS queue
   /// (is set after calling rcl_take)
   bool data_available;
-  /// callback type for service/client
-  rclc_executor_handle_callback_type_t callback_type;
   /// variables for multi-threading
   /// worker thread
   pthread_t worker_thread;

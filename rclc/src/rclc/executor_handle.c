@@ -50,9 +50,6 @@ rclc_executor_handle_init(
   handle->data_response_msg = NULL;
   handle->callback_context = NULL;
 
-  // todo(jst3si) fix callback in PR
-  handle->callback = NULL;
-
   handle->subscription_callback = NULL;
   // because of union structure:
   //   handle->service_callback == NULL;
@@ -63,8 +60,6 @@ rclc_executor_handle_init(
   handle->index = max_handles;
   handle->initialized = false;
   handle->data_available = false;
-
-  handle->callback_type = CB_UNDEFINED;
   handle->worker_thread_state = RCLC_THREAD_NONE;
   handle->new_msg_avail = false;
   handle->sparam = NULL;
