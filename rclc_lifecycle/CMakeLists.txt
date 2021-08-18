@@ -7,7 +7,7 @@ if(NOT CMAKE_C_STANDARD)
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
@@ -36,6 +36,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 ament_target_dependencies(${PROJECT_NAME}
   rclc
   rcutils
@@ -43,12 +44,36 @@ ament_target_dependencies(${PROJECT_NAME}
   lifecycle_msgs
 )
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME}
+  PRIVATE "RCLC_LIFECYCLE_BUILDING_LIBRARY")
+
+
 # install
-install(DIRECTORY include/ DESTINATION include)
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+#install(DIRECTORY include/ DESTINATION include)
+#install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+
+install(
+  TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+
+if("${rcl_VERSION}" VERSION_LESS "1.1.10")
+# ament_export_targets command is not available for Dashing
+else()
+ament_export_targets(${PROJECT_NAME})
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -66,6 +91,7 @@ if(BUILD_TESTING)
     rcl_lifecycle
     rclc
     lifecycle_msgs
+    osrf_testing_tools_cpp
   )
 endif()
 

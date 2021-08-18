@@ -25,6 +25,7 @@ find_package(rclc_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(example_interfaces REQUIRED)
+find_package(rclc_parameter REQUIRED)
 
 include_directories(include)
 
@@ -46,6 +47,15 @@ ament_target_dependencies(example_client_node rcl rclc example_interfaces)
 add_executable(example_lifecycle_node src/example_lifecycle_node.c)
 ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
 
+add_executable(example_parameter_server src/example_parameter_server.c)
+ament_target_dependencies(example_parameter_server rclc rclc_parameter)
+
+add_executable(example_sub_context src/example_sub_context.c)
+ament_target_dependencies(example_sub_context rcl rclc std_msgs)
+
+add_executable(example_pingpong src/example_pingpong.cpp)
+ament_target_dependencies(example_pingpong rcl rclc std_msgs)
+
 install(TARGETS
   example_executor
   example_executor_convenience
@@ -53,6 +63,9 @@ install(TARGETS
   example_lifecycle_node
   example_service_node
   example_client_node
+  example_parameter_server
+  example_sub_context
+  example_pingpong
   DESTINATION lib/${PROJECT_NAME}
 )
 

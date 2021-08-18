@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <stdio.h>
-#include <unistd.h>
 
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/int32.h>
@@ -197,7 +196,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node;
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&my_node, "node_0", "executor_examples", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -223,7 +222,7 @@ int main(int argc, const char * argv[])
 
   // create timer 1
   // - publishes 'my_string_pub' every 'timer_timeout' ms
-  rcl_timer_t my_string_timer;
+  rcl_timer_t my_string_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 100;
   rc = rclc_timer_init_default(
     &my_string_timer,
@@ -255,7 +254,7 @@ int main(int argc, const char * argv[])
 
   // create timer 2
   // - publishes 'my_int_pub' every 'timer_int_timeout' ms
-  rcl_timer_t my_int_timer;
+  rcl_timer_t my_int_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_int_timeout = 10 * timer_timeout;
   rc = rclc_timer_init_default(
     &my_int_timer,
@@ -297,7 +296,7 @@ int main(int argc, const char * argv[])
 
 
   // create subscription 2
-  rcl_subscription_t my_int_sub;
+  rcl_subscription_t my_int_sub = rcl_get_zero_initialized_subscription();
   rc = rclc_subscription_init_default(
     &my_int_sub,
     &my_node,
@@ -373,7 +372,7 @@ int main(int argc, const char * argv[])
   for (unsigned int i = 0; i < 100; i++) {
     // timeout specified in ns                 (here: 1s)
     rclc_executor_spin_some(&executor_pub, 1000 * (1000 * 1000));
-    usleep(1000); // 1ms
+    rclc_sleep_ms(1); // 1ms
     rclc_executor_spin_some(&executor_sub, 1000 * (1000 * 1000));
   }
 

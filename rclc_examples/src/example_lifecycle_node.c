@@ -15,7 +15,6 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <unistd.h>
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
@@ -67,7 +66,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node;
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -82,7 +81,8 @@ int main(int argc, const char * argv[])
     &lifecycle_node,
     &my_node,
     &state_machine_,
-    &allocator);
+    &allocator,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in creating lifecycle node.\n");
     return -1;

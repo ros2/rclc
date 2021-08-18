@@ -35,15 +35,14 @@ rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_allocator_t * allocator
+  rcl_allocator_t * allocator,
+  bool enable_communication_interface
 )
 {
-  // hack this will create a merge conflict with ROLLING
   rcl_lifecycle_state_machine_options_t state_machine_options =
     rcl_lifecycle_get_default_state_machine_options();
-  state_machine_options.enable_com_interface = true;  // HACK !!!
+  state_machine_options.enable_com_interface = enable_communication_interface;
   state_machine_options.allocator = *allocator;
-
 
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
@@ -235,6 +234,7 @@ rcl_lifecycle_node_fini(
 {
   rcl_ret_t rcl_ret = RCL_RET_OK;
   RCLC_UNUSED(allocator);
+
   // Cleanup statemachine
   rcl_ret = rcl_lifecycle_state_machine_fini(
     lifecycle_node->state_machine,

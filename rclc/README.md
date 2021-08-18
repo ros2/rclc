@@ -40,6 +40,8 @@ The RCLC-Executor provides an API register subscriptions and timers as well as r
 As described in [CB2019](#CB2019), it is difficult to reason about end-to-end latencies because of the complex semantics of the rclcpp Executor.
 Therefore, the RCLC Executor comes with a number of features, which provides mechanisms for deterministic and real-time execution.
 
+The quality declaration is available in [QUALITY_DECLARATION.md](QUALITY_DECLARATION.md).
+
 ## RCLC-Executor
 Here we introduce the rclc Executor, which is a ROS 2 Executor implemented based on  and for the rcl API, for applications written in the C language.
 Often embedded applications require real-time to guarantee end-to-end latencies and need deterministic runtime behavior to correctly replay test data.
@@ -271,9 +273,8 @@ Returns a zero initialized executor object.
 **rclc_executor_init(rclc_executor_t * executor, rcl_context_t * context, const size_t number_of_handles, const rcl_allocator_t * allocator)**
 
 As the Executor is intended for embedded controllers, dynamic memory management is crucial.
-Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`.
-The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase.
-This makes this Executor static in the sense, that during runtime no additional callbacks can be added.
+Therefore at initialization of the RCLC-Executor, the user defines the total number of handles `number_of_handles`. A handle is a term for subscriptions, timers, services, clients and guard conditions. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. The corresponding wait-set is allocated in the first execution of the spin-method or in the optional call to `rclc_executor_prepare` .
+This makes this Executor static in the sense, that during runtime no heap allocations occur. You can add, however, at runtime as many handles, e.g. subscriptions, to the executor until the maximum number of handles is reached.
 The `context` is the RCL context, and `allocator` points to a memory allocator.
 
 **rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)**
@@ -307,7 +308,7 @@ With `rclc_executor_trigger_any` being the default trigger condition, the curren
 With the `rclc_executor_trigger_one` trigger, the handle to trigger is specified with `trigger_object`.
 In the other cases of the trigger conditions this parameter shall be `NULL`.
 
-**rclc_executor_add_subscription(rclc_executor_t * executor, rcl_subscription_t * subscription, void * msg, rclc_callback_t callback, rclc_executor_handle_invocation_t invocation)**
+**rclc_executor_add_subscription(rclc_executor_t * executor, rcl_subscription_t * subscription, void * msg, rclc_subscription_callback_t callback, rclc_executor_handle_invocation_t invocation)**
 
 **rclc_executor_add_timer(  rclc_executor_t * executor, rcl_timer_t * timer)**
 
@@ -320,6 +321,9 @@ The second option is useful for example when the callback is expected to be call
 
 For a timer, only the rcl timer object `timer` is needed.
 
+**rclc_executor_prepare(rclc_executor_t * executor)**
+
+The function `rclc_executor_prepare` prepares the internal RCL wait set allocating the required dynamic memory. Its use is optional becouse it also will be checked in the spin functions. If used and no entities are added to the executor during running phase, no dynamic allocations are guaranteed during the running phase.
 #### Running phase
 
 **rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)**
@@ -392,7 +396,7 @@ void my_timer_cb(rcl_timer_t * timer, int64_t last_call_time)
 }
 
 // necessary ROS 2 objects
-rcl_context_t context;   
+rcl_context_t context;
 rcl_node_t node;
 rcl_subscription_t sub1, sub2, sub3;
 rcl_timer_t timer;

@@ -1,5 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rclc.
+// see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include "example_interfaces/srv/add_two_ints.h"
 
 #include <stdio.h>
-#include <unistd.h>
 
 #define RCCHECK(fn) {rcl_ret_t temp_rc = fn; if ((temp_rc != RCL_RET_OK)) {printf( \
         "Failed status on line %d: %d. Aborting.\n", __LINE__, (int)temp_rc); return 1;}}
@@ -59,7 +58,7 @@ int main(int argc, const char * const * argv)
   RCCHECK(rclc_node_init_default(&node, "add_twoints_client_rclc", "", &support));
 
   // create service
-  rcl_service_t service;
+  rcl_service_t service = rcl_get_zero_initialized_service();
   RCCHECK(
     rclc_service_init_default(
       &service, &node,
@@ -74,7 +73,10 @@ int main(int argc, const char * const * argv)
 
   RCCHECK(rclc_executor_add_service(&executor, &service, &req, &res, service_callback));
 
-  rclc_executor_spin(&executor);
+  // Optional prepare for avoiding allocations during spin
+  rclc_executor_prepare(&executor);
+
+  RCSOFTCHECK(rclc_executor_spin(&executor));
 
   RCCHECK(rcl_service_fini(&service, &node));
   RCCHECK(rcl_node_fini(&node));
