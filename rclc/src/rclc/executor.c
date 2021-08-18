@@ -694,13 +694,12 @@ _rclc_executor_find_handle(
   void ** search_cache)
 {
   if (NULL == executor) {
-    // notionally unreachable,
-    //  calling function should protect with RCL_CHECK_ARGUMENT_FOR_NULL(executor)
     return NULL;
   }
 
   rclc_executor_handle_t * matching_handle = NULL;
   rclc_executor_handle_t * test_handle = NULL;
+  handle_type = rclc_executor_handle_reduced_type(handle_type);
 
   if (NULL != search_cache) {
     // bounds check search_cache before use
@@ -900,6 +899,42 @@ rclc_executor_swap_service_request(
     search_cache);
 }
 
+rcl_ret_t
+rclc_executor_change_subscription_message(
+  rclc_executor_t * executor,
+  const rcl_subscription_t * subscription,
+  void * new_message,
+  void ** search_cache)
+{
+  return _rclc_executor_change_message_by_handle(
+    executor, SUBSCRIPTION,
+    (const void *) subscription, new_message,
+    search_cache);
+}
+rcl_ret_t
+rclc_executor_change_client_response(
+  rclc_executor_t * executor,
+  const rcl_client_t * client,
+  void * new_response,
+  void ** search_cache)
+{
+  return _rclc_executor_change_message_by_handle(
+    executor, CLIENT,
+    (const void *) client, new_response,
+    search_cache);
+}
+rcl_ret_t
+rclc_executor_change_service_request(
+  rclc_executor_t * executor,
+  const rcl_service_t * service,
+  void * new_request,
+  void ** search_cache)
+{
+  return _rclc_executor_change_message_by_handle(
+    executor, SERVICE,
+    (const void *) service, new_request,
+    search_cache);
+}
 
 /*
  * TODO @BrettRD

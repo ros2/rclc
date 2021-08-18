@@ -803,6 +803,119 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
 }
 
 
+TEST_F(TestDefaultExecutor, executor_change_subscription_message) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  size_t num_subscriptions = 0;
+  void * search_cache = NULL;
+
+  // setup
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub1, &this->sub1_msg,
+    &INT_CALLBACK(1), ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 1;
+
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub2, &this->sub2_msg,
+    &INT_CALLBACK(2), ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  num_subscriptions = 2;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "failed to start test: number of subscriptions is expected to be two";
+
+  // test no-operation
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub1, &this->sub1_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[0].data, &this->sub1_msg) <<
+    "message is expected to be unchanged";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // test no-operation with NULL search_cache
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub1, &this->sub1_msg, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[0].data, &this->sub1_msg) <<
+    "message is expected to be unchanged";
+
+  // test simple case
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub1, &this->sub3_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[0].data, &this->sub3_msg) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // restore simple case
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub1, &this->sub1_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[0].data, &this->sub1_msg) <<
+    "message is expected to be restored";
+
+  // test less trivial case
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub2, &this->sub3_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[1].data, &this->sub3_msg) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[1]), search_cache) <<
+    "search_cache should point to handle";
+
+  // restore less trivial case
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub2, &this->sub2_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be unchanged";
+  EXPECT_EQ(executor.handles[1].data, &this->sub2_msg) <<
+    "message is expected to be restored";
+
+  // test NULL pointer for executor
+  rc = rclc_executor_change_subscription_message(
+    NULL, &this->sub1, &this->sub1_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be one";
+
+  // test NULL pointer for rcl handle
+  rc = rclc_executor_change_subscription_message(
+    &executor, NULL, &this->sub1_msg, &search_cache);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be one";
+
+  // test NULL pointer for new message
+  rc = rclc_executor_change_subscription_message(
+    &executor, &this->sub1, NULL, &search_cache);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+  EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
+    "number of subscriptions is expected to be one";
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
 TEST_F(TestDefaultExecutor, executor_swap_subscription_message) {
   rcl_ret_t rc;
   rclc_executor_t executor;
