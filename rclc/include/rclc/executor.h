@@ -527,6 +527,9 @@ _rclc_executor_change_message_by_handle(
  *  Locates the first subscription handle carrying the old_message pointer
  *  and replaces its message with the new_message pointer,
  *  the new message pointer must be initialised and allocated
+ * * this should only be used during the subscription callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_message empty
  * * An error is returned if old_message is not found in the handles of the executor.
  *
  * <hr>
@@ -559,6 +562,9 @@ rclc_executor_swap_subscription_message(
  *  Locates the first client handle carrying the old_response pointer
  *  and replaces its message with the new_response pointer,
  *  the new message pointer must be initialised and allocated
+ * * this should only be used during the client callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_response empty
  * * An error is returned if old_response is not found in the handles of the executor.
  *
  * <hr>
@@ -591,6 +597,9 @@ rclc_executor_swap_client_response(
  *  Locates the first service handle carrying the old_request pointer
  *  and replaces its message with the new_request pointer,
  *  the new message pointer must be initialised and allocated
+ * * this should only be used during the service callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_request empty
  * * An error is returned if old_request is not found in the handles of the executor.
  *
  * <hr>

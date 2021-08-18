@@ -907,7 +907,7 @@ rclc_executor_swap_service_request(
  *   deduplicate _rclc_executor_find_handle and _rclc_executor_find_handle_by_message
  *   before implementing rclc_executor_swap_service_response
  * alternatively, see executor_handle.h for jst3si's suggestion of a rclc_service_data_type_t
- * the multiple indirection would make this
+ *   the multiple indirection would make this a bit redundant though
 rclc_executor_swap_service_response(
   rclc_executor_t * executor,
   const void * old_response,
