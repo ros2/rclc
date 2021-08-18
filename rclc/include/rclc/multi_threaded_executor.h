@@ -21,6 +21,79 @@ extern "C"
 {
 #endif
 
+#include <rclc/executor.h>
+
+
+/**
+ *  Adds a subscription to an executor with scheduling policy
+ * * An error is returned, if {@link rclc_executor_t.handles} array is full.
+ * * The total number_of_subscriptions field of {@link rclc_executor_t.info}
+ *   is incremented by one.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] subscription pointer to an allocated subscription
+ * \param [in] msg pointer to an allocated message
+ * \param [in] callback    function pointer to a callback
+ * \param [in] invocation  invocation type for the callback (ALWAYS or only ON_NEW_DATA)
+ * \param [in] sched_param scheduling parameters for the thread that is executing the callback
+ * \return `RCL_RET_OK` if add-operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
+rcl_ret_t
+rclc_executor_add_subscription_multi_threaded(
+  rclc_executor_t * executor,
+  rcl_subscription_t * subscription,
+  void * msg,
+  rclc_callback_t callback,
+  rclc_executor_handle_invocation_t invocation,
+  rclc_executor_sched_parameter_t * param);
+
+/**
+ * Initialization of real-time scheduling with sporadic server for
+ * NuttX operating system.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+void
+rclc_executor_init_multi_threaded(rclc_executor_t * e);
+
+/**
+ * Start multi-threading scheduling for NuttX
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+rcl_ret_t
+rclc_executor_spin_multi_threaded(rclc_executor_t * e);
+
+
+rcl_ret_t rclc_executor_publish(
+  const rcl_publisher_t * publisher, const void * ros_message,
+  rmw_publisher_allocation_t * allocation);
 
 #if __cplusplus
 }

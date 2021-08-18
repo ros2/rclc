@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "rclc/executor.h"
+#include "rclc/multi_threaded_executor.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
 
@@ -151,11 +152,9 @@ _executor_results_print(void)
 // macro-definition               definition of callback function
 INT_CALLBACK_DEFINITION(1)  // => int32_callback_1
 INT_CALLBACK_DEFINITION(2)  // => int32_callback_2
-INT_CALLBACK_DEFINITION(3)  // => int32_callback_3
 
 #define CALLBACK_1 INT_CALLBACK(1)
 #define CALLBACK_2 INT_CALLBACK(2)
-#define CALLBACK_3 INT_CALLBACK(3)
 
 #define CREATE_PUBLISHER(PUB, TOPIC_NAME) \
   this->PUB = rcl_get_zero_initialized_publisher(); \
@@ -202,13 +201,6 @@ public:
   rcl_publisher_options_t pub2_options;
   std_msgs__msg__Int32 pub2_msg;
 
-  // integer publisher 3
-  rcl_publisher_t pub3;
-  const char * pub3_topic_name;
-  const rosidl_message_type_support_t * pub3_type_support;
-  rcl_publisher_options_t pub3_options;
-  std_msgs__msg__Int32 pub3_msg;
-
   // integer subscription 1
   rcl_subscription_t sub1;
   const char * sub1_topic_name;
@@ -222,13 +214,6 @@ public:
   const rosidl_message_type_support_t * sub2_type_support;
   rcl_subscription_options_t sub2_options;
   std_msgs__msg__Int32 sub2_msg;
-
-  // integer subscription 3
-  rcl_subscription_t sub3;
-  const char * sub3_topic_name;
-  const rosidl_message_type_support_t * sub3_type_support;
-  rcl_subscription_options_t sub3_options;
-  std_msgs__msg__Int32 sub3_msg;
 
   // rcl allocator
   const rcl_allocator_t * allocator_ptr;
@@ -259,19 +244,15 @@ public:
     // topic name is taken literally (must match with subscription)
     CREATE_PUBLISHER(pub1, data1_int)
     CREATE_PUBLISHER(pub2, data2_int)
-    CREATE_PUBLISHER(pub3, data3_int)
     std_msgs__msg__Int32__init(&this->pub1_msg);
     std_msgs__msg__Int32__init(&this->pub2_msg);
-    std_msgs__msg__Int32__init(&this->pub3_msg);
 
     // create subscriptions - correspond to member variables sub1, sub2, sub3
     // topic name is taken literally (must match with publisher)
     CREATE_SUBSCRIPTION(sub1, data1_int)
     CREATE_SUBSCRIPTION(sub2, data2_int)
-    CREATE_SUBSCRIPTION(sub3, data3_int)
     std_msgs__msg__Int32__init(&this->sub1_msg);
     std_msgs__msg__Int32__init(&this->sub2_msg);
-    std_msgs__msg__Int32__init(&this->sub3_msg);
   }
 
   void TearDown()
@@ -281,14 +262,12 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_subscription_fini(&this->sub2, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_subscription_fini(&this->sub3, &this->node);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_publisher_fini(&this->pub1, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_publisher_fini(&this->pub2, &this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_publisher_fini(&this->pub3, &this->node);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(&this->context);
@@ -297,38 +276,41 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     std_msgs__msg__Int32__fini(&this->pub1_msg);
     std_msgs__msg__Int32__fini(&this->pub2_msg);
-    std_msgs__msg__Int32__fini(&this->pub3_msg);
+
     std_msgs__msg__Int32__fini(&this->sub1_msg);
     std_msgs__msg__Int32__fini(&this->sub2_msg);
-    std_msgs__msg__Int32__fini(&this->sub3_msg);
   }
 };
 
-/*
 TEST_F(TestMultiThreadedExecutor, base_line) {
   rcl_ret_t rc;
   rclc_executor_t executor;
 
   // initialize executor with 2 subscriptions
   int num_handles = 2;
-  num_handles++; // for one guard condition => move to executor itself!
+  num_handles++;  // for one guard condition => move to executor itself!
   rc = rclc_executor_init(&executor, &this->context, num_handles, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  struct sched_param sparam_1, sparam_2;
-  sparam_1.sched_priority = 10;
-  sparam_2.sched_priority = 20;
+
+  rclc_executor_sched_parameter_t sched_p1;
+  rclc_executor_sched_parameter_t sched_p2;
+  sched_p1.policy = SCHED_FIFO;
+  sched_p1.param.sched_priority = 10;
+  sched_p1.policy = SCHED_FIFO;
+  sched_p1.param.sched_priority = 20;
+
 
   // add subscriptions to executor
-  rc = rclc_executor_add_subscription_sched(
+  rc = rclc_executor_add_subscription_multi_threaded(
     &executor, &this->sub1, &this->sub1_msg,
-    &int32_callback_1, ON_NEW_DATA, &sparam_1);
+    &int32_callback_1, ON_NEW_DATA, &sched_p1);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-  rc = rclc_executor_add_subscription_sched(
+  rc = rclc_executor_add_subscription_multi_threaded(
     &executor, &this->sub2, &this->sub2_msg,
-    &int32_callback_2, ON_NEW_DATA, &sparam_2);
+    &int32_callback_2, ON_NEW_DATA, &sched_p2);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
@@ -350,14 +332,17 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
-  rclc_executor_start_multi_threading_for_nuttx(&executor);
-  // rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+  // define a function that is equivalent to spin_some
+  // rclc_executor_spin_multi_threaded(&executor);
+
   // test result
+  /*
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 991);
   EXPECT_EQ(_cb2_int_value, (unsigned int) 772);
   _executor_results_print();
+  */
+  // clean
   rc = rclc_executor_fini(&executor);
 }
-*/
