@@ -13,7 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.#include <rcl/rcl.h>
 #include <rcl/error_handling.h>
+#include <rcutils/logging_macros.h>
+
 #include <rclc/rclc.h>
+#include <rclc/types.h>
 #include <rclc/executor.h>
 
 #include "example_interfaces/srv/add_two_ints.h"
@@ -32,8 +35,10 @@ void client_callback(const void * msg)
 {
   example_interfaces__srv__AddTwoInts_Response * msgin =
     (example_interfaces__srv__AddTwoInts_Response *) msg;
-  printf(
-    "Received service response %ld + %ld = %ld.\n", req.a, req.b, msgin->sum);
+  RCUTILS_LOG_INFO_NAMED(
+    "example_client_node",
+    "Received service response %ld + %ld = %ld.\n",
+    req.a, req.b, msgin->sum);
 }
 
 int main(int argc, const char * const * argv)
@@ -73,7 +78,7 @@ int main(int argc, const char * const * argv)
   rclc_sleep_ms(2000);   // Sleep a while to ensure DDS matching before sending request
 
   RCCHECK(rcl_send_request(&client, &req, &seq))
-  printf("Send service request %ld + %ld.\n", req.a, req.b);
+  RCUTILS_LOG_INFO_NAMED("example_client_node", "Send service request %ld + %ld.\n", req.a, req.b);
 
   // Optional prepare for avoiding allocations during spin
   rclc_executor_prepare(&executor);

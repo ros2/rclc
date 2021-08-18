@@ -1,0 +1,4 @@
+.*?lifecycle_node..on_configure.*?callback.called.*?
+.*?lifecycle_node..on_activate.*?callback.called.*?
+.*?lifecycle_node..on_deactivate.*?callback.called.*?
+.*?lifecycle_node..on_cleanup.*?callback.called.*?

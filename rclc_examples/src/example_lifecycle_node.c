@@ -30,25 +30,33 @@
 
 rcl_ret_t my_on_configure()
 {
-  printf("  >>> lifecycle_node: on_configure() callback called.\n");
+  RCUTILS_LOG_INFO_NAMED(
+    "example_lifecycle_node",
+    "  >>> lifecycle_node: on_configure() callback called.\n");
   return RCL_RET_OK;
 }
 
 rcl_ret_t my_on_activate()
 {
-  printf("  >>> lifecycle_node: on_activate() callback called.\n");
+  RCUTILS_LOG_INFO_NAMED(
+    "example_lifecycle_node",
+    "  >>> lifecycle_node: on_activate() callback called.\n");
   return RCL_RET_OK;
 }
 
 rcl_ret_t my_on_deactivate()
 {
-  printf("  >>> lifecycle_node: on_deactivate() callback called.\n");
+  RCUTILS_LOG_INFO_NAMED(
+    "example_lifecycle_node",
+    "  >>> lifecycle_node: on_deactivate() callback called.\n");
   return RCL_RET_OK;
 }
 
 rcl_ret_t my_on_cleanup()
 {
-  printf("  >>> lifecycle_node: on_cleanup() callback called.\n");
+  RCUTILS_LOG_INFO_NAMED(
+    "example_lifecycle_node",
+    "  >>> lifecycle_node: on_cleanup() callback called.\n");
   return RCL_RET_OK;
 }
 
@@ -90,7 +98,9 @@ int main(int argc, const char * argv[])
 
   // register callbacks
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
 
   printf(" >configuring lifecycle node...\n");
   rc = rclc_lifecycle_change_state(

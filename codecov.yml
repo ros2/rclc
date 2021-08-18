@@ -3,5 +3,6 @@ fixes:
 ignore:
   - "rclc/test/**/*"
   - "rclc_examples/**/*"
-  - "rclc_lifecycle/test/*"
+  - "rclc_lifecycle/test/**/*"
   - "rclc_parameter/test/**/*"
+  - "test_rclc/test/*"
