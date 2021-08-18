@@ -16,7 +16,6 @@
 
 #include "rclc/executor.h"
 #include <unistd.h>
-#include <assert.h>
 #include <rcutils/time.h>
 
 
