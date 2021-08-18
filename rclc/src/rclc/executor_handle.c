@@ -20,6 +20,44 @@
 #include <rcutils/logging_macros.h>
 
 
+// convenience function to deal with fluctuating number of handle types
+rclc_executor_handle_type_t
+rclc_executor_handle_reduced_type(const rclc_executor_handle_type_t full_type)
+{
+  rclc_executor_handle_type_t reduced_type;
+  switch (full_type) {
+    case NONE:
+      reduced_type = NONE;
+      break;
+    case SUBSCRIPTION:
+    case SUBSCRIPTION_WITH_CONTEXT:
+      reduced_type = SUBSCRIPTION;
+      break;
+    case TIMER:
+      // case TIMER_WITH_CONTEXT:
+      reduced_type = TIMER;
+      break;
+    case CLIENT:
+    case CLIENT_WITH_REQUEST_ID:
+      // case CLIENT_WITH_CONTEXT:
+      reduced_type = CLIENT;
+      break;
+    case SERVICE:
+    case SERVICE_WITH_REQUEST_ID:
+    case SERVICE_WITH_CONTEXT:
+      reduced_type = SERVICE;
+      break;
+    case GUARD_CONDITION:
+      // case GUARD_CONDITION_WITH_CONTEXT:
+      reduced_type = GUARD_CONDITION;
+      break;
+    default:
+      reduced_type = full_type;
+      break;
+  }
+  return reduced_type;
+}
+
 // initialization of handle_counters object
 rcl_ret_t
 rclc_executor_handle_counters_zero_init(rclc_executor_handle_counters_t * handle_counters)
@@ -83,30 +121,23 @@ rclc_executor_handle_print(rclc_executor_handle_t * handle)
 
   char * typeName;
 
-  switch (handle->type) {
+  switch (rclc_executor_handle_reduced_type(handle->type)) {
     case NONE:
       typeName = "None";
       break;
     case SUBSCRIPTION:
-    case SUBSCRIPTION_WITH_CONTEXT:
       typeName = "Sub";
       break;
     case TIMER:
-      // case TIMER_WITH_CONTEXT:
       typeName = "Timer";
       break;
     case CLIENT:
-    case CLIENT_WITH_REQUEST_ID:
-      // case CLIENT_WITH_CONTEXT:
       typeName = "Client";
       break;
     case SERVICE:
-    case SERVICE_WITH_REQUEST_ID:
-    case SERVICE_WITH_CONTEXT:
       typeName = "Service";
       break;
     case GUARD_CONDITION:
-      // case GUARD_CONDITION_WITH_CONTEXT:
       typeName = "GuardCondition";
       break;
     default:
@@ -127,27 +158,20 @@ rclc_executor_handle_get_ptr(rclc_executor_handle_t * handle)
   }
 
   void * ptr;
-  switch (handle->type) {
+  switch (rclc_executor_handle_reduced_type(handle->type)) {
     case SUBSCRIPTION:
-    case SUBSCRIPTION_WITH_CONTEXT:
       ptr = handle->subscription;
       break;
     case TIMER:
-      // case TIMER_WITH_CONTEXT:
       ptr = handle->timer;
       break;
     case CLIENT:
-    case CLIENT_WITH_REQUEST_ID:
-      // case CLIENT_WITH_CONTEXT:
       ptr = handle->client;
       break;
     case SERVICE:
-    case SERVICE_WITH_REQUEST_ID:
-    case SERVICE_WITH_CONTEXT:
       ptr = handle->service;
       break;
     case GUARD_CONDITION:
-      // case GUARD_CONDITION_WITH_CONTEXT:
       ptr = handle->gc;
       break;
     case NONE:

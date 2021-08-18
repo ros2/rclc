@@ -177,6 +177,27 @@ typedef struct
   size_t number_of_events;
 } rclc_executor_handle_counters_t;
 
+
+/**
+ *
+ * A convenience function that reduces values of rclc_executor_handle_type_t
+ *   to an essential sub-set of rclc_executor_handle_type_t
+ *  example: SERVICE_WITH_REQUEST_ID and SERVICE_WITH_CONTEXT becomes simply SERVICE.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] full_type the full range of rclc_executor_handle_type_t
+ * \return the subset of rclc_executor_handle_type_t that has relevance to rcl
+ */
+rclc_executor_handle_type_t
+rclc_executor_handle_reduced_type(const rclc_executor_handle_type_t full_type);
+
 /**
  * Initializes the counters of each handle type to zero.
  *
