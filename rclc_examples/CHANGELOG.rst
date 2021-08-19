@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.4 (2021-08-19)
+------------------
+* Added pingpong example (example for C++ support)
+
 2.0.3 (2021-07-26)
 ------------------
 * Bumped version

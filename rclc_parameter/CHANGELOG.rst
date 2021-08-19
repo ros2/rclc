@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.4 (2021-08-19)
+------------------
+* Added Quality Declaration Statement
+
 2.0.3 (2021-07-26)
 ------------------
 * Added test dependencies for rclc_parameter
