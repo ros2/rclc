@@ -34,12 +34,14 @@ find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
+  message(STATUS
+    "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
   # Later, with CMake 3.12+ use:
   # add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
   add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)
 else()
-  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
+  message(STATUS
+    "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
   find_package(rosidl_runtime_c REQUIRED)
 endif()
 
@@ -60,7 +62,8 @@ add_library(${PROJECT_NAME}
   src/rclc/sleep.c
 )
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
+  target_sources(${PROJECT_NAME}
+    PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
 endif()
 
 target_include_directories(${PROJECT_NAME}
@@ -119,10 +122,12 @@ endif()
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
-  set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
   find_package(osrf_testing_tools_cpp REQUIRED)
   find_package(std_msgs REQUIRED)
   find_package(example_interfaces REQUIRED)
+
+  # No copyright header check since link to NOTICE file is not recognized properly.
+  set(ament_cmake_copyright_FOUND TRUE)
 
   ament_lint_auto_find_test_dependencies()
 

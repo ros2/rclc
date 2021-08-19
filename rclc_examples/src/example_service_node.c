@@ -54,7 +54,7 @@ int main(int argc, const char * const * argv)
   RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
 
   // create node
-  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_t node;
   RCCHECK(rclc_node_init_default(&node, "add_twoints_client_rclc", "", &support));
 
   // create service
@@ -68,7 +68,7 @@ int main(int argc, const char * const * argv)
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
 
-  unsigned int rcl_wait_timeout = 10;         // in ms
+  unsigned int rcl_wait_timeout = 1000;  // in ms
   RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
 
   RCCHECK(rclc_executor_add_service(&executor, &service, &req, &res, service_callback));
