@@ -26,7 +26,14 @@
 #include <lifecycle_msgs/srv/get_available_states.h>
 #include <lifecycle_msgs/srv/get_available_transitions.h>
 
+#include <rclc/executor.h>
+
 #include "rclc_lifecycle/rclc_lifecycle.h"
+
+#define RCCHECK(fn) {rcl_ret_t temp_rc = fn; if ((temp_rc != RCL_RET_OK)) {printf( \
+        "Failed status on line %d: %d. Aborting.\n", __LINE__, (int)temp_rc); return 1;}}
+#define RCSOFTCHECK(fn) {rcl_ret_t temp_rc = fn; if ((temp_rc != RCL_RET_OK)) {printf( \
+        "Failed status on line %d: %d. Continuing.\n", __LINE__, (int)temp_rc);}}
 
 rcl_ret_t my_on_configure()
 {
@@ -66,7 +73,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node = rcl_get_zero_initialized_node();
+  rcl_node_t my_node;
   rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -74,7 +81,7 @@ int main(int argc, const char * argv[])
   }
 
   // make it a lifecycle node
-  printf("make it a lifecycle node...\n");
+  printf("creating lifecycle node...\n");
   rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
   rclc_lifecycle_node_t lifecycle_node;
   rc = rclc_make_node_a_lifecycle_node(
@@ -88,62 +95,38 @@ int main(int argc, const char * argv[])
     return -1;
   }
 
-  // register callbacks
+  // Executor
+  rclc_executor_t executor;
+  RCCHECK(rclc_executor_init(
+    &executor,
+    &support.context,
+    4,  // 1 for the node + 1 for each lifecycle service
+    &allocator));
+
+  unsigned int rcl_wait_timeout = 1000;  // in ms
+  RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
+
+  // Register lifecycle services
+  printf("registering lifecycle services...\n");
+  RCCHECK(rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor));
+  RCCHECK(rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor));
+
+  // Register lifecycle service callbacks
+  printf("registering callbacks...\n");
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &my_on_activate);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
 
-  printf(" >configuring lifecycle node...\n");
-  rc = rclc_lifecycle_change_state(
-    &lifecycle_node,
-    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-    true);
-  if (rc != RCL_RET_OK) {
-    printf("Error in TRANSITION_CONFIGURE\n");
-    return -1;
-  }
+  // Run
+  RCSOFTCHECK(rclc_executor_spin(&executor));
 
-  printf(" >activating lifecycle node...\n");
-  rc = rclc_lifecycle_change_state(
-    &lifecycle_node,
-    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-    true);
-  if (rc != RCL_RET_OK) {
-    printf("Error in TRANSITION_ACTIVATE\n");
-    return -1;
-  }
-
-  printf(" >deactivating lifecycle node...\n");
-  rc = rclc_lifecycle_change_state(
-    &lifecycle_node,
-    lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
-    true);
-  if (rc != RCL_RET_OK) {
-    printf("Error in TRANSITION_DEACTIVATE\n");
-    return -1;
-  }
-
-  printf(" >cleaning rcl node up...\n");
-  rc = rclc_lifecycle_change_state(
-    &lifecycle_node,
-    lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-    true);
-  if (rc != RCL_RET_OK) {
-    printf("Error in TRANSITION_CLEANUP\n");
-    return -1;
-  }
-
-  printf(" >destroying lifecycle node...\n");
-  rc = rclc_lifecycle_change_state(
-    &lifecycle_node,
-    lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN,
-    true);
-  if (rc != RCL_RET_OK) {
-    printf("Error in TRANSITION_UNCONFIGURED_SHUTDOWN\n");
-    return -1;
-  }
-
+  // Cleanup
   printf("cleaning up...\n");
-  rc = rcl_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc += rcl_node_fini(&my_node);
+  rc += rclc_executor_fini(&executor);
   rc += rclc_support_fini(&support);
 
   if (rc != RCL_RET_OK) {
