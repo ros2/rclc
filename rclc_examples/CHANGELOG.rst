@@ -16,6 +16,10 @@ Changelog for package rclc_examples
 * Added example for quality of service entity creation API
 * Added example for subscription with context
 
+2.0.4 (2021-08-19)
+------------------
+* Added pingpong example (example for C++ support)
+
 2.0.3 (2021-07-26)
 ------------------
 * Bumped version
