@@ -65,13 +65,19 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
   rclc_lifecycle_node_t lifecycle_node;
-  rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+<<<<<<< HEAD
     &state_machine_,
     &allocator);
+=======
+    &state_machine,
+    &allocator,
+    true);
+>>>>>>> 865b02b (Provide lifecycle services in the rclc lifecycle nodes (#51))
 
   EXPECT_EQ(RCL_RET_OK, res);
 
@@ -101,13 +107,19 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
   rclc_lifecycle_node_t lifecycle_node;
-  rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+<<<<<<< HEAD
     &state_machine_,
     &allocator);
+=======
+    &state_machine,
+    &allocator,
+    false);
+>>>>>>> 865b02b (Provide lifecycle services in the rclc lifecycle nodes (#51))
 
   // configure
   res = rclc_lifecycle_change_state(
@@ -170,13 +182,19 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
   rclc_lifecycle_node_t lifecycle_node;
-  rcl_lifecycle_state_machine_t state_machine_ = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+<<<<<<< HEAD
     &state_machine_,
     &allocator);
+=======
+    &state_machine,
+    &allocator,
+    true);
+>>>>>>> 865b02b (Provide lifecycle services in the rclc lifecycle nodes (#51))
 
   // register callbacks
   rclc_lifecycle_register_on_configure(&lifecycle_node, &callback_mockup_0);
@@ -189,19 +207,27 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(1, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(3, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
     true);
+  EXPECT_EQ(RCL_RET_OK, res);
+  EXPECT_EQ(7, callback_mockup_counter);
+
   res += rclc_lifecycle_change_state(
     &lifecycle_node,
     lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
     true);
-
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
 
@@ -210,5 +236,70 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   res = rcl_node_options_fini(&node_ops);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, res);
+}
+
+TEST(TestRclcLifecycle, lifecycle_node_servers) {
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  rcl_ret_t res = rcl_init_options_init(&init_options, allocator);
+  res += rcl_init(0, nullptr, &init_options, &context);
+
+  rcl_node_t my_node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_ops = rcl_node_get_default_options();
+  res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+
+  rclc_lifecycle_node_t lifecycle_node;
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+
+  res += rclc_make_node_a_lifecycle_node(
+    &lifecycle_node,
+    &my_node,
+    &state_machine,
+    &allocator,
+    true);
+
+  // register callbacks
+  rclc_lifecycle_register_on_configure(&lifecycle_node, &callback_mockup_0);
+  rclc_lifecycle_register_on_activate(&lifecycle_node, &callback_mockup_1);
+  rclc_lifecycle_register_on_deactivate(&lifecycle_node, &callback_mockup_2);
+  rclc_lifecycle_register_on_cleanup(&lifecycle_node, &callback_mockup_3);
+
+  // create lifecycle servers
+  rclc_executor_t executor;
+  res = rclc_executor_init(
+    &executor,
+    &context,
+    1,  // too little
+    &allocator);
+  EXPECT_EQ(RCL_RET_OK, res);
+
+  // Too little executor handles
+  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_ERROR, res);
+
+  // Now with correct number of handles
+  rclc_executor_init(
+    &executor,
+    &context,
+    3,  // 1 for each lifecycle service
+    &allocator);
+  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor);
+  EXPECT_EQ(RCL_RET_OK, res);
+
+  // Cleanup
+  res = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_node_fini(&my_node);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rclc_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, res);
 }

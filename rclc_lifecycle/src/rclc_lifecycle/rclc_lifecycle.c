@@ -19,9 +19,13 @@
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
 
+#include <rclc/types.h>
 #include <rcl_lifecycle/rcl_lifecycle.h>
 #include <rcl_lifecycle/transition_map.h>
 
+#include <rosidl_runtime_c/string_functions.h>
+#include <std_msgs/msg/string.h>
+#include <lifecycle_msgs/msg/state.h>
 #include <lifecycle_msgs/msg/transition_description.h>
 #include <lifecycle_msgs/msg/transition_event.h>
 #include <lifecycle_msgs/srv/change_state.h>
@@ -38,6 +42,23 @@ rclc_make_node_a_lifecycle_node(
   rcl_allocator_t * allocator
 )
 {
+<<<<<<< HEAD
+=======
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  lifecycle_node->node = node;
+
+  rcl_lifecycle_state_machine_options_t state_machine_options =
+    rcl_lifecycle_get_default_state_machine_options();
+  state_machine_options.enable_com_interface = enable_communication_interface;
+  state_machine_options.allocator = *allocator;
+
+>>>>>>> 865b02b (Provide lifecycle services in the rclc lifecycle nodes (#51))
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
     node,
@@ -51,15 +72,39 @@ rclc_make_node_a_lifecycle_node(
     allocator);
   if (rcl_ret != RCL_RET_OK) {
     // state machine not initialized, return uninitilized
-    // @todo(anordman): how/what to return in this case?
     RCUTILS_LOG_ERROR(
       "Unable to initialize state machine: %s",
       rcl_get_error_string().str);
     return RCL_RET_ERROR;
   }
 
-  lifecycle_node->node = node;
   lifecycle_node->state_machine = state_machine;
+
+  // Pre-init messages and strings
+  static char empty_string[RCLC_LIFECYCLE_MAX_STRING_LENGTH];
+  memset(empty_string, ' ', RCLC_LIFECYCLE_MAX_STRING_LENGTH);
+  empty_string[RCLC_LIFECYCLE_MAX_STRING_LENGTH - 1] = '\0';
+
+  lifecycle_msgs__srv__ChangeState_Request__init(&lifecycle_node->cs_req);
+  lifecycle_msgs__srv__ChangeState_Response__init(&lifecycle_node->cs_res);
+
+  lifecycle_msgs__srv__GetState_Request__init(&lifecycle_node->gs_req);
+  lifecycle_msgs__srv__GetState_Response__init(&lifecycle_node->gs_res);
+  rosidl_runtime_c__String__assign(
+    &lifecycle_node->gs_res.current_state.label,
+    (const char *) empty_string);
+
+  lifecycle_msgs__srv__GetAvailableStates_Request__init(&lifecycle_node->gas_req);
+  lifecycle_msgs__srv__GetAvailableStates_Response__init(&lifecycle_node->gas_res);
+  lifecycle_msgs__msg__State__Sequence__init(
+    &lifecycle_node->gas_res.available_states,
+    state_machine->transition_map.states_size);
+  lifecycle_node->gas_res.available_states.size = 0;
+  for (size_t i = 0; i < state_machine->transition_map.states_size; ++i) {
+    rosidl_runtime_c__String__assign(
+      &lifecycle_node->gas_res.available_states.data[i].label,
+      (const char *) empty_string);
+  }
 
   return RCL_RET_OK;
 }
@@ -71,6 +116,9 @@ rclc_lifecycle_change_state(
   bool publish_update
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (rcl_lifecycle_state_machine_is_initialized(lifecycle_node->state_machine) != RCL_RET_OK) {
     RCUTILS_LOG_ERROR(
       "Unable to change state for state machine: %s",
@@ -179,6 +227,9 @@ rclc_lifecycle_register_on_configure(
   int (* cb)(void)
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   return rclc_lifecycle_register_callback(
     node,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
@@ -191,6 +242,9 @@ rclc_lifecycle_register_on_activate(
   int (* cb)(void)
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   return rclc_lifecycle_register_callback(
     node,
     lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
@@ -203,6 +257,9 @@ rclc_lifecycle_register_on_deactivate(
   int (* cb)(void)
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   return rclc_lifecycle_register_callback(
     node,
     lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
@@ -215,6 +272,9 @@ rclc_lifecycle_register_on_cleanup(
   int (* cb)(void)
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   return rclc_lifecycle_register_callback(
     node,
     lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
@@ -222,11 +282,16 @@ rclc_lifecycle_register_on_cleanup(
 }
 
 rcl_ret_t
-rcl_lifecycle_node_fini(
+rclc_lifecycle_node_fini(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_allocator_t * allocator
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   rcl_ret_t rcl_ret = RCL_RET_OK;
 
   // Cleanup statemachine
@@ -235,14 +300,20 @@ rcl_lifecycle_node_fini(
     lifecycle_node->node,
     allocator);
   if (rcl_ret != RCL_RET_OK) {
+    RCUTILS_LOG_ERROR(
+      "Unable to clean up state machine: %s",
+      rcl_get_error_string().str);
+    rcutils_reset_error();
     return RCL_RET_ERROR;
   }
 
-  // Cleanup node
-  rcl_ret = rcl_node_fini(lifecycle_node->node);
-  if (rcl_ret != RCL_RET_OK) {
-    return RCL_RET_ERROR;
-  }
+  // Cleanup service messages
+  lifecycle_msgs__srv__GetState_Request__fini(&lifecycle_node->gs_req);
+  lifecycle_msgs__srv__GetState_Response__fini(&lifecycle_node->gs_res);
+  lifecycle_msgs__srv__ChangeState_Request__fini(&lifecycle_node->cs_req);
+  lifecycle_msgs__srv__ChangeState_Response__fini(&lifecycle_node->cs_res);
+  lifecycle_msgs__srv__GetAvailableStates_Request__fini(&lifecycle_node->gas_req);
+  lifecycle_msgs__srv__GetAvailableStates_Response__fini(&lifecycle_node->gas_res);
 
   return rcl_ret;
 }
@@ -253,10 +324,178 @@ rclc_lifecycle_execute_callback(
   unsigned int transition_id
 )
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (!lifecycle_node->callbacks.goal_states[transition_id]) {
     // no callback, so process, all good
     return RCL_RET_OK;
   }
 
   return (*lifecycle_node->callbacks.fun_ptrs[transition_id])();
+}
+
+rcl_ret_t
+rclc_lifecycle_init_get_state_server(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_get_state,
+    &lifecycle_node->gs_req,
+    &lifecycle_node->gs_res,
+    rclc_lifecycle_get_state_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return RCL_RET_ERROR;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_get_state_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  RCL_UNUSED(req);
+  lifecycle_msgs__srv__GetState_Response * res_in =
+    (lifecycle_msgs__srv__GetState_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rcl_lifecycle_state_machine_t * sm =
+    context_in->lifecycle_node->state_machine;
+
+  res_in->current_state.id = sm->current_state->id;
+  bool success = rosidl_runtime_c__String__assign(
+    &res_in->current_state.label,
+    sm->current_state->label);
+  if (!success) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_get_state_callback,
+      rosidl_runtime_c__String__assign);
+  }
+}
+
+rcl_ret_t
+rclc_lifecycle_init_get_available_states_server(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_get_available_states,
+    &lifecycle_node->gas_req,
+    &lifecycle_node->gas_res,
+    rclc_lifecycle_get_available_states_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return RCL_RET_ERROR;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_get_available_states_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  RCL_UNUSED(req);
+  lifecycle_msgs__srv__GetAvailableStates_Response * res_in =
+    (lifecycle_msgs__srv__GetAvailableStates_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rcl_lifecycle_state_machine_t * sm =
+    context_in->lifecycle_node->state_machine;
+
+  bool success = true;
+  res_in->available_states.size = sm->transition_map.states_size;
+  for (unsigned int i = 0; i < sm->transition_map.states_size; ++i) {
+    res_in->available_states.data[i].id = sm->transition_map.states[i].id;
+    success &= rosidl_runtime_c__String__assign(
+      &res_in->available_states.data[i].label,
+      sm->transition_map.states[i].label);
+  }
+
+  if (!success) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_get_available_states_callback,
+      rosidl_runtime_c__String__assign);
+  }
+}
+
+rcl_ret_t
+rclc_lifecycle_init_change_state_server(
+  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_executor_t * executor)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rclc_lifecycle_service_context_t context;
+  context.lifecycle_node = lifecycle_node;
+
+  rcl_ret_t rc = rclc_executor_add_service_with_context(
+    executor,
+    &lifecycle_node->state_machine->com_interface.srv_change_state,
+    &lifecycle_node->cs_req,
+    &lifecycle_node->cs_res,
+    rclc_lifecycle_change_state_callback,
+    &context);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
+    return RCL_RET_ERROR;
+  }
+
+  return rc;
+}
+
+void
+rclc_lifecycle_change_state_callback(
+  const void * req,
+  void * res,
+  void * context)
+{
+  lifecycle_msgs__srv__ChangeState_Request * req_in =
+    (lifecycle_msgs__srv__ChangeState_Request *) req;
+  lifecycle_msgs__srv__ChangeState_Response * res_in =
+    (lifecycle_msgs__srv__ChangeState_Response *) res;
+  rclc_lifecycle_service_context_t * context_in =
+    (rclc_lifecycle_service_context_t *) context;
+
+  rclc_lifecycle_node_t * ln = context_in->lifecycle_node;
+  rcl_ret_t rc = rclc_lifecycle_change_state(ln, req_in->transition.id, true);
+
+  lifecycle_msgs__srv__ChangeState_Response__init(res_in);
+  if (rc != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(
+      rclc_lifecycle_change_state_callback,
+      rclc_lifecycle_change_state);
+    res_in->success = false;
+  } else {
+    res_in->success = true;
+  }
 }
