@@ -73,7 +73,7 @@ int main(int argc, const char * argv[])
   }
 
   // create rcl_node
-  rcl_node_t my_node = rcl_get_zero_initialized_node();
+  rcl_node_t my_node;
   rc = rclc_node_init_default(&my_node, "lifecycle_node", "rclc", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -96,14 +96,14 @@ int main(int argc, const char * argv[])
   }
 
   // Executor
-  rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+  rclc_executor_t executor;
   RCCHECK(rclc_executor_init(
     &executor,
     &support.context,
     4,  // 1 for the node + 1 for each lifecycle service
     &allocator));
 
-  unsigned int rcl_wait_timeout = 10;         // in ms
+  unsigned int rcl_wait_timeout = 1000;  // in ms
   RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
 
   // Register lifecycle services
@@ -120,11 +120,13 @@ int main(int argc, const char * argv[])
   rclc_lifecycle_register_on_cleanup(&lifecycle_node, &my_on_cleanup);
 
   // Run
-  rclc_executor_spin(&executor);
+  RCSOFTCHECK(rclc_executor_spin(&executor));
 
   // Cleanup
   printf("cleaning up...\n");
-  rc = rcl_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc += rcl_node_fini(&my_node);
+  rc += rclc_executor_fini(&executor);
   rc += rclc_support_fini(&support);
 
   if (rc != RCL_RET_OK) {
