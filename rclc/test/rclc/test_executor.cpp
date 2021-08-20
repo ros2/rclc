@@ -1007,6 +1007,188 @@ TEST_F(TestDefaultExecutor, executor_swap_subscription_message) {
 }
 
 
+TEST_F(TestDefaultExecutor, executor_change_swap_client_response) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  void * search_cache = NULL;
+
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  const char * client_name = "/addtwoints";
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  rcl_client_t client = rcl_get_zero_initialized_client();
+
+  const rosidl_service_type_support_t * client_type_support =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
+  rc = rcl_client_init(&client, &this->node, client_type_support, client_name, &client_options);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Response res;
+  example_interfaces__srv__AddTwoInts_Response__init(&res);
+  example_interfaces__srv__AddTwoInts_Response res_next;
+  example_interfaces__srv__AddTwoInts_Response__init(&res_next);
+
+  rc = rclc_executor_add_client(&executor, &client, &res, &client_callback);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // test simple change case
+  rc = rclc_executor_change_client_response(
+    &executor, &client, &res_next, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.handles[0].data, &res_next) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // test simple swap case (swap back)
+  rc = rclc_executor_swap_client_response(
+    &executor, &res_next, &res, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.handles[0].data, &res) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // NULL arg checks are covered in subscription tests
+
+  // test mis-matched handle types
+  rc = rclc_executor_swap_subscription_message(
+    &executor, &res, &res_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "subscription api should not locate client";
+  EXPECT_EQ(executor.handles[0].data, &res) <<
+    "subscription api should not change client response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  // test mis-matched handle types
+  rc = rclc_executor_change_subscription_message(
+    &executor, reinterpret_cast<rcl_subscription_t *>(&client), &res_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "subscription api should not locate client";
+  EXPECT_EQ(executor.handles[0].data, &res) <<
+    "subscription api should not change client response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  // test mis-matched handle types
+  rc = rclc_executor_swap_service_request(
+    &executor, &res, &res_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "service api should not locate client";
+  EXPECT_EQ(executor.handles[0].data, &res) <<
+    "service api should not change client response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  // test mis-matched handle types
+  rc = rclc_executor_change_service_request(
+    &executor, reinterpret_cast<rcl_service_t *>(&client), &res_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "service api should not locate client";
+  EXPECT_EQ(executor.handles[0].data, &res) <<
+    "service api should not change client response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+
+  // tear down
+  rc = rcl_client_fini(&client, &this->node);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+
+TEST_F(TestDefaultExecutor, executor_change_swap_service_request) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  void * search_cache = NULL;
+
+  executor = rclc_executor_get_zero_initialized_executor();
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  const char * service_name = "/addtwoints";
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_service_t service = rcl_get_zero_initialized_service();
+
+  const rosidl_service_type_support_t * service_type_support =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
+  rc =
+    rcl_service_init(&service, &this->node, service_type_support, service_name, &service_options);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  example_interfaces__srv__AddTwoInts_Request req;
+  example_interfaces__srv__AddTwoInts_Request__init(&req);
+  example_interfaces__srv__AddTwoInts_Response resp;
+  example_interfaces__srv__AddTwoInts_Response__init(&resp);
+  example_interfaces__srv__AddTwoInts_Request req_next;
+  example_interfaces__srv__AddTwoInts_Request__init(&req_next);
+
+  rc = rclc_executor_add_service(&executor, &service, &req, &resp, &service_callback);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // test simple change case
+  rc = rclc_executor_change_service_request(
+    &executor, &service, &req_next, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.handles[0].data, &req_next) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // test simple swap case (swap back)
+  rc = rclc_executor_swap_service_request(
+    &executor, &req_next, &req, &search_cache);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(executor.handles[0].data, &req) <<
+    "message is expected to be replaced";
+  EXPECT_EQ(&(executor.handles[0]), search_cache) <<
+    "search_cache should point to handle";
+
+  // NULL arg checks are covered in subscription tests
+
+  // test mis-matched handle types
+  rc = rclc_executor_swap_subscription_message(
+    &executor, &req, &req_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "subscription api should not locate service";
+  EXPECT_EQ(executor.handles[0].data, &req) <<
+    "subscription api should not change service response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  rc = rclc_executor_change_subscription_message(
+    &executor, reinterpret_cast<rcl_subscription_t *>(&service), &req_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "subscription api should not locate service";
+  EXPECT_EQ(executor.handles[0].data, &req) <<
+    "subscription api should not change service response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  rc = rclc_executor_swap_client_response(
+    &executor, &req, &req_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "client api should not locate service";
+  EXPECT_EQ(executor.handles[0].data, &req) <<
+    "client api should not change service response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+  rc = rclc_executor_change_client_response(
+    &executor, reinterpret_cast<rcl_client_t *>(&service), &req_next, &search_cache);
+  EXPECT_EQ(RCL_RET_ERROR, rc) << "client api should not locate service";
+  EXPECT_EQ(executor.handles[0].data, &req) <<
+    "client api should not change service response";
+  EXPECT_EQ(NULL, search_cache) <<
+    "search_cache should point nowhere";
+
+
+  // tear down
+  rc = rcl_service_fini(&service, &this->node);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+
 TEST_F(TestDefaultExecutor, executor_remove_subscription) {
   rcl_ret_t rc;
   rclc_executor_t executor;

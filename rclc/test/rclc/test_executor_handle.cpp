@@ -19,12 +19,59 @@
 TEST(Test, executor_handle_reduced_type) {
   rclc_executor_handle_type_t full_type;
   rclc_executor_handle_type_t reduced_type;
+
+  // This test needs to cover unknown-unknown cases like new types,
+  //  and new types with assigned values
+  //  so we can't rely on simple exhaustive testing
+
+  // property tests
+
+  // test strict idempotency for all cases
   for (int i = -10; i < 30; i++) {
     full_type = (rclc_executor_handle_type_t) i;
     reduced_type = rclc_executor_handle_reduced_type(full_type);
     EXPECT_EQ(reduced_type, rclc_executor_handle_reduced_type(reduced_type)) <<
       "idempotency violation";
   }
+
+  // test pass-through in default case
+  for (int i = -10; i < 0; i++) {
+    full_type = (rclc_executor_handle_type_t) i;
+    EXPECT_EQ(full_type, rclc_executor_handle_reduced_type(full_type)) <<
+      "default case is not pass-through";
+  }
+
+  // implementation tests
+
+  // test known pass-though types
+  EXPECT_EQ(rclc_executor_handle_reduced_type(SUBSCRIPTION), SUBSCRIPTION) <<
+    "SUBSCRIPTION";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(TIMER), TIMER) <<
+    "TIMER";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(CLIENT), CLIENT) <<
+    "CLIENT";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(SERVICE), SERVICE) <<
+    "SERVICE";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(GUARD_CONDITION), GUARD_CONDITION) <<
+    "GUARD_CONDITION";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(NONE), NONE) <<
+    "NONE";
+
+  // test known transformed types
+  EXPECT_EQ(rclc_executor_handle_reduced_type(SUBSCRIPTION_WITH_CONTEXT), SUBSCRIPTION) <<
+    "SUBSCRIPTION_WITH_CONTEXT";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(CLIENT_WITH_REQUEST_ID), CLIENT) <<
+    "CLIENT_WITH_REQUEST_ID";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(SERVICE_WITH_REQUEST_ID), SERVICE) <<
+    "SERVICE_WITH_REQUEST_ID";
+  EXPECT_EQ(rclc_executor_handle_reduced_type(SERVICE_WITH_CONTEXT), SERVICE) <<
+    "SERVICE_WITH_CONTEXT";
+  // EXPECT_EQ(rclc_executor_handle_reduced_type(TIMER_WITH_CONTEXT), TIMER) <<
+  //   "TIMER_WITH_CONTEXT";  // TODO";
+  // EXPECT_EQ(rclc_executor_handle_reduced_type(CLIENT_WITH_CONTEXT), CLIENT) <<
+  //   "CLIENT_WITH_CONTEXT";  // TODO";
+  // EXPECT_EQ(rclc_executor_handle_reduced_type(GUARD_CONDITION_WITH_CONTEXT), GUARD_CONDITION) <<
+  //   "GUARD_CONDITION_WITH_CONTEXT";  //TODO
 }
 
 TEST(Test, executor_handle_counters_zero_init) {
