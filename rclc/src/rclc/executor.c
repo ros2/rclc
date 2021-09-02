@@ -19,6 +19,8 @@
 
 #include "./action_generic_types.h"
 #include "./action_goal_handle_internal.h"
+#include "./action_client_internal.h"
+#include "./action_server_internal.h"
 
 // Include backport of function 'rcl_wait_set_is_valid' introduced in Foxy
 // in case of building for Dashing and Eloquent. This pre-processor macro
