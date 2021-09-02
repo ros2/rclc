@@ -19,8 +19,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
-find_package(rcl_action REQUIRED)
-find_package(rcl_action REQUIRED)
+find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
 find_package(rclc_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -50,7 +49,6 @@ ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc 
 
 add_executable(example_parameter_server src/example_parameter_server.c)
 ament_target_dependencies(example_parameter_server rclc rclc_parameter)
-
 add_executable(example_sub_context src/example_sub_context.c)
 ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 

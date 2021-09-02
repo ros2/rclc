@@ -22,11 +22,7 @@ extern "C"
 #endif
 
 #include <rcl/rcl.h>
-#include <rcl_action/rcl_action.h>
 #include <rclc/visibility_control.h>
-
-#include <rclc/action_client.h>
-#include <rclc/action_server.h>
 
 /// TODO (jst3si) Where is this defined? - in my build environment this variable is not set.
 // #define ROS_PACKAGE_NAME "rclc"
@@ -44,8 +40,6 @@ typedef enum
   SERVICE,
   SERVICE_WITH_REQUEST_ID,
   SERVICE_WITH_CONTEXT,
-  ACTION_CLIENT,
-  ACTION_SERVER,
   GUARD_CONDITION,
   // GUARD_CONDITION_WITH_CONTEXT,  //TODO
   NONE
@@ -129,22 +123,17 @@ typedef struct
     rcl_client_t * client;
     rcl_service_t * service;
     rcl_guard_condition_t * gc;
-    rclc_action_client_t * action_client;
-    rclc_action_server_t * action_server;
   };
   /// Storage of data, which holds the message of a subscription, service, etc.
   /// subscription: ptr to message
   /// service: ptr to request message
   void * data;
-  union {
-    /// request-id only for type service/client request/response
-    rmw_request_id_t req_id;
-  };
 
-  union {
-    /// only for service - ptr to response message
-    void * data_response_msg;
-  };
+  /// request-id only for type service/client request/response
+  rmw_request_id_t req_id;
+
+  /// only for service - ptr to response message
+  void * data_response_msg;
 
   /// ptr to additional callback context
   void * callback_context;
@@ -181,11 +170,7 @@ typedef struct
   bool initialized;
   /// Interval variable. Flag, which is true, if new data is available from DDS queue
   /// (is set after calling rcl_take)
-  union {
-    bool data_available;
-  };
-  /// callback type for service/client
-  rclc_executor_handle_type_t callback_type;
+  bool data_available;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.
@@ -199,10 +184,6 @@ typedef struct
   size_t number_of_clients;
   /// Total number of services
   size_t number_of_services;
-  /// Total number of action clients
-  size_t number_of_action_clients;
-  /// Total number of action servers
-  size_t number_of_action_servers;
   /// Total number of guard conditions
   size_t number_of_guard_conditions;
   /// Total number of events

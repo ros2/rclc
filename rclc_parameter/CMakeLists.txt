@@ -32,7 +32,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #################################################
 find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
-find_package(rcl_action REQUIRED)
 find_package(rclc REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(builtin_interfaces REQUIRED)
