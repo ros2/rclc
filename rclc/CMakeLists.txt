@@ -29,7 +29,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #################################################
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
-find_package(rcl_action REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -57,9 +56,6 @@ add_library(${PROJECT_NAME}
   src/rclc/client.c
   src/rclc/service.c
   src/rclc/timer.c
-  src/rclc/action_client.c
-  src/rclc/action_server.c
-  src/rclc/action_goal_handle.c
   src/rclc/node.c
   src/rclc/executor_handle.c
   src/rclc/executor.c
@@ -82,7 +78,6 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   rcl
-  rcl_action
   rcutils
   rosidl_generator_c
 )
@@ -130,8 +125,6 @@ if(BUILD_TESTING)
   find_package(osrf_testing_tools_cpp REQUIRED)
   find_package(std_msgs REQUIRED)
   find_package(example_interfaces REQUIRED)
-  find_package(rclcpp REQUIRED)
-  find_package(rclcpp_action REQUIRED)
 
   # No copyright header check since link to NOTICE file is not recognized properly.
   set(ament_cmake_copyright_FOUND TRUE)
@@ -148,15 +141,11 @@ if(BUILD_TESTING)
     test/rclc/test_timer.cpp
     test/rclc/test_executor_handle.cpp
     test/rclc/test_executor.cpp
-    test/rclc/test_action_server.cpp
-    test/rclc/test_action_client.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
-    rclcpp
-    rclcpp_action
     rcl
     rcutils
     rosidl_generator_c
