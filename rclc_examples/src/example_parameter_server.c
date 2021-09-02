@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <unistd.h>
-
 // Copyright (c) 2021 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
