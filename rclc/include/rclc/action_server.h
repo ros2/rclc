@@ -191,21 +191,6 @@ rclc_action_server_fini(
   rclc_action_server_t * action_server,
   rcl_node_t * node);
 
-
-// Internal API
-rcl_ret_t
-rclc_action_server_accept_goal_request(
-  rclc_action_goal_handle_t * goal_handle);
-
-rcl_ret_t
-rclc_action_server_reject_goal_request(
-  rclc_action_goal_handle_t * goal_handle);
-
-rcl_ret_t
-rclc_action_server_goal_cancel_reject(
-  rclc_action_goal_handle_t * goal_handle);
-
-
 #if __cplusplus
 }
 #endif

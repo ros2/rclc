@@ -162,12 +162,6 @@ rclc_action_client_fini(
   rclc_action_client_t * action_client,
   rcl_node_t * node);
 
-
-// Not public API
-rcl_ret_t
-rclc_action_send_result_request(
-  rclc_action_goal_handle_t * goal_handle);
-
 #if __cplusplus
 }
 #endif
