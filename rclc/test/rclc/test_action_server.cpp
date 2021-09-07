@@ -134,7 +134,7 @@ TEST(Test, rclc_action_server) {
 
   EXPECT_EQ(RCL_RET_OK, rc);
 
-  rc = rclc_executor_spin_some(&executor, 100);
+  rc = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // clean up
@@ -199,7 +199,7 @@ public:
     server_thread = std::thread(
       [&]() {
         while (run_server) {
-          rclc_executor_spin_some(&executor, 100);
+          rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
         }
       });
 
