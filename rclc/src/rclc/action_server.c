@@ -183,6 +183,8 @@ rclc_action_server_finish_goal_abort(
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    ros_response, "ros_response is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (!rclc_action_server_is_valid_handle(goal_handle)) {
     return RCL_RET_INVALID_ARGUMENT;
@@ -200,8 +202,7 @@ rclc_action_server_finish_goal_abort(
     return rc;
   }
 
-  Generic_GetResult_Response local_response = {0};
-  Generic_GetResult_Response * response = (NULL != ros_response) ? ros_response : &local_response;
+  Generic_GetResult_Response * response = ros_response;
 
   response->status = GOAL_STATE_ABORTED;
 

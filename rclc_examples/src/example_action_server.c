@@ -37,9 +37,11 @@ void * fibonacci_worker(void * args)
   example_interfaces__action__Fibonacci_SendGoal_Request * req =
     (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
 
+  example_interfaces__action__Fibonacci_GetResult_Response response = {0};
+
   if (req->goal.order < 2) {
     pthread_mutex_lock(&rclc_mutex);
-    rclc_action_server_finish_goal_abort(goal_handle, NULL);
+    rclc_action_server_finish_goal_abort(goal_handle, &response);
     pthread_mutex_unlock(&rclc_mutex);
   }
 
@@ -59,7 +61,7 @@ void * fibonacci_worker(void * args)
     feedback.feedback.sequence.size++;
 
     if (i > 30) {
-      rclc_action_server_finish_goal_abort(goal_handle, NULL);
+      rclc_action_server_finish_goal_abort(goal_handle, &response);
       return NULL;
     }
 
@@ -70,7 +72,6 @@ void * fibonacci_worker(void * args)
   }
 
   if (!cancel_goal) {
-    example_interfaces__action__Fibonacci_GetResult_Response response;
     response.result.sequence.capacity = feedback.feedback.sequence.capacity;
     response.result.sequence.size = feedback.feedback.sequence.size;
     response.result.sequence.data = feedback.feedback.sequence.data;
@@ -79,7 +80,7 @@ void * fibonacci_worker(void * args)
     rclc_action_server_finish_goal_sucess(goal_handle, &response);
     pthread_mutex_unlock(&rclc_mutex);
   } else {
-    rclc_action_server_finish_goal_abort(goal_handle, NULL);
+    rclc_action_server_finish_goal_abort(goal_handle, &response);
   }
 
   // active_worker = false;

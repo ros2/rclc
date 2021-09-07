@@ -332,7 +332,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       feedback_thread = std::thread(
-        [&]() {
+        [=]() {
           std::this_thread::sleep_for(100ms);
 
           int32_t data[] = {0, 1, 2};
@@ -406,7 +406,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       feedback_thread = std::thread(
-        [&]() {
+        [=]() {
           std::this_thread::sleep_for(100ms);
 
           int32_t data[] = {0, 1, 2};
@@ -420,7 +420,9 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
             std::this_thread::sleep_for(10ms);
           }
 
-          rclc_action_server_finish_goal_abort(goal_handle, NULL);
+          example_interfaces__action__Fibonacci_GetResult_Response response = {};
+          rcl_ret_t rc = rclc_action_server_finish_goal_abort(goal_handle, &response);
+          EXPECT_EQ(RCL_RET_OK, rc);
         });
 
       return RCL_RET_ACTION_GOAL_ACCEPTED;
@@ -457,7 +459,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
     };
 
   auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  rclcpp::spin_until_future_complete(action_client_node, goal_handle);
+  ASSERT_EQ(rclcpp::spin_until_future_complete(action_client_node, goal_handle, rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
   action_client->async_get_result(goal_handle.get());
   ASSERT_EQ(
     rclcpp::spin_until_future_complete(
