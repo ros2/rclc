@@ -117,7 +117,7 @@ rclc_action_server_finish_goal_sucess(
  * Lock-Free          | No
  *
  * \param[inout] goal_handle goal handle to be aborted
- * \param[in] ros_response (optional) goal result
+ * \param[in] ros_response goal result
  * \return `RCL_RET_OK` if successful
  * \return `RCL_ERROR` (or other error code) if an error has occurred
  */
