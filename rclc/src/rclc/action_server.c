@@ -97,20 +97,6 @@ rclc_action_server_accept_goal_request(
     return rc;
   }
 
-  rcl_action_goal_status_array_t c_status_array =
-    rcl_action_get_zero_initialized_goal_status_array();
-  rc = rcl_action_get_goal_status_array(&action_server->rcl_handle, &c_status_array);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_accept_request, rcl_action_get_goal_status_array);
-    return rc;
-  }
-
-  rc = rcl_action_publish_status(&action_server->rcl_handle, &c_status_array.msg);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_accept_request, rcl_action_publish_status);
-    return rc;
-  }
-
   return RCL_RET_OK;
 }
 
