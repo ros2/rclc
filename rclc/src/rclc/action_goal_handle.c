@@ -161,6 +161,21 @@ rclc_action_goal_handle_t * rclc_action_get_handle_by_goal_request_sequence_numb
   return handle;
 }
 
+rclc_action_goal_handle_t * rclc_action_get_handle_by_result_request_sequence_number(
+  void * untyped_entity,
+  const int64_t result_request_sequence_number)
+{
+  rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
+  rclc_action_goal_handle_t * handle = entity->used_goal_handles;
+  while (NULL != handle) {
+    if (handle->result_request_sequence_number == result_request_sequence_number) {
+      return handle;
+    }
+    handle = handle->next;
+  }
+  return handle;
+}
+
 rclc_action_goal_handle_t * rclc_action_get_handle_by_cancel_request_sequence_number(
   void * untyped_entity,
   const int64_t cancel_request_sequence_number)
