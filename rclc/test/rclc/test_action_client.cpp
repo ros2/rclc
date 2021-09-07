@@ -123,7 +123,7 @@ TEST(Test, rclc_action_client) {
 
   EXPECT_EQ(RCL_RET_OK, rc);
 
-  rc = rclc_executor_spin_some(&executor, 100);
+  rc = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // clean up
