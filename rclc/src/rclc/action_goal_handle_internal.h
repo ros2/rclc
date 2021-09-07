@@ -61,6 +61,10 @@ rclc_action_goal_handle_t * rclc_action_get_handle_by_goal_request_sequence_numb
   void * untyped_entity,
   const int64_t goal_request_sequence_number);
 
+rclc_action_goal_handle_t * rclc_action_get_handle_by_result_request_sequence_number(
+  void * untyped_entity,
+  const int64_t result_request_sequence_number);
+
 rclc_action_goal_handle_t * rclc_action_get_handle_by_cancel_request_sequence_number(
   void * untyped_entity,
   const int64_t cancel_request_sequence_number);

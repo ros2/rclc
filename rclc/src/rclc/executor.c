@@ -1197,7 +1197,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
         }
 
         rclc_action_goal_handle_t * goal_handle =
-          rclc_action_get_handle_by_goal_request_sequence_number(
+          rclc_action_get_handle_by_result_request_sequence_number(
           handle->action_client, result_request_header.sequence_number);
         if (NULL != goal_handle) {
           goal_handle->available_result_response = true;
