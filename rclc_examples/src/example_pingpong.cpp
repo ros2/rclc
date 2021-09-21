@@ -18,6 +18,12 @@
 #include <std_msgs/msg/string.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
+
+// testing c++ interface
+#include "std_msgs/msg/string.hpp"
+#include "rclcpp/get_message_type_support_handle.hpp"
+#include "rclcpp/type_adapter.hpp"
+
 // #include "example_pingpong_helper.h"
 
 
@@ -52,6 +58,37 @@ public:
     int number;
 
 };
+
+typedef rclcpp::TypeAdapter<std_msgs::msg::String>::ros_message_type ROSMessageType;
+
+
+class MySubscription2 {
+public: 
+  MySubscription2(){};
+  static void on_update(const std_msgs::msg::String * msg ) {
+    printf("CLASS2 Callback: I heard: %s\n", msg->data.c_str());
+    // number++; not possible to use member variables
+  }
+  static void on_update_wrapper(const void * msgin, void * context){
+  // const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
+  const MySubscription2 * mySub = (const MySubscription2 *) context;
+  const auto typed_message = static_cast<const ROSMessageType*>(msgin);
+  mySub->on_update(typed_message);
+
+}
+
+  private:
+    int number;
+
+};
+
+/*
+rclc - callback(void *, void * context)
+in C++ want to use callback(MessageT msg)
+
+*/
+
+
 
 /***************************** PING NODE CALLBACKS ***********************************/
 
@@ -144,9 +181,10 @@ int main(int argc, const char * argv[])
   // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
   // my_pub is global, so that the timer callback can access this publisher.
   const char * ping_topic_name = "ping";
-  const rosidl_message_type_support_t * ping_type_support =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
-
+  //const rosidl_message_type_support_t * ping_type_support =
+  //  ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
+  const rosidl_message_type_support_t  ping_type_support = 
+    rclcpp::get_message_type_support_handle< std_msgs::msg::String >();
 
   const char * pong_topic_name = "pong";
   const rosidl_message_type_support_t * pong_type_support =
@@ -156,7 +194,7 @@ int main(int argc, const char * argv[])
   rc = rclc_publisher_init_default(
     &ping_publisher,
     &ping_node,
-    ping_type_support,
+    &ping_type_support,
     ping_topic_name);
   if (RCL_RET_OK != rc) {
     printf("Error in rclc_publisher_init_default %s.\n", ping_topic_name);
@@ -268,7 +306,7 @@ int main(int argc, const char * argv[])
   rc = rclc_subscription_init_default(
     &ping_subscription,
     &pong_node,
-    ping_type_support,
+    &ping_type_support,
     ping_topic_name);
   if (rc != RCL_RET_OK) {
     printf("Failed to create subscriber %s.\n", ping_topic_name);
@@ -381,8 +419,13 @@ int main(int argc, const char * argv[])
     //   &ping_executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
     //  ON_NEW_DATA);
 
-    rc = rclc_executor_add_subscription(
-      &ping_executor, &pong_subscription, &pingNode_pong_msg, &MySubscription::on_update,
+    //rc = rclc_executor_add_subscription(
+    //  &ping_executor, &pong_subscription, &pingNode_pong_msg, &MySubscription::on_update,
+    //  ON_NEW_DATA);
+
+    MySubscription2 mySub2;
+    rc = rclc_executor_add_subscription_with_context(
+      &ping_executor, &pong_subscription, &pingNode_pong_msg, &MySubscription2::on_update_wrapper, &mySub2,
       ON_NEW_DATA);
 
     if (rc != RCL_RET_OK) {
