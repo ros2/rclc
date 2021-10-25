@@ -844,14 +844,12 @@ rclc_executor_add_action_client(
   action_client->ros_feedback = ros_feedback;
   action_client->ros_result_response = ros_result_response;
 
-  if (NULL != cancel_callback) {
-    action_client->ros_cancel_response.goals_canceling.data =
-      (action_msgs__msg__GoalInfo *) executor->allocator->allocate(
-      handles_number *
-      sizeof(action_msgs__msg__GoalInfo), executor->allocator->state);
-    action_client->ros_cancel_response.goals_canceling.size = 0;
-    action_client->ros_cancel_response.goals_canceling.capacity = handles_number;
-  }
+  action_client->ros_cancel_response.goals_canceling.data =
+    (action_msgs__msg__GoalInfo *) executor->allocator->allocate(
+    handles_number *
+    sizeof(action_msgs__msg__GoalInfo), executor->allocator->state);
+  action_client->ros_cancel_response.goals_canceling.size = 0;
+  action_client->ros_cancel_response.goals_canceling.capacity = handles_number;
 
   rclc_action_goal_handle_t * goal_handle = action_client->free_goal_handles;
   while (NULL != goal_handle) {
@@ -972,6 +970,7 @@ rclc_executor_add_action_server(
   executor->handles[executor->index].initialized = true;
   executor->handles[executor->index].callback_context = context;
 
+  executor->handles[executor->index].action_server->goal_ended = false;
   executor->handles[executor->index].action_server->goal_request_available = false;
   executor->handles[executor->index].action_server->cancel_request_available = false;
   executor->handles[executor->index].action_server->result_request_available = false;
@@ -1183,29 +1182,8 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           goal_handle->available_feedback = true;
         }
       }
-      if (handle->action_client->result_response_available) {
-        rmw_request_id_t result_request_header;
-        rc = rcl_action_take_result_response(
-          &handle->action_client->rcl_handle,
-          &result_request_header,
-          handle->action_client->ros_result_response);
-
-        if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_response);
-          RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
-          return rc;
-        }
-
-        rclc_action_goal_handle_t * goal_handle =
-          rclc_action_get_handle_by_result_request_sequence_number(
-          handle->action_client, result_request_header.sequence_number);
-        if (NULL != goal_handle) {
-          goal_handle->available_result_response = true;
-        }
-      }
       if (handle->action_client->cancel_response_available) {
         rmw_request_id_t cancel_response_header;
-
         rc = rcl_action_take_cancel_response(
           &handle->action_client->rcl_handle,
           &cancel_response_header,
@@ -1235,6 +1213,26 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
               goal_handle->goal_cancelled = true;
             }
           }
+        }
+      }
+      if (handle->action_client->result_response_available) {
+        rmw_request_id_t result_request_header;
+        rc = rcl_action_take_result_response(
+          &handle->action_client->rcl_handle,
+          &result_request_header,
+          handle->action_client->ros_result_response);
+
+        if (rc != RCL_RET_OK) {
+          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_response);
+          RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
+          return rc;
+        }
+
+        rclc_action_goal_handle_t * goal_handle =
+          rclc_action_get_handle_by_result_request_sequence_number(
+          handle->action_client, result_request_header.sequence_number);
+        if (NULL != goal_handle) {
+          goal_handle->available_result_response = true;
         }
       }
       break;
@@ -1298,8 +1296,20 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
         rclc_action_goal_handle_t * goal_handle = rclc_action_get_handle_by_uuid(
           handle->action_server, &aux_cancel_request.goal_info.goal_id);
         if (NULL != goal_handle) {
-          goal_handle->cancel_request_header = aux_cancel_request_header;
-          goal_handle->status = GOAL_STATE_CANCELING;
+          if (GOAL_STATE_CANCELING == rcl_action_transition_goal_state(
+              goal_handle->status, GOAL_EVENT_CANCEL_GOAL))
+          {
+            goal_handle->cancel_request_header = aux_cancel_request_header;
+            goal_handle->status = GOAL_STATE_CANCELING;
+          } else {
+            rclc_action_server_goal_cancel_reject(
+              handle->action_server, CANCEL_STATE_TERMINATED,
+              aux_cancel_request_header);
+          }
+        } else {
+          rclc_action_server_goal_cancel_reject(
+            handle->action_server, CANCEL_STATE_UNKNOWN_GOAL,
+            aux_cancel_request_header);
         }
       }
       break;
@@ -1374,7 +1384,8 @@ bool _rclc_check_handle_data_available(rclc_executor_handle_t * handle)
       if (handle->action_server->goal_request_available == true ||
         handle->action_server->cancel_request_available == true ||
         handle->action_server->goal_expired_available == true ||
-        handle->action_server->result_request_available == true)
+        handle->action_server->result_request_available == true ||
+        handle->action_server->goal_ended == true)
       {
         return true;
       }
@@ -1532,6 +1543,21 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->callback_context);
           }
         }
+        if (handle->action_client->cancel_response_available) {
+          rclc_action_goal_handle_t * goal_handle;
+          while (goal_handle =
+            rclc_action_get_first_handle_with_cancel_response(handle->action_client),
+            NULL != goal_handle)
+          {
+            goal_handle->available_cancel_response = false;
+            if (handle->action_client->cancel_callback != NULL) {
+              handle->action_client->cancel_callback(
+                goal_handle,
+                goal_handle->goal_cancelled,
+                handle->callback_context);
+            }
+          }
+        }
         if (handle->action_client->result_response_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
@@ -1543,24 +1569,22 @@ _rclc_execute(rclc_executor_handle_t * handle)
               goal_handle,
               handle->action_client->ros_result_response,
               handle->callback_context);
-          }
-        }
-        if (handle->action_client->cancel_response_available) {
-          rclc_action_goal_handle_t * goal_handle;
-          while (goal_handle =
-            rclc_action_get_first_handle_with_cancel_response(handle->action_client),
-            NULL != goal_handle)
-          {
-            goal_handle->available_cancel_response = false;
-            handle->action_client->cancel_callback(
-              goal_handle,
-              goal_handle->goal_cancelled,
-              handle->callback_context);
+            rclc_action_put_goal_handle(handle->action_client, goal_handle);
           }
         }
         break;
 
       case ACTION_SERVER:
+        if (handle->action_server->goal_ended) {
+          rclc_action_goal_handle_t * goal_handle;
+          while (goal_handle =
+            rclc_action_get_first_terminated_handle(handle->action_server),
+            NULL != goal_handle)
+          {
+            rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
+          }
+          handle->action_server->goal_ended = false;
+        }
         if (handle->action_server->goal_request_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
@@ -1572,11 +1596,11 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->callback_context);
             switch (ret) {
               case RCL_RET_ACTION_GOAL_REJECTED:
-                rclc_action_server_reject_goal_request(goal_handle);
+                rclc_action_server_response_goal_request(goal_handle, false);
                 rclc_action_put_goal_handle(handle->action_server, goal_handle);
                 break;
               case RCL_RET_ACTION_GOAL_ACCEPTED:
-                rclc_action_server_accept_goal_request(goal_handle);
+                rclc_action_server_response_goal_request(goal_handle, true);
                 goal_handle->status = GOAL_STATE_ACCEPTED;
                 break;
               default:
@@ -1586,22 +1610,24 @@ _rclc_execute(rclc_executor_handle_t * handle)
           handle->action_server->goal_request_available = false;
         }
         if (handle->action_server->cancel_request_available) {
-          rclc_action_goal_handle_t * goal_handle;
+          rclc_action_goal_handle_t * goal_handle = handle->action_server->used_goal_handles;
           while (goal_handle =
-            rclc_action_get_first_handle_by_status(handle->action_server, GOAL_STATE_CANCELING),
+            rclc_action_get_next_handle_by_status(goal_handle, GOAL_STATE_CANCELING),
             NULL != goal_handle)
           {
-            bool ret =
+            goal_handle->goal_cancelled =
               handle->action_server->cancel_callback(goal_handle, handle->callback_context);
-            if (ret) {
-              rclc_action_server_finish_goal_cancel(goal_handle);
-              rclc_action_put_goal_handle(handle->action_server, goal_handle);
+            if (goal_handle->goal_cancelled) {
+              rclc_action_server_goal_cancel_accept(goal_handle);
+              goal_handle = goal_handle->next;
             } else {
-              rclc_action_server_goal_cancel_reject(goal_handle);
+              rclc_action_server_goal_cancel_reject(
+                handle->action_server, CANCEL_STATE_REJECTED,
+                goal_handle->cancel_request_header);
               goal_handle->status = GOAL_STATE_EXECUTING;
             }
           }
-          handle->action_server->goal_request_available = false;
+          handle->action_server->cancel_request_available = false;
         }
         break;
 

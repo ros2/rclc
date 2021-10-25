@@ -36,7 +36,6 @@ typedef struct rclc_action_goal_handle_t
     struct rclc_action_client_t * action_client;
   };
 
-  rcl_action_goal_handle_t * rcl_handle;
   rcl_action_goal_state_t status;
 
   unique_identifier_msgs__msg__UUID goal_id;

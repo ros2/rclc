@@ -24,67 +24,65 @@
 
 #include <example_interfaces/action/fibonacci.h>
 
-
-bool cancel_goal = false;
-
-pthread_mutex_t rclc_mutex;
+const char * goalResult[] =
+{[GOAL_STATE_SUCCEEDED] = "succeeded", [GOAL_STATE_CANCELED] = "canceled",
+  [GOAL_STATE_ABORTED] = "aborted"};
 
 void * fibonacci_worker(void * args)
 {
   (void) args;
   rclc_action_goal_handle_t * goal_handle = (rclc_action_goal_handle_t *) args;
+  rcl_action_goal_state_t goal_state;
 
   example_interfaces__action__Fibonacci_SendGoal_Request * req =
     (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
 
   example_interfaces__action__Fibonacci_GetResult_Response response = {0};
+  example_interfaces__action__Fibonacci_FeedbackMessage feedback;
 
   if (req->goal.order < 2) {
-    pthread_mutex_lock(&rclc_mutex);
-    rclc_action_server_finish_goal_abort(goal_handle, &response);
-    pthread_mutex_unlock(&rclc_mutex);
-  }
+    goal_state = GOAL_STATE_ABORTED;
+  } else {
+    feedback.feedback.sequence.capacity = req->goal.order;
+    feedback.feedback.sequence.size = 0;
+    feedback.feedback.sequence.data =
+      (int32_t *) malloc(feedback.feedback.sequence.capacity * sizeof(int32_t));
 
-  example_interfaces__action__Fibonacci_FeedbackMessage feedback;
-  feedback.feedback.sequence.capacity = req->goal.order;
-  feedback.feedback.sequence.size = 0;
-  feedback.feedback.sequence.data =
-    (int32_t *) malloc(feedback.feedback.sequence.capacity * sizeof(int32_t));
+    feedback.feedback.sequence.data[0] = 0;
+    feedback.feedback.sequence.data[1] = 1;
+    feedback.feedback.sequence.size = 2;
 
-  feedback.feedback.sequence.data[0] = 0;
-  feedback.feedback.sequence.data[1] = 1;
-  feedback.feedback.sequence.size = 2;
+    for (size_t i = 2; i < (size_t) req->goal.order && !goal_handle->goal_cancelled; i++) {
+      feedback.feedback.sequence.data[i] = feedback.feedback.sequence.data[i - 1] +
+        feedback.feedback.sequence.data[i - 2];
+      feedback.feedback.sequence.size++;
 
-  for (size_t i = 2; i < (size_t) req->goal.order && !cancel_goal; i++) {
-    feedback.feedback.sequence.data[i] = feedback.feedback.sequence.data[i - 1] +
-      feedback.feedback.sequence.data[i - 2];
-    feedback.feedback.sequence.size++;
+      if (i > 30) {
+        goal_state = GOAL_STATE_ABORTED;
+        break;
+      }
 
-    if (i > 30) {
-      rclc_action_server_finish_goal_abort(goal_handle, &response);
-      return NULL;
+      rclc_action_publish_feedback(goal_handle, &feedback);
+      usleep(100000);
     }
 
-    pthread_mutex_lock(&rclc_mutex);
-    rclc_action_publish_feedback(goal_handle, &feedback);
-    pthread_mutex_unlock(&rclc_mutex);
-    usleep(100000);
+    if (!goal_handle->goal_cancelled) {
+      response.result.sequence.capacity = feedback.feedback.sequence.capacity;
+      response.result.sequence.size = feedback.feedback.sequence.size;
+      response.result.sequence.data = feedback.feedback.sequence.data;
+      goal_state = GOAL_STATE_SUCCEEDED;
+    } else {
+      goal_state = GOAL_STATE_CANCELED;
+    }
   }
 
-  if (!cancel_goal) {
-    response.result.sequence.capacity = feedback.feedback.sequence.capacity;
-    response.result.sequence.size = feedback.feedback.sequence.size;
-    response.result.sequence.data = feedback.feedback.sequence.data;
+  printf("Goal %d %s\n", req->goal.order, goalResult[goal_state]);
 
-    pthread_mutex_lock(&rclc_mutex);
-    rclc_action_server_finish_goal_sucess(goal_handle, &response);
-    pthread_mutex_unlock(&rclc_mutex);
-  } else {
-    rclc_action_server_finish_goal_abort(goal_handle, &response);
-  }
-
-  // active_worker = false;
-  cancel_goal = false;
+  rcl_ret_t rc;
+  do {
+    rc = rclc_action_send_result(goal_handle, goal_state, &response);
+    usleep(1e6);
+  } while (rc != RCL_RET_OK);
 
   free(feedback.feedback.sequence.data);
   pthread_exit(NULL);
@@ -99,11 +97,13 @@ rcl_ret_t handle_goal(rclc_action_goal_handle_t * goal_handle, void * context)
 
   // Too big, rejecting
   if (req->goal.order > 200) {
+    printf("Goal %d rejected\n", req->goal.order);
     return RCL_RET_ACTION_GOAL_REJECTED;
   }
 
-  pthread_t * thread_id = malloc(sizeof(pthread_t));
+  printf("Goal %d accepted\n", req->goal.order);
 
+  pthread_t * thread_id = malloc(sizeof(pthread_t));
   pthread_create(thread_id, NULL, fibonacci_worker, goal_handle);
   return RCL_RET_ACTION_GOAL_ACCEPTED;
 }
@@ -113,15 +113,11 @@ bool handle_cancel(rclc_action_goal_handle_t * goal_handle, void * context)
   (void) context;
   (void) goal_handle;
 
-  cancel_goal = true;
-
-  return cancel_goal;
+  return true;
 }
 
 int main()
 {
-  pthread_mutex_init(&rclc_mutex, NULL);
-
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
   // Create init_options
@@ -137,7 +133,7 @@ int main()
   rclc_action_server_init_default(
     &action_server,
     &node,
-    &support.clock,
+    &support,
     ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
     "fibonacci"
   );
@@ -159,9 +155,7 @@ int main()
     (void *) &action_server);
 
   while (1) {
-    pthread_mutex_lock(&rclc_mutex);
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-    pthread_mutex_unlock(&rclc_mutex);
     usleep(100000);
   }
 

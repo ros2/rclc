@@ -25,6 +25,13 @@
 #include <example_interfaces/action/fibonacci.h>
 
 #define MAX_FIBONACCI_ORDER 500
+#define GOALS_NUMBER 5
+
+example_interfaces__action__Fibonacci_SendGoal_Request ros_goal_request[GOALS_NUMBER];
+uint32_t goals_value[GOALS_NUMBER] = {1, 15, 20, 55, 201};
+bool goals_completed = false;
+
+rclc_action_client_t action_client;
 
 void goal_request_callback(rclc_action_goal_handle_t * goal_handle, bool accepted, void * context)
 {
@@ -33,8 +40,7 @@ void goal_request_callback(rclc_action_goal_handle_t * goal_handle, bool accepte
   example_interfaces__action__Fibonacci_SendGoal_Request * request =
     (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
   printf(
-    "Goal request %p (order: %d): %s\n",
-    (void *) goal_handle,
+    "Goal request (order: %d): %s\n",
     request->goal.order,
     accepted ? "Accepted" : "Rejected"
   );
@@ -48,8 +54,7 @@ void feedback_callback(rclc_action_goal_handle_t * goal_handle, void * ros_feedb
     (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
 
   printf(
-    "Goal Feedback %p (order: %d) [",
-    (void *) goal_handle,
+    "Goal Feedback (order: %d) [",
     request->goal.order
   );
 
@@ -60,6 +65,10 @@ void feedback_callback(rclc_action_goal_handle_t * goal_handle, void * ros_feedb
     printf("%d ", feedback->feedback.sequence.data[i]);
   }
   printf("\b]\n");
+
+  if (request->goal.order == 20 && feedback->feedback.sequence.size == 10) {
+    rclc_action_send_cancel_request(goal_handle);
+  }
 }
 
 void result_request_callback(
@@ -68,27 +77,60 @@ void result_request_callback(
 {
   (void) context;
 
+  static size_t goal_count = 1;
+
   example_interfaces__action__Fibonacci_SendGoal_Request * request =
     (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
 
   printf(
-    "Goal Result %p (order: %d) [",
-    (void *) goal_handle,
+    "Goal Result (order: %d) [",
     request->goal.order
   );
 
   example_interfaces__action__Fibonacci_GetResult_Response * result =
     (example_interfaces__action__Fibonacci_GetResult_Response *) ros_result_response;
 
-  if (result->status == action_msgs__msg__GoalStatus__STATUS_SUCCEEDED) {
+  if (result->status == GOAL_STATE_SUCCEEDED) {
     for (size_t i = 0; i < result->result.sequence.size; i++) {
       printf("%d ", result->result.sequence.data[i]);
     }
+  } else if (result->status == GOAL_STATE_CANCELED) {
+    printf("CANCELED ");
   } else {
     printf("ABORTED ");
   }
 
   printf("\b]\n");
+
+  // Request next action
+  if (goal_count < GOALS_NUMBER) {
+    if (RCL_RET_OK !=
+      rclc_action_send_goal_request(&action_client, &ros_goal_request[goal_count], NULL))
+    {
+      printf("Error sending request nº %ld\n", goal_count);
+    } else {
+      goal_count++;
+
+      if (goal_count == GOALS_NUMBER) {
+        goals_completed = true;
+      }
+    }
+  }
+}
+
+void cancel_request_callback(
+  rclc_action_goal_handle_t * goal_handle, bool cancelled,
+  void * context)
+{
+  (void) context;
+
+  example_interfaces__action__Fibonacci_SendGoal_Request * request =
+    (example_interfaces__action__Fibonacci_SendGoal_Request *) goal_handle->ros_goal_request;
+
+  printf(
+    "Goal cancel request (order: %d): %s\n",
+    request->goal.order,
+    cancelled ? "Accepted" : "Rejected");
 }
 
 int main()
@@ -104,7 +146,6 @@ int main()
   rclc_node_init_default(&node, "demo_action_server_node", "", &support);
 
   // Create action client
-  rclc_action_client_t action_client;
   rclc_action_client_init_default(
     &action_client,
     &node,
@@ -129,6 +170,10 @@ int main()
   ros_result_response.result.sequence.data = (int32_t *) malloc(
     ros_result_response.result.sequence.capacity * sizeof(int32_t));
 
+  for (size_t i = 0; i < 5; i++) {
+    ros_goal_request[i].goal.order = goals_value[i];
+  }
+
   rclc_executor_add_action_client(
     &executor,
     &action_client,
@@ -138,21 +183,23 @@ int main()
     goal_request_callback,
     feedback_callback,
     result_request_callback,
-    NULL,
+    cancel_request_callback,
     (void *) &action_client
   );
 
   sleep(1);
-  example_interfaces__action__Fibonacci_SendGoal_Request ros_goal_request[5];
-  uint32_t goals_value[5] = {10, 15, 20, 55, 201};
 
-  for (size_t i = 0; i < 5; i++) {
-    ros_goal_request[i].goal.order = goals_value[i];
-    rclc_action_send_goal_request(&action_client, &ros_goal_request[i], NULL);
-    usleep(100000);
+  if (RCL_RET_OK !=
+    rclc_action_send_goal_request(&action_client, &ros_goal_request[0], NULL))
+  {
+    printf("Error sending initial goal\n");
+    return 1;
   }
 
-  rclc_executor_spin(&executor);
+  while (!goals_completed) {
+    rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+    usleep(100000);
+  }
 
   // clean up
   rclc_executor_fini(&executor);

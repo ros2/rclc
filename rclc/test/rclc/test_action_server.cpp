@@ -40,12 +40,12 @@ using namespace std::chrono_literals;
 
 TEST(Test, rclc_action_server) {
   rclc_support_t support;
+  rcl_node_t node;
   rcl_ret_t rc;
 
   // preliminary setup
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
-  rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, "my_node", "my_namespace", &support);
   EXPECT_EQ(RCL_RET_OK, rc);
 
@@ -54,7 +54,7 @@ TEST(Test, rclc_action_server) {
   rc = rclc_action_server_init_default(
     &action_server,
     &node,
-    &support.clock,
+    &support,
     ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
     "fibonacci"
   );
@@ -65,7 +65,7 @@ TEST(Test, rclc_action_server) {
   rc = rclc_action_server_init_default(
     nullptr,
     &node,
-    &support.clock,
+    &support,
     ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
     "fibonacci"
   );
@@ -75,7 +75,7 @@ TEST(Test, rclc_action_server) {
   rc = rclc_action_server_init_default(
     &invalid_action_server,
     nullptr,
-    &support.clock,
+    &support,
     ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
     "fibonacci"
   );
@@ -95,7 +95,7 @@ TEST(Test, rclc_action_server) {
   rc = rclc_action_server_init_default(
     &invalid_action_server,
     &node,
-    &support.clock,
+    &support,
     nullptr,
     "fibonacci"
   );
@@ -105,7 +105,7 @@ TEST(Test, rclc_action_server) {
   rc = rclc_action_server_init_default(
     &invalid_action_server,
     &node,
-    &support.clock,
+    &support,
     ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
     nullptr
   );
@@ -174,7 +174,7 @@ public:
     rc = rclc_action_server_init_default(
       &action_server,
       &node,
-      &support.clock,
+      &support,
       ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
       "fibonacci"
     );
@@ -332,7 +332,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       feedback_thread = std::thread(
-        [=]() {
+        [ = ]() {
           std::this_thread::sleep_for(100ms);
 
           int32_t data[] = {0, 1, 2};
@@ -350,7 +350,8 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
           response.result.sequence.capacity = feedback.feedback.sequence.capacity;
           response.result.sequence.size = feedback.feedback.sequence.size;
           response.result.sequence.data = feedback.feedback.sequence.data;
-          rclc_action_server_finish_goal_sucess(goal_handle, &response);
+          rcl_ret_t rc = rclc_action_send_result(goal_handle, GOAL_STATE_SUCCEEDED, &response);
+          EXPECT_EQ(RCL_RET_OK, rc);
         });
 
       return RCL_RET_ACTION_GOAL_ACCEPTED;
@@ -406,7 +407,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       feedback_thread = std::thread(
-        [=]() {
+        [ = ]() {
           std::this_thread::sleep_for(100ms);
 
           int32_t data[] = {0, 1, 2};
@@ -421,7 +422,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
           }
 
           example_interfaces__action__Fibonacci_GetResult_Response response = {};
-          rcl_ret_t rc = rclc_action_server_finish_goal_abort(goal_handle, &response);
+          rcl_ret_t rc = rclc_action_send_result(goal_handle, GOAL_STATE_ABORTED, &response);
           EXPECT_EQ(RCL_RET_OK, rc);
         });
 
@@ -459,7 +460,10 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
     };
 
   auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  ASSERT_EQ(rclcpp::spin_until_future_complete(action_client_node, goal_handle, rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      action_client_node, goal_handle,
+      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
   action_client->async_get_result(goal_handle.get());
   ASSERT_EQ(
     rclcpp::spin_until_future_complete(
@@ -474,8 +478,24 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
 
 TEST_F(ActionServerTest, goal_accept_cancel_success) {
   // Prepare RCLC
+  std::thread feedback_thread;
   handle_goal =
-    [&](rclc_action_goal_handle_t * /* goal_handle */, void * /* context */) -> rcl_ret_t {
+    [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
+
+      feedback_thread = std::thread(
+        [ = ]() {
+          std::this_thread::sleep_for(100ms);
+          for (size_t i = 0; i < 5 && !goal_handle->goal_cancelled; i++) {
+            std::this_thread::sleep_for(100ms);
+          }
+
+          ASSERT_TRUE(goal_handle->goal_cancelled);
+
+          example_interfaces__action__Fibonacci_GetResult_Response response = {};
+          rcl_ret_t rc = rclc_action_send_result(goal_handle, GOAL_STATE_CANCELED, &response);
+          EXPECT_EQ(RCL_RET_OK, rc);
+        });
+
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
@@ -529,6 +549,7 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
       action_client_node, future_result,
       rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
 
+  feedback_thread.join();
   ASSERT_TRUE(accepted);
 }
 
@@ -610,7 +631,7 @@ TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
           response.result.sequence.capacity = feedback.feedback.sequence.capacity;
           response.result.sequence.size = feedback.feedback.sequence.size;
           response.result.sequence.data = feedback.feedback.sequence.data;
-          rclc_action_server_finish_goal_sucess(goal_handle, &response);
+          rclc_action_send_result(goal_handle, GOAL_STATE_SUCCEEDED, &response);
         });
 
       feedback_thread_pool.push_back(std::move(worker));
