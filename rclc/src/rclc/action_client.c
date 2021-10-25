@@ -115,6 +115,7 @@ rclc_action_send_goal_request(
   handle->available_goal_response = false;
   handle->available_feedback = false;
   handle->available_result_response = false;
+  handle->available_cancel_response = false;
 
   if (NULL != goal_handle) {
     *goal_handle = handle;

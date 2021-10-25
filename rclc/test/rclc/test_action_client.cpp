@@ -41,12 +41,12 @@ using namespace std::chrono_literals;
 
 TEST(Test, rclc_action_client) {
   rclc_support_t support;
+  rcl_node_t node;
   rcl_ret_t rc;
 
   // preliminary setup
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
-  rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, "my_node", "my_namespace", &support);
   EXPECT_EQ(RCL_RET_OK, rc);
 
@@ -220,6 +220,22 @@ public:
           rclcpp::spin_some(action_server_node);
         }
       });
+
+    // Wait for action server match
+    bool server_matched = false;
+    for (size_t i = 0; i < 10; i++) {
+      rc = rcl_action_server_is_available(
+        &node, &action_client.rcl_handle, &server_matched);
+
+      if (server_matched) {
+        break;
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    EXPECT_EQ(RCL_RET_OK, rc);
+    EXPECT_TRUE(server_matched);
   }
 
   void TearDown() override
@@ -351,7 +367,8 @@ TEST_F(ActionClientTest, goal_accept) {
       goal_response_received = true;
     };
 
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
@@ -382,7 +399,8 @@ TEST_F(ActionClientTest, goal_reject) {
       goal_response_received = true;
     };
 
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
@@ -406,7 +424,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
   std::thread feedback_thread;
 
   server_handle_accepted = [&](const std::shared_ptr<GoalHandleFibonacci> goal_handle) -> void {
-      auto feeback_callback =
+      feedback_thread = std::thread(
         [ = ]() -> void {
           const auto goal = goal_handle->get_goal();
           auto feedback = std::make_shared<Fibonacci::Feedback>();
@@ -426,9 +444,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
           auto result = std::make_shared<Fibonacci::Result>();
           result->sequence = sequence;
           goal_handle->succeed(result);
-        };
-
-      feedback_thread = std::thread(feeback_callback);
+        });
     };
 
   // Prepare RCLC
@@ -464,7 +480,8 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
       ASSERT_EQ(result->result.sequence.size, (size_t) ros_goal_request.goal.order);
     };
 
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received || !goal_result_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
@@ -548,7 +565,8 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_abort) {
       ASSERT_EQ(result->result.sequence.size, (size_t) ros_goal_request.goal.order);
     };
 
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received || !goal_result_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
@@ -623,13 +641,15 @@ TEST_F(ActionClientTest, goal_accept_cancel_success) {
     };
 
   rclc_action_goal_handle_t * goal_handle;
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, &goal_handle);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, &goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
   }
 
-  rclc_action_send_cancel_request(goal_handle);
+  rc = rclc_action_send_cancel_request(goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!cancel_result_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
@@ -728,13 +748,15 @@ TEST_F(ActionClientTest, goal_accept_cancel_reject) {
     };
 
   rclc_action_goal_handle_t * goal_handle;
-  rclc_action_send_goal_request(&action_client, &ros_goal_request, &goal_handle);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &ros_goal_request, &goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!goal_response_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
   }
 
-  rclc_action_send_cancel_request(goal_handle);
+  rc = rclc_action_send_cancel_request(goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
   while (!cancel_result_received || !goal_result_received) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));

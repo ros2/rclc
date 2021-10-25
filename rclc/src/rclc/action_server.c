@@ -26,7 +26,7 @@ rcl_ret_t
 rclc_action_server_init_default(
   rclc_action_server_t * action_server,
   rcl_node_t * node,
-  rcl_clock_t * clock,
+  rclc_support_t * support,
   const rosidl_action_type_support_t * type_support,
   const char * action_name)
 {
@@ -35,7 +35,7 @@ rclc_action_server_init_default(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    clock, "clock is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     type_support, "type_support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -48,7 +48,7 @@ rclc_action_server_init_default(
   rcl_ret_t rc = rcl_action_server_init(
     &action_server->rcl_handle,
     node,
-    clock,
+    &support->clock,
     type_support,
     action_name,
     &action_server_opt);
@@ -68,8 +68,9 @@ static bool rclc_action_server_is_valid_handle(
 }
 
 rcl_ret_t
-rclc_action_server_accept_goal_request(
-  rclc_action_goal_handle_t * goal_handle)
+rclc_action_server_response_goal_request(
+  rclc_action_goal_handle_t * goal_handle,
+  const bool accepted)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
@@ -77,40 +78,7 @@ rclc_action_server_accept_goal_request(
   rclc_action_server_t * action_server = goal_handle->action_server;
 
   Generic_SendGoal_Response res = {0};
-  res.accepted = true;
-
-  rcl_ret_t rc = rcl_action_send_goal_response(
-    &action_server->rcl_handle,
-    &goal_handle->goal_request_header, &res);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_accept_request, rcl_action_send_goal_response);
-    return rc;
-  }
-
-  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
-  goal_info.goal_id = goal_handle->goal_id;
-
-  goal_handle->rcl_handle = rcl_action_accept_new_goal(&action_server->rcl_handle, &goal_info);
-  rc = rcl_action_update_goal_state(goal_handle->rcl_handle, GOAL_EVENT_EXECUTE);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_accept_request, rcl_action_update_goal_state);
-    return rc;
-  }
-
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rclc_action_server_reject_goal_request(
-  rclc_action_goal_handle_t * goal_handle)
-{
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  rclc_action_server_t * action_server = goal_handle->action_server;
-
-  Generic_SendGoal_Response res;
-  res.accepted = false;
+  res.accepted = accepted;
 
   rcl_ret_t rc = rcl_action_send_goal_response(
     &action_server->rcl_handle,
@@ -124,160 +92,44 @@ rclc_action_server_reject_goal_request(
 }
 
 rcl_ret_t
-rclc_action_server_finish_goal_sucess(
-  rclc_action_goal_handle_t * goal_handle,
-  void * ros_response)
-{
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    ros_response, "ros_response handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  if (!rclc_action_server_is_valid_handle(goal_handle)) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  Generic_GetResult_Response * response = (Generic_GetResult_Response *)ros_response;
-
-  rcl_ret_t rc = rcl_action_update_goal_state(goal_handle->rcl_handle, GOAL_EVENT_SUCCEED);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_finish_goal_sucess, rcl_action_update_goal_state);
-    return rc;
-  }
-
-  rc = rcl_action_notify_goal_done(&goal_handle->action_server->rcl_handle);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_finish_goal_sucess, rcl_action_notify_goal_done);
-    return rc;
-  }
-
-  response->status = GOAL_STATE_SUCCEEDED;
-
-  rc = rcl_action_send_result_response(
-    &goal_handle->action_server->rcl_handle,
-    &goal_handle->result_request_header, response);
-
-  rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
-
-  return rc;
-}
-
-rcl_ret_t
-rclc_action_server_finish_goal_abort(
-  rclc_action_goal_handle_t * goal_handle,
-  void * ros_response)
-{
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    ros_response, "ros_response is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  if (!rclc_action_server_is_valid_handle(goal_handle)) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  rcl_ret_t rc = rcl_action_update_goal_state(goal_handle->rcl_handle, GOAL_EVENT_ABORT);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_finish_goal_abort, rcl_action_update_goal_state);
-    return rc;
-  }
-
-  rc = rcl_action_notify_goal_done(&goal_handle->action_server->rcl_handle);
-  if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_finish_goal_abort, rcl_action_notify_goal_done);
-    return rc;
-  }
-
-  Generic_GetResult_Response * response = ros_response;
-
-  response->status = GOAL_STATE_ABORTED;
-
-  rc = rcl_action_send_result_response(
-    &goal_handle->action_server->rcl_handle,
-    &goal_handle->result_request_header, response);
-
-  rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
-
-  return rc;
-}
-
-rcl_ret_t
-rclc_action_server_finish_goal_cancel(
+rclc_action_server_goal_cancel_accept(
   rclc_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  if (!rclc_action_server_is_valid_handle(goal_handle)) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  cancel_request.goal_info.goal_id = goal_handle->goal_id;
 
   rcl_action_cancel_response_t cancel_response =
     rcl_action_get_zero_initialized_cancel_response();
+  cancel_response.msg.return_code = CANCEL_STATE_OK;
 
-  rcl_ret_t rc = rcl_action_process_cancel_request(
-    &goal_handle->action_server->rcl_handle,
-    &cancel_request,
-    &cancel_response);
+  action_msgs__msg__GoalInfo goal_info;
+  goal_info.goal_id = goal_handle->goal_id;
 
-  if (RCL_RET_OK != rc) {
-    return rc;
-  }
+  cancel_response.msg.goals_canceling.data = &goal_info;
+  cancel_response.msg.goals_canceling.size = 1;
+  cancel_response.msg.goals_canceling.capacity = 1;
 
-  const bool is_cancelable = rcl_action_goal_handle_is_cancelable(goal_handle->rcl_handle);
-  if (is_cancelable) {
-    rcl_ret_t rc = rcl_action_update_goal_state(goal_handle->rcl_handle, GOAL_EVENT_CANCEL_GOAL);
-    if (RCL_RET_OK != rc) {
-      return rc;
-    }
-  }
-
-  rcl_action_goal_state_t state = GOAL_STATE_UNKNOWN;
-  rc = rcl_action_goal_handle_get_status(goal_handle->rcl_handle, &state);
-  if (RCL_RET_OK != rc) {
-    return rc;
-  }
-
-  if (GOAL_STATE_CANCELING == state) {
-    rc = rcl_action_update_goal_state(goal_handle->rcl_handle, GOAL_EVENT_CANCELED);
-  } else {
-    return RCL_RET_ERROR;
-  }
-
-  rc = rcl_action_send_cancel_response(
+  return rcl_action_send_cancel_response(
     &goal_handle->action_server->rcl_handle,
     &goal_handle->cancel_request_header, &cancel_response.msg);
-  if (RCL_RET_OK != rc) {
-    return rc;
-  }
-
-  Generic_GetResult_Response response = {0};
-
-  response.status = GOAL_STATE_CANCELED;
-
-  rc = rcl_action_send_result_response(
-    &goal_handle->action_server->rcl_handle,
-    &goal_handle->result_request_header, &response);
-
-  return rc;
 }
 
 rcl_ret_t
 rclc_action_server_goal_cancel_reject(
-  rclc_action_goal_handle_t * goal_handle)
+  rclc_action_server_t * action_server,
+  rcl_action_cancel_state_t state,
+  rmw_request_id_t cancel_request_header)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    action_server, "action server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_action_cancel_response_t cancel_response =
     rcl_action_get_zero_initialized_cancel_response();
-  cancel_response.msg.return_code = action_msgs__srv__CancelGoal_Response__ERROR_REJECTED;
+  cancel_response.msg.return_code = state;
+
   return rcl_action_send_cancel_response(
-    &goal_handle->action_server->rcl_handle,
-    &goal_handle->cancel_request_header, &cancel_response.msg);
+    &action_server->rcl_handle,
+    &cancel_request_header, &cancel_response.msg);
 }
 
 rcl_ret_t rclc_action_publish_feedback(
@@ -299,6 +151,43 @@ rcl_ret_t rclc_action_publish_feedback(
     feedback->goal_id.uuid, goal_handle->goal_id.uuid,
     sizeof(feedback->goal_id.uuid));
   rcl_ret_t rc = rcl_action_publish_feedback(&goal_handle->action_server->rcl_handle, feedback);
+  return rc;
+}
+
+rcl_ret_t rclc_action_send_result(
+  rclc_action_goal_handle_t * goal_handle,
+  rcl_action_goal_state_t status,
+  void * ros_response)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    status, "status is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    ros_response, "feedback is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  if (!rclc_action_server_is_valid_handle(goal_handle)) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  if (status <= GOAL_STATE_CANCELING) {
+    return RCL_RET_INVALID_ARGUMENT;
+  } else if (goal_handle->status != GOAL_STATE_EXECUTING &&
+    goal_handle->status != GOAL_STATE_CANCELING)
+  {
+    return RCLC_RET_ACTION_WAIT_RESULT_REQUEST;
+  }
+
+  Generic_GetResult_Response * response = (Generic_GetResult_Response *)ros_response;
+  response->status = status;
+
+  rcl_ret_t rc = rcl_action_send_result_response(
+    &goal_handle->action_server->rcl_handle,
+    &goal_handle->result_request_header, response);
+
+  goal_handle->status = status;
+  goal_handle->action_server->goal_ended = true;
+
   return rc;
 }
 

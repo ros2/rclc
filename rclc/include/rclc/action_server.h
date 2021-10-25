@@ -29,6 +29,8 @@ extern "C"
 #include <rclc/types.h>
 #include <rclc/action_goal_handle.h>
 
+#define RCLC_RET_ACTION_WAIT_RESULT_REQUEST 2104
+
 typedef rcl_ret_t (* rclc_action_server_handle_goal_callback_t)(
   rclc_action_goal_handle_t * goal_handle,
   void * args);
@@ -52,7 +54,8 @@ typedef struct rclc_action_server_t
   bool goal_request_available;
   bool cancel_request_available;
   bool result_request_available;
-  bool goal_expired_available;
+  bool goal_expired_available;  // TODO: implement expired goals
+  bool goal_ended;
 } rclc_action_server_t;
 
 /**
@@ -68,7 +71,7 @@ typedef struct rclc_action_server_t
  *
  * \param[inout] action_server a rcl_action_server_t to be initialized
  * \param[in] node the rcl node
- * \param[in] clock the rcl clock
+ * \param[in] support the rclc_support_t object
  * \param[in] type_support the message data type
  * \param[in] action_name the name of the action
  * \return `RCL_RET_OK` if successful
@@ -79,73 +82,35 @@ rcl_ret_t
 rclc_action_server_init_default(
   rclc_action_server_t * action_server,
   rcl_node_t * node,
-  rcl_clock_t * clock,
+  rclc_support_t * support,
   const rosidl_action_type_support_t * type_support,
   const char * action_name);
 
 /**
- *  Finish a goal with a success status and a result.
+ *  Finish a goal with a given status and result.
+ *  If successful, the goal_handle will be released on the next executor spin.
  *
  *  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | No
  *
  * \param[inout] goal_handle goal handle to be finished
- * \param[in] ros_response the rcl node
+ * \param[in] status goal terminal state
+ * \param[in] ros_response action result message
  * \return `RCL_RET_OK` if successful
+ * \return `RCLC_RET_ACTION_WAIT_RESULT_REQUEST` if the result has not been requested yet.
  * \return `RCL_ERROR` (or other error code) if an error has occurred
  */
 RCLC_PUBLIC
 rcl_ret_t
-rclc_action_server_finish_goal_sucess(
+rclc_action_send_result(
   rclc_action_goal_handle_t * goal_handle,
+  rcl_action_goal_state_t status,
   void * ros_response);
-
-/**
- *  Finish a goal with a abort status and a optional result.
- *
- *  * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | No
- *
- * \param[inout] goal_handle goal handle to be aborted
- * \param[in] ros_response goal result
- * \return `RCL_RET_OK` if successful
- * \return `RCL_ERROR` (or other error code) if an error has occurred
- */
-RCLC_PUBLIC
-rcl_ret_t
-rclc_action_server_finish_goal_abort(
-  rclc_action_goal_handle_t * goal_handle,
-  void * ros_response);
-
-/**
- *  Finish a goal with a cancel status.
- *
- *  * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | No
- *
- * \param[inout] goal_handle goal handle to be cancelled
- * \return `RCL_RET_OK` if successful
- * \return `RCL_ERROR` (or other error code) if an error has occurred
- */
-RCLC_PUBLIC
-rcl_ret_t
-rclc_action_server_finish_goal_cancel(
-  rclc_action_goal_handle_t * goal_handle);
 
 /**
  *  Publish feedback for a goal.

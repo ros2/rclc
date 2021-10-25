@@ -28,17 +28,19 @@ extern "C"
 #include <rclc/action_goal_handle.h>
 
 rcl_ret_t
-rclc_action_server_accept_goal_request(
-  rclc_action_goal_handle_t * goal_handle);
+rclc_action_server_response_goal_request(
+  rclc_action_goal_handle_t * goal_handle,
+  const bool accepted);
 
 rcl_ret_t
-rclc_action_server_reject_goal_request(
+rclc_action_server_goal_cancel_accept(
   rclc_action_goal_handle_t * goal_handle);
 
 rcl_ret_t
 rclc_action_server_goal_cancel_reject(
-  rclc_action_goal_handle_t * goal_handle);
-
+  rclc_action_server_t * action_server,
+  rcl_action_cancel_state_t state,
+  rmw_request_id_t cancel_request_header);
 
 #if __cplusplus
 }

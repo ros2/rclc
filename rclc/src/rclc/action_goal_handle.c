@@ -86,6 +86,14 @@ rclc_action_goal_handle_t * rclc_action_take_goal_handle(
     &entity->free_goal_handles);
 
   if (NULL != handle) {
+    // Initialize handle
+    handle->available_goal_response = false;
+    handle->goal_accepted = false;
+    handle->available_feedback = false;
+    handle->available_result_response = false;
+    handle->available_cancel_response = false;
+    handle->goal_cancelled = false;
+    handle->status = GOAL_STATE_UNKNOWN;
     rclc_action_put_goal_handle_in_list(&entity->used_goal_handles, handle);
   }
 
@@ -139,6 +147,33 @@ rclc_action_goal_handle_t * rclc_action_get_first_handle_by_status(
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
     if (handle->status == status) {
+      return handle;
+    }
+    handle = handle->next;
+  }
+  return handle;
+}
+
+rclc_action_goal_handle_t * rclc_action_get_next_handle_by_status(
+  rclc_action_goal_handle_t * handle,
+  rcl_action_goal_state_t status)
+{
+  while (NULL != handle) {
+    if (handle->status == status) {
+      return handle;
+    }
+    handle = handle->next;
+  }
+  return handle;
+}
+
+rclc_action_goal_handle_t * rclc_action_get_first_terminated_handle(
+  void * untyped_entity)
+{
+  rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
+  rclc_action_goal_handle_t * handle = entity->used_goal_handles;
+  while (NULL != handle) {
+    if (handle->status > GOAL_STATE_CANCELING) {
       return handle;
     }
     handle = handle->next;
