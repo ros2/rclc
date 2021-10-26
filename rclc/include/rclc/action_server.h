@@ -54,7 +54,7 @@ typedef struct rclc_action_server_t
   bool goal_request_available;
   bool cancel_request_available;
   bool result_request_available;
-  bool goal_expired_available;  // TODO: implement expired goals
+  bool goal_expired_available;  // TODO(acuadros95): implement expired goals
   bool goal_ended;
 } rclc_action_server_t;
 

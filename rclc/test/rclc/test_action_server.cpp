@@ -481,7 +481,6 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
   std::thread feedback_thread;
   handle_goal =
     [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
-
       feedback_thread = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
