@@ -43,6 +43,7 @@ rclc_support_init(
   }
 
   rc = rclc_support_init_with_options(support, argc, argv, &init_options, allocator);
+  rcl_init_options_fini(&init_options);
 
   return rc;
 }
@@ -63,7 +64,7 @@ rclc_support_init_with_options(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
 
-  memcpy(&support->init_options, init_options, sizeof(rcl_init_options_t));
+  rcl_init_options_copy(init_options, &support->init_options);
 
   support->context = rcl_get_zero_initialized_context();
   rc = rcl_init(argc, argv, &support->init_options, &support->context);
