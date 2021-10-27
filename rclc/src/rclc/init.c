@@ -64,6 +64,7 @@ rclc_support_init_with_options(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t rc = RCL_RET_OK;
 
+  support->init_options = rcl_get_zero_initialized_init_options();
   rcl_init_options_copy(init_options, &support->init_options);
 
   support->context = rcl_get_zero_initialized_context();
