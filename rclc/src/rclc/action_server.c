@@ -171,8 +171,9 @@ rcl_ret_t rclc_action_send_result(
 
   if (status <= GOAL_STATE_CANCELING) {
     return RCL_RET_INVALID_ARGUMENT;
-  } else if (goal_handle->status != GOAL_STATE_EXECUTING &&
-    goal_handle->status != GOAL_STATE_CANCELING) {
+  } else if (goal_handle->status != GOAL_STATE_EXECUTING && // NOLINT
+    goal_handle->status != GOAL_STATE_CANCELING)
+  {
     return RCLC_RET_ACTION_WAIT_RESULT_REQUEST;
   }
 
