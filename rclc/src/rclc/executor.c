@@ -1156,7 +1156,6 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-        
         rclc_action_goal_handle_t * goal_handle =
           rclc_action_find_handle_by_goal_request_sequence_number(
           handle->action_client, aux_goal_response_header.sequence_number);
@@ -1175,7 +1174,6 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-
         rclc_action_goal_handle_t * goal_handle = rclc_action_find_goal_handle_by_uuid(
           handle->action_client,
           &handle->action_client->ros_feedback->goal_id);
@@ -1189,18 +1187,15 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           &handle->action_client->rcl_handle,
           &cancel_response_header,
           &handle->action_client->ros_cancel_response);
-
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_response);
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-
         rclc_action_goal_handle_t * goal_handle =
           rclc_action_find_handle_by_cancel_request_sequence_number(
           handle->action_client,
           cancel_response_header.sequence_number);
-
         if (NULL != goal_handle) {
           goal_handle->available_cancel_response = true;
           goal_handle->goal_cancelled = false;
@@ -1222,13 +1217,11 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           &handle->action_client->rcl_handle,
           &result_request_header,
           handle->action_client->ros_result_response);
-
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_response);
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-
         rclc_action_goal_handle_t * goal_handle =
           rclc_action_find_handle_by_result_request_sequence_number(
           handle->action_client, result_request_header.sequence_number);
@@ -1244,7 +1237,6 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           rclc_action_take_goal_handle(handle->action_server);
         if (NULL != goal_handle) {
           goal_handle->action_server = handle->action_server;
-
           rc = rcl_action_take_goal_request(
             &handle->action_server->rcl_handle,
             &goal_handle->goal_request_header,
@@ -1255,7 +1247,6 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
             return rc;
           }
-
           goal_handle->goal_id = goal_handle->ros_goal_request->goal_id;
           goal_handle->status = GOAL_STATE_UNKNOWN;
         }
