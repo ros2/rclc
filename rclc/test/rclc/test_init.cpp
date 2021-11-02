@@ -73,7 +73,7 @@ TEST(Test, rclc_support_fini) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rc = rclc_support_init(&support, 0, nullptr, &allocator);
   EXPECT_EQ(RCL_RET_OK, rc);
-  rclc_support_fini(&support);
+  rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
   // test invalid arguments
   rc = rclc_support_fini(nullptr);
@@ -81,6 +81,6 @@ TEST(Test, rclc_support_fini) {
   rcutils_reset_error();
   // test calling twice
   rc = rclc_support_fini(&support);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
+  EXPECT_EQ(RCL_RET_ERROR, rc);
   rcutils_reset_error();
 }
