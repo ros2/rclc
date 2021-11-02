@@ -1249,7 +1249,6 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
             &handle->action_server->rcl_handle,
             &goal_handle->goal_request_header,
             goal_handle->ros_goal_request);
-
           if (rc != RCL_RET_OK) {
             rclc_action_put_goal_handle(handle->action_server, goal_handle);
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_goal_request);
