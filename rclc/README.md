@@ -547,7 +547,6 @@ the parameters used in multiple RCL initialization functions:
 ```C
 typedef struct
 {
-  rcl_init_options_t init_options;
   rcl_context_t context;
   rcl_allocator_t * allocator;
   rcl_clock_t clock;
