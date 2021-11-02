@@ -123,7 +123,7 @@ void rclc_action_put_goal_handle(
 
 rclc_action_goal_handle_t * rclc_action_get_handle_by_uuid(
   void * untyped_entity,
-  const unique_identifier_msgs__msg__UUID * uuid)
+  const unique_identifier_msgs__msg__UUID * uuid_msg)
 {
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
