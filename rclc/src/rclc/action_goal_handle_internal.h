@@ -36,10 +36,10 @@ bool rclc_action_check_handle_in_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle);
 
-rclc_action_goal_handle_t * rclc_action_pop_goal_handle_from_list(
+rclc_action_goal_handle_t * rclc_action_pop_first_goal_handle_from_list(
   rclc_action_goal_handle_t ** list);
 
-rclc_action_goal_handle_t * rclc_action_take_goal_handle_from_list(
+bool rclc_action_pop_goal_handle_from_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle);
 
