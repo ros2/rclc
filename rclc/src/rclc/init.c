@@ -43,7 +43,9 @@ rclc_support_init(
   }
 
   rc = rclc_support_init_with_options(support, argc, argv, &init_options, allocator);
-  rcl_init_options_fini(&init_options);
+  if (rcl_init_options_fini(&init_options) != RCL_RET_OK) {
+    PRINT_RCLC_ERROR(rclc_support_init, rcl_init_options_fini);
+  }
 
   return rc;
 }
