@@ -1157,7 +1157,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           return rc;
         }
         rclc_action_goal_handle_t * goal_handle =
-          rclc_action_get_handle_by_goal_request_sequence_number(
+          rclc_action_find_handle_by_goal_request_sequence_number(
           handle->action_client, aux_goal_response_header.sequence_number);
         if (NULL != goal_handle) {
           goal_handle->available_goal_response = true;
@@ -1175,7 +1175,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           return rc;
         }
 
-        rclc_action_goal_handle_t * goal_handle = rclc_action_get_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
           handle->action_client,
           &handle->action_client->ros_feedback->goal_id);
         if (NULL != goal_handle) {
@@ -1196,7 +1196,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
         }
 
         rclc_action_goal_handle_t * goal_handle =
-          rclc_action_get_handle_by_cancel_request_sequence_number(
+          rclc_action_find_handle_by_cancel_request_sequence_number(
           handle->action_client,
           cancel_response_header.sequence_number);
 
@@ -1206,7 +1206,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           for (size_t i = 0; i < handle->action_client->ros_cancel_response.goals_canceling.size;
             i++)
           {
-            rclc_action_goal_handle_t * aux = rclc_action_get_handle_by_uuid(
+            rclc_action_goal_handle_t * aux = rclc_action_find_handle_by_uuid(
               handle->action_client,
               &handle->action_client->ros_cancel_response.goals_canceling.data[i].goal_id);
             if (NULL != aux) {
@@ -1229,7 +1229,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
         }
 
         rclc_action_goal_handle_t * goal_handle =
-          rclc_action_get_handle_by_result_request_sequence_number(
+          rclc_action_find_handle_by_result_request_sequence_number(
           handle->action_client, result_request_header.sequence_number);
         if (NULL != goal_handle) {
           goal_handle->available_result_response = true;
@@ -1272,7 +1272,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-        rclc_action_goal_handle_t * goal_handle = rclc_action_get_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
           handle->action_server, &aux_result_request.goal_id);
         if (NULL != goal_handle) {
           goal_handle->result_request_header = aux_result_request_header;
@@ -1293,7 +1293,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-        rclc_action_goal_handle_t * goal_handle = rclc_action_get_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
           handle->action_server, &aux_cancel_request.goal_info.goal_id);
         if (NULL != goal_handle) {
           if (GOAL_STATE_CANCELING == rcl_action_transition_goal_state(
@@ -1515,7 +1515,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_client->goal_response_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
-            rclc_action_get_first_handle_with_goal_response(handle->action_client),
+            rclc_action_find_first_handle_with_goal_response(handle->action_client),
             NULL != goal_handle)
           {
             goal_handle->available_goal_response = false;
@@ -1533,7 +1533,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         if (handle->action_client->feedback_available) {
           rclc_action_goal_handle_t * goal_handle;
-          while (goal_handle = rclc_action_get_first_handle_with_feedback(handle->action_client),
+          while (goal_handle = rclc_action_find_first_handle_with_feedback(handle->action_client),
             NULL != goal_handle)
           {
             goal_handle->available_feedback = false;
@@ -1546,7 +1546,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_client->cancel_response_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
-            rclc_action_get_first_handle_with_cancel_response(handle->action_client),
+            rclc_action_find_first_handle_with_cancel_response(handle->action_client),
             NULL != goal_handle)
           {
             goal_handle->available_cancel_response = false;
@@ -1561,7 +1561,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_client->result_response_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
-            rclc_action_get_first_handle_with_result_response(handle->action_client),
+            rclc_action_find_first_handle_with_result_response(handle->action_client),
             NULL != goal_handle)
           {
             goal_handle->available_result_response = false;
@@ -1578,7 +1578,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_server->goal_ended) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
-            rclc_action_get_first_terminated_handle(handle->action_server),
+            rclc_action_find_first_terminated_handle(handle->action_server),
             NULL != goal_handle)
           {
             rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
@@ -1588,7 +1588,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_server->goal_request_available) {
           rclc_action_goal_handle_t * goal_handle;
           while (goal_handle =
-            rclc_action_get_first_handle_by_status(handle->action_server, GOAL_STATE_UNKNOWN),
+            rclc_action_find_first_handle_by_status(handle->action_server, GOAL_STATE_UNKNOWN),
             NULL != goal_handle)
           {
             rcl_ret_t ret = handle->action_server->goal_callback(
@@ -1612,7 +1612,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         if (handle->action_server->cancel_request_available) {
           rclc_action_goal_handle_t * goal_handle = handle->action_server->used_goal_handles;
           while (goal_handle =
-            rclc_action_get_next_handle_by_status(goal_handle, GOAL_STATE_CANCELING),
+            rclc_action_find_next_handle_by_status(goal_handle, GOAL_STATE_CANCELING),
             NULL != goal_handle)
           {
             goal_handle->goal_cancelled =

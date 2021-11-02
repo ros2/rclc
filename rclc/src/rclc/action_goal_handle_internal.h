@@ -53,43 +53,43 @@ void rclc_action_put_goal_handle(
   void * untyped_entity,
   rclc_action_goal_handle_t * goal_handle);
 
-rclc_action_goal_handle_t * rclc_action_get_handle_by_uuid(
+rclc_action_goal_handle_t * rclc_action_find_handle_by_uuid(
   void * untyped_entity,
   const unique_identifier_msgs__msg__UUID * uuid_msg);
 
-rclc_action_goal_handle_t * rclc_action_get_first_handle_by_status(
+rclc_action_goal_handle_t * rclc_action_find_first_handle_by_status(
   void * untyped_entity,
   rcl_action_goal_state_t status);
 
-rclc_action_goal_handle_t * rclc_action_get_next_handle_by_status(
+rclc_action_goal_handle_t * rclc_action_find_next_handle_by_status(
   rclc_action_goal_handle_t * handle,
   rcl_action_goal_state_t status);
 
-rclc_action_goal_handle_t * rclc_action_get_handle_by_goal_request_sequence_number(
+rclc_action_goal_handle_t * rclc_action_find_handle_by_goal_request_sequence_number(
   void * untyped_entity,
   const int64_t goal_request_sequence_number);
 
-rclc_action_goal_handle_t * rclc_action_get_first_terminated_handle(
+rclc_action_goal_handle_t * rclc_action_find_first_terminated_handle(
   void * untyped_entity);
 
-rclc_action_goal_handle_t * rclc_action_get_handle_by_result_request_sequence_number(
+rclc_action_goal_handle_t * rclc_action_find_handle_by_result_request_sequence_number(
   void * untyped_entity,
   const int64_t result_request_sequence_number);
 
-rclc_action_goal_handle_t * rclc_action_get_handle_by_cancel_request_sequence_number(
+rclc_action_goal_handle_t * rclc_action_find_handle_by_cancel_request_sequence_number(
   void * untyped_entity,
   const int64_t cancel_request_sequence_number);
 
-rclc_action_goal_handle_t * rclc_action_get_first_handle_with_goal_response(
+rclc_action_goal_handle_t * rclc_action_find_first_handle_with_goal_response(
   void * untyped_entity);
 
-rclc_action_goal_handle_t * rclc_action_get_first_handle_with_feedback(
+rclc_action_goal_handle_t * rclc_action_find_first_handle_with_feedback(
   void * untyped_entity);
 
-rclc_action_goal_handle_t * rclc_action_get_first_handle_with_result_response(
+rclc_action_goal_handle_t * rclc_action_find_first_handle_with_result_response(
   void * untyped_entity);
 
-rclc_action_goal_handle_t * rclc_action_get_first_handle_with_cancel_response(
+rclc_action_goal_handle_t * rclc_action_find_first_handle_with_cancel_response(
   void * untyped_entity);
 
 #if __cplusplus
