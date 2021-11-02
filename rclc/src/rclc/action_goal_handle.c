@@ -128,7 +128,7 @@ rclc_action_goal_handle_t * rclc_action_get_handle_by_uuid(
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
-    if (uuidcmp(handle->goal_id.uuid, uuid->uuid)) {
+    if (uuidcmp(handle->goal_id.uuid, uuid_msg->uuid)) {
       return handle;
     }
     handle = handle->next;
