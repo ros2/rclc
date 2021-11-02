@@ -49,7 +49,7 @@ bool rclc_action_check_handle_in_list(
   return false;
 }
 
-rclc_action_goal_handle_t * rclc_action_pop_goal_handle_from_list(
+rclc_action_goal_handle_t * rclc_action_pop_first_goal_handle_from_list(
   rclc_action_goal_handle_t ** list)
 {
   rclc_action_goal_handle_t * handle = *list;
@@ -57,31 +57,31 @@ rclc_action_goal_handle_t * rclc_action_pop_goal_handle_from_list(
   return handle;
 }
 
-rclc_action_goal_handle_t * rclc_action_take_goal_handle_from_list(
+bool rclc_action_pop_goal_handle_from_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle)
 {
   rclc_action_goal_handle_t * handle = *list;
   if (goal_handle == handle) {
     *list = handle->next;
-    return goal_handle;
+    return true;
   }
 
   while (NULL != handle) {
     if (handle->next == goal_handle) {
       handle->next = goal_handle->next;
-      return goal_handle;
+      return true;
     }
     handle = handle->next;
   }
-  return NULL;
+  return false;
 }
 
 rclc_action_goal_handle_t * rclc_action_take_goal_handle(
   void * untyped_entity)
 {
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
-  rclc_action_goal_handle_t * handle = rclc_action_pop_goal_handle_from_list(
+  rclc_action_goal_handle_t * handle = rclc_action_pop_first_goal_handle_from_list(
     &entity->free_goal_handles);
 
   if (NULL != handle) {
@@ -116,10 +116,8 @@ void rclc_action_put_goal_handle(
   rclc_action_goal_handle_t * goal_handle)
 {
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
-  rclc_action_goal_handle_t * handle = rclc_action_take_goal_handle_from_list(
-    &entity->used_goal_handles, goal_handle);
-  if (NULL != handle) {
-    rclc_action_put_goal_handle_in_list(&entity->free_goal_handles, handle);
+  if (rclc_action_pop_goal_handle_from_list(&entity->used_goal_handles, goal_handle)) {
+    rclc_action_put_goal_handle_in_list(&entity->free_goal_handles, goal_handle);
   }
 }
 
