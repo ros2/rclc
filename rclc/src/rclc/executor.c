@@ -1370,29 +1370,29 @@ bool _rclc_check_handle_data_available(rclc_executor_handle_t * handle)
 {
   switch (handle->type) {
     case ACTION_CLIENT:
-      if (handle->action_client->feedback_available == true ||
-        handle->action_client->status_available == true ||
-        handle->action_client->goal_response_available == true ||
-        handle->action_client->cancel_response_available == true ||
-        handle->action_client->result_response_available == true)
+      if (handle->action_client->feedback_available ||
+        handle->action_client->status_available ||
+        handle->action_client->goal_response_available ||
+        handle->action_client->cancel_response_available ||
+        handle->action_client->result_response_available)
       {
         return true;
       }
       break;
 
     case ACTION_SERVER:
-      if (handle->action_server->goal_request_available == true ||
-        handle->action_server->cancel_request_available == true ||
-        handle->action_server->goal_expired_available == true ||
-        handle->action_server->result_request_available == true ||
-        handle->action_server->goal_ended == true)
+      if (handle->action_server->goal_request_available ||
+        handle->action_server->cancel_request_available ||
+        handle->action_server->goal_expired_available ||
+        handle->action_server->result_request_available ||
+        handle->action_server->goal_ended)
       {
         return true;
       }
       break;
 
     default:
-      if (handle->data_available == true) {
+      if (handle->data_available) {
         return true;
       }
       break;
@@ -2043,7 +2043,7 @@ bool rclc_executor_trigger_any(rclc_executor_handle_t * handles, unsigned int si
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
-      if (_rclc_check_handle_data_available(&handles[i]) == true) {
+      if (_rclc_check_handle_data_available(&handles[i])) {
         return true;
       }
     } else {
@@ -2060,7 +2060,7 @@ bool rclc_executor_trigger_one(rclc_executor_handle_t * handles, unsigned int si
   // because for last index i==size this would result in out-of-bound access
   for (unsigned int i = 0; i < size; i++) {
     if (handles[i].initialized) {
-      if (_rclc_check_handle_data_available(&handles[i]) == true) {
+      if (_rclc_check_handle_data_available(&handles[i])) {
         void * handle_obj_ptr = rclc_executor_handle_get_ptr(&handles[i]);
         if (NULL == handle_obj_ptr) {
           // rclc_executor_handle_get_ptr returns null for unsupported types
