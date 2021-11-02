@@ -121,7 +121,7 @@ void rclc_action_put_goal_handle(
   }
 }
 
-rclc_action_goal_handle_t * rclc_action_find_handle_by_goal_uuid(
+rclc_action_goal_handle_t * rclc_action_find_goal_handle_by_uuid(
   void * untyped_entity,
   const unique_identifier_msgs__msg__UUID * uuid_msg)
 {
