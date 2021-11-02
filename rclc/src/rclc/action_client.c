@@ -93,6 +93,7 @@ rclc_action_send_goal_request(
   rclc_action_goal_handle_t * handle = rclc_action_take_goal_handle(action_client);
 
   if (NULL == handle) {
+    PRINT_RCLC_ERROR(rclc_action_send_goal_request, rclc_action_take_goal_handle);
     return RCL_RET_ERROR;
   }
 
