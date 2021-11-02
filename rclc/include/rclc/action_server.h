@@ -145,7 +145,7 @@ rclc_action_publish_feedback(
  * Uses Atomics       | No
  * Lock-Free          | No
  *
- * \param[in] action_server a action client to fini
+ * \param[in] action_server the action server to be finialized
  * \param[in] node owner node
  * \return `RCL_RET_OK` if successful
  * \return `RCL_ERROR` (or other error code) if an error has occurred
