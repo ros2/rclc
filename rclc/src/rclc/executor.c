@@ -1175,7 +1175,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           return rc;
         }
 
-        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_goal_uuid(
           handle->action_client,
           &handle->action_client->ros_feedback->goal_id);
         if (NULL != goal_handle) {
@@ -1206,7 +1206,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           for (size_t i = 0; i < handle->action_client->ros_cancel_response.goals_canceling.size;
             i++)
           {
-            rclc_action_goal_handle_t * aux = rclc_action_find_handle_by_uuid(
+            rclc_action_goal_handle_t * aux = rclc_action_find_handle_by_goal_uuid(
               handle->action_client,
               &handle->action_client->ros_cancel_response.goals_canceling.data[i].goal_id);
             if (NULL != aux) {
@@ -1272,7 +1272,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_goal_uuid(
           handle->action_server, &aux_result_request.goal_id);
         if (NULL != goal_handle) {
           goal_handle->result_request_header = aux_result_request_header;
@@ -1293,7 +1293,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
-        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_uuid(
+        rclc_action_goal_handle_t * goal_handle = rclc_action_find_handle_by_goal_uuid(
           handle->action_server, &aux_cancel_request.goal_info.goal_id);
         if (NULL != goal_handle) {
           if (GOAL_STATE_CANCELING == rcl_action_transition_goal_state(
