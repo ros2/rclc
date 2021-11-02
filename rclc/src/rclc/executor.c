@@ -1156,6 +1156,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
+        
         rclc_action_goal_handle_t * goal_handle =
           rclc_action_find_handle_by_goal_request_sequence_number(
           handle->action_client, aux_goal_response_header.sequence_number);
