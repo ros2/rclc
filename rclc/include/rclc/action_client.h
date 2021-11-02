@@ -1,6 +1,5 @@
 // Copyright (c) 2019 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
-// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -81,7 +80,7 @@ typedef struct rclc_action_client_t
  * Uses Atomics       | No
  * Lock-Free          | No
  *
- * \param[inout] action_client a action rclc_action_client_t to be initialized
+ * \param[inout] action_client the action client of type rclc_action_client_t to be initialized
  * \param[in] node the rcl node
  * \param[in] type_support the message data type
  * \param[in] action_name the name of the action
@@ -107,7 +106,7 @@ rclc_action_client_init_default(
  * Uses Atomics       | No
  * Lock-Free          | No
  *
- * \param[in] action_client a action rclc_action_client_t
+ * \param[in] action_client the action client for this action request
  * \param[in] ros_request untyped ros action request
  * \param[inout] goal_handle (optional) returns the goal handle used to track the goal
  * \return `RCL_RET_OK` if successful
@@ -151,7 +150,7 @@ rclc_action_send_cancel_request(
  * Uses Atomics       | No
  * Lock-Free          | No
  *
- * \param[in] action_client a action client to fini
+ * \param[in] action_client the action client to be finialized
  * \param[in] node owner node
  * \return `RCL_RET_OK` if successful
  * \return `RCL_ERROR` (or other error code) if an error has occurred
