@@ -61,6 +61,9 @@ rclc_action_server_init_default(
 static bool rclc_action_server_is_valid_handle(
   rclc_action_goal_handle_t * goal_handle)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal_handle is a null pointer", return false);
+
   return rclc_action_check_handle_in_list(
     &goal_handle->action_server->used_goal_handles,
     goal_handle);
@@ -149,8 +152,7 @@ rcl_ret_t rclc_action_publish_feedback(
   memcpy(
     feedback->goal_id.uuid, goal_handle->goal_id.uuid,
     sizeof(feedback->goal_id.uuid));
-  rcl_ret_t rc = rcl_action_publish_feedback(&goal_handle->action_server->rcl_handle, feedback);
-  return rc;
+  return rcl_action_publish_feedback(&goal_handle->action_server->rcl_handle, feedback);
 }
 
 rcl_ret_t rclc_action_send_result(
@@ -160,8 +162,6 @@ rcl_ret_t rclc_action_send_result(
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    status, "status is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     ros_response, "ros_response is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 

@@ -62,6 +62,9 @@ static void set_uuid(
   static uint64_t uuid_lsb = 0;
   static uint64_t uuid_msb = 0;
 
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    uuid, "uuid is a null pointer", return );
+
   if (!uuid_gen_init) {
     uuid_gen_init = true;
     srand(time(NULL));
