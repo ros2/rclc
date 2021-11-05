@@ -129,7 +129,7 @@ rclc_action_send_result_request(
   rclc_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   Generic_GetResult_Request result_request;
 
@@ -152,7 +152,7 @@ rclc_action_send_cancel_request(
   rclc_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   action_msgs__srv__CancelGoal_Request cancel_request;
 
@@ -163,7 +163,7 @@ rclc_action_send_cancel_request(
     &cancel_request,
     &goal_handle->cancel_request_sequence_number);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_send_result_request, rcl_action_send_result_request);
+    PRINT_RCLC_ERROR(rclc_action_send_cancel_request, rcl_action_send_cancel_request);
     return rc;
   }
 
@@ -177,7 +177,7 @@ rclc_action_client_fini(
   rcl_node_t * node)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    action_client, "actionclient is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    action_client, "action_client is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
