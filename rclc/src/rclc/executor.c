@@ -1165,7 +1165,9 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           goal_handle->goal_accepted = aux_goal_response.accepted;
         }
       }
-      if (handle->action_client->feedback_available) {
+      if (handle->action_client->feedback_callback != NULL &&
+        handle->action_client->feedback_available)
+      {
         rc = rcl_action_take_feedback(
           &handle->action_client->rcl_handle,
           handle->action_client->ros_feedback);
