@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for information on the respective copyright owner
+// Copyright (c) 2021 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@ rclc_action_server_response_goal_request(
   const bool accepted)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rclc_action_server_t * action_server = goal_handle->action_server;
 
@@ -83,7 +83,7 @@ rclc_action_server_response_goal_request(
     &action_server->rcl_handle,
     &goal_handle->goal_request_header, &res);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_action_server_accept_request, rcl_action_send_goal_response);
+    PRINT_RCLC_ERROR(rclc_action_server_response_goal_request, rcl_action_send_goal_response);
     return rc;
   }
 
@@ -95,7 +95,7 @@ rclc_action_server_goal_cancel_accept(
   rclc_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_action_cancel_response_t cancel_response =
     rcl_action_get_zero_initialized_cancel_response();
@@ -120,7 +120,7 @@ rclc_action_server_goal_cancel_reject(
   rmw_request_id_t cancel_request_header)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    action_server, "action server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    action_server, "action_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_action_cancel_response_t cancel_response =
     rcl_action_get_zero_initialized_cancel_response();
@@ -136,9 +136,9 @@ rcl_ret_t rclc_action_publish_feedback(
   void * ros_feedback)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    ros_feedback, "feedback is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    ros_feedback, "ros_feedback is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (!rclc_action_server_is_valid_handle(goal_handle)) {
     return RCL_RET_INVALID_ARGUMENT;
@@ -159,11 +159,11 @@ rcl_ret_t rclc_action_send_result(
   void * ros_response)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    goal_handle, "goal handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    goal_handle, "goal_handle is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     status, "status is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    ros_response, "feedback is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    ros_response, "ros_response is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (!rclc_action_server_is_valid_handle(goal_handle)) {
     return RCL_RET_INVALID_ARGUMENT;
