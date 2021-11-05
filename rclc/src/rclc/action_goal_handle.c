@@ -1,4 +1,4 @@
-// Copyright (c) 2019 - for information on the respective copyright owner
+// Copyright (c) 2021 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

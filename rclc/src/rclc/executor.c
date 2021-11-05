@@ -882,7 +882,7 @@ rclc_executor_add_action_client(
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_client function.");
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_action_client function.");
       return ret;
     }
   }
@@ -905,7 +905,7 @@ rclc_executor_add_action_client(
   executor->info.number_of_services += num_services;
 
   executor->info.number_of_action_clients++;
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a action client.");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added an action client.");
   return ret;
 }
 
@@ -984,7 +984,7 @@ rclc_executor_add_action_server(
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     ret = rcl_wait_set_fini(&executor->wait_set);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_client function.");
+      RCL_SET_ERROR_MSG("Could not reset wait_set in rclc_executor_add_action_server function.");
       return ret;
     }
   }
@@ -1188,7 +1188,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           &cancel_response_header,
           &handle->action_client->ros_cancel_response);
         if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_response);
+          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_cancel_response);
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
@@ -1280,7 +1280,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
           &aux_cancel_request_header,
           &aux_cancel_request);
         if (rc != RCL_RET_OK) {
-          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_result_request);
+          PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_cancel_request);
           RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           return rc;
         }
@@ -1875,7 +1875,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
             "Action client added to wait_set_action_clients[%ld]",
             executor->handles[i].index);
         } else {
-          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_action_client);
           return rc;
         }
         break;
@@ -1891,7 +1891,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
             "Action server added to wait_set_action_servers[%ld]",
             executor->handles[i].index);
         } else {
-          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
+          PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_action_server);
           return rc;
         }
         break;
