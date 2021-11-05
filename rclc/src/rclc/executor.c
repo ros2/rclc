@@ -1593,15 +1593,14 @@ _rclc_execute(rclc_executor_handle_t * handle)
               goal_handle,
               handle->callback_context);
             switch (ret) {
-              case RCL_RET_ACTION_GOAL_REJECTED:
-                rclc_action_server_response_goal_request(goal_handle, false);
-                rclc_action_put_goal_handle(handle->action_server, goal_handle);
-                break;
               case RCL_RET_ACTION_GOAL_ACCEPTED:
                 rclc_action_server_response_goal_request(goal_handle, true);
                 goal_handle->status = GOAL_STATE_ACCEPTED;
                 break;
+              case RCL_RET_ACTION_GOAL_REJECTED:
               default:
+                rclc_action_server_response_goal_request(goal_handle, false);
+                rclc_action_put_goal_handle(handle->action_server, goal_handle);
                 break;
             }
           }
