@@ -810,7 +810,6 @@ rclc_executor_add_action_client(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(handles_number, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_result_response, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_callback, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(result_callback, RCL_RET_INVALID_ARGUMENT);
@@ -923,11 +922,13 @@ rclc_executor_add_action_server(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(handles_number, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_request, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_request_size, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_callback, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_callback, RCL_RET_INVALID_ARGUMENT);
+
+  if (ros_goal_request_size <= 0) {
+    return RCL_RET_ERROR;
+  }
 
   rcl_ret_t ret = RCL_RET_OK;
 
@@ -1359,6 +1360,8 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
 
 bool _rclc_check_handle_data_available(rclc_executor_handle_t * handle)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(handle, false);
+
   switch (handle->type) {
     case ACTION_CLIENT:
       if (handle->action_client->feedback_available ||
@@ -1528,10 +1531,12 @@ _rclc_execute(rclc_executor_handle_t * handle)
             NULL != goal_handle)
           {
             goal_handle->available_feedback = false;
-            handle->action_client->feedback_callback(
-              goal_handle,
-              handle->action_client->ros_feedback,
-              handle->callback_context);
+            if (handle->action_client->feedback_callback != NULL) {
+              handle->action_client->feedback_callback(
+                goal_handle,
+                handle->action_client->ros_feedback,
+                handle->callback_context);
+            }
           }
         }
         if (handle->action_client->cancel_response_available) {
