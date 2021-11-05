@@ -31,6 +31,11 @@ void rclc_action_put_goal_handle_in_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    list, "list is a null pointer", return );
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal_handle is a null pointer", return );
+
   goal_handle->next = *list;
   *list = goal_handle;
 }
@@ -39,6 +44,11 @@ bool rclc_action_check_handle_in_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    list, "list is a null pointer", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal_handle is a null pointer", return false);
+
   rclc_action_goal_handle_t * handle = *list;
   while (NULL != handle) {
     if (handle == goal_handle) {
@@ -52,6 +62,9 @@ bool rclc_action_check_handle_in_list(
 rclc_action_goal_handle_t * rclc_action_pop_first_goal_handle_from_list(
   rclc_action_goal_handle_t ** list)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    list, "list is a null pointer", return NULL);
+
   rclc_action_goal_handle_t * handle = *list;
   *list = (*list == NULL ) ? NULL : (*list)->next;
   return handle;
@@ -61,6 +74,11 @@ bool rclc_action_pop_goal_handle_from_list(
   rclc_action_goal_handle_t ** list,
   rclc_action_goal_handle_t * goal_handle)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    list, "list is a null pointer", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal_handle is a null pointer", return false);
+
   rclc_action_goal_handle_t * handle = *list;
   if (goal_handle == handle) {
     *list = handle->next;
@@ -80,6 +98,9 @@ bool rclc_action_pop_goal_handle_from_list(
 rclc_action_goal_handle_t * rclc_action_take_goal_handle(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = rclc_action_pop_first_goal_handle_from_list(
     &entity->free_goal_handles);
@@ -102,6 +123,9 @@ rclc_action_goal_handle_t * rclc_action_take_goal_handle(
 void rclc_action_init_goal_handle_memory(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return );
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   entity->free_goal_handles = entity->goal_handles_memory;
   size_t size = entity->goal_handles_memory_size;
@@ -115,6 +139,11 @@ void rclc_action_put_goal_handle(
   void * untyped_entity,
   rclc_action_goal_handle_t * goal_handle)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return );
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle, "goal_handle is a null pointer", return );
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   if (rclc_action_pop_goal_handle_from_list(&entity->used_goal_handles, goal_handle)) {
     rclc_action_put_goal_handle_in_list(&entity->free_goal_handles, goal_handle);
@@ -125,6 +154,11 @@ rclc_action_goal_handle_t * rclc_action_find_goal_handle_by_uuid(
   void * untyped_entity,
   const unique_identifier_msgs__msg__UUID * uuid_msg)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    uuid_msg, "uuid_msg is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -140,6 +174,9 @@ rclc_action_goal_handle_t * rclc_action_find_first_handle_by_status(
   void * untyped_entity,
   rcl_action_goal_state_t status)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -167,6 +204,9 @@ rclc_action_goal_handle_t * rclc_action_find_next_handle_by_status(
 rclc_action_goal_handle_t * rclc_action_find_first_terminated_handle(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -182,6 +222,9 @@ rclc_action_goal_handle_t * rclc_action_find_handle_by_goal_request_sequence_num
   void * untyped_entity,
   const int64_t goal_request_sequence_number)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -197,6 +240,9 @@ rclc_action_goal_handle_t * rclc_action_find_handle_by_result_request_sequence_n
   void * untyped_entity,
   const int64_t result_request_sequence_number)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -212,6 +258,9 @@ rclc_action_goal_handle_t * rclc_action_find_handle_by_cancel_request_sequence_n
   void * untyped_entity,
   const int64_t cancel_request_sequence_number)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -226,6 +275,9 @@ rclc_action_goal_handle_t * rclc_action_find_handle_by_cancel_request_sequence_n
 rclc_action_goal_handle_t * rclc_action_find_first_handle_with_goal_response(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -240,6 +292,9 @@ rclc_action_goal_handle_t * rclc_action_find_first_handle_with_goal_response(
 rclc_action_goal_handle_t * rclc_action_find_first_handle_with_feedback(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -254,6 +309,9 @@ rclc_action_goal_handle_t * rclc_action_find_first_handle_with_feedback(
 rclc_action_goal_handle_t * rclc_action_find_first_handle_with_result_response(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
@@ -268,6 +326,9 @@ rclc_action_goal_handle_t * rclc_action_find_first_handle_with_result_response(
 rclc_action_goal_handle_t * rclc_action_find_first_handle_with_cancel_response(
   void * untyped_entity)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    untyped_entity, "untyped_entity is a null pointer", return NULL);
+
   rclc_generic_entity_t * entity = (rclc_generic_entity_t *) untyped_entity;
   rclc_action_goal_handle_t * handle = entity->used_goal_handles;
   while (NULL != handle) {
