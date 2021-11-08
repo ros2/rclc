@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2.0.5 (2021-11-08)
+------------------
+* Fix printf in executor spin
+* Fix init options handling
+
 2.0.4 (2021-08-19)
 ------------------
 * Refactoring: remove callback_type
