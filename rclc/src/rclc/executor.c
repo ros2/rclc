@@ -1541,7 +1541,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
           for (goal_handle = handle->action_client->used_goal_handles; NULL != goal_handle;
             goal_handle = goal_handle->next)
           {
-            if (handle->available_feedback) {
+            if (goal_handle->available_feedback) {
               goal_handle->available_feedback = false;
 
               if (handle->action_client->feedback_callback != NULL) {
@@ -1558,7 +1558,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
           for (goal_handle = handle->action_client->used_goal_handles; NULL != goal_handle;
             goal_handle = goal_handle->next)
           {
-            if (handle->available_cancel_response) {
+            if (goal_handle->available_cancel_response) {
               goal_handle->available_cancel_response = false;
 
               if (handle->action_client->cancel_callback != NULL) {
@@ -1658,7 +1658,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
           for (goal_handle = handle->action_server->used_goal_handles; NULL != goal_handle;
             goal_handle = goal_handle->next)
           {
-            if (GOAL_STATE_CANCELING == handle->status) {
+            if (GOAL_STATE_CANCELING == goal_handle->status) {
               goal_handle->goal_cancelled =
                 handle->action_server->cancel_callback(goal_handle, handle->callback_context);
               if (goal_handle->goal_cancelled) {
