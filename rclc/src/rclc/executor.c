@@ -1636,6 +1636,12 @@ _rclc_execute(rclc_executor_handle_t * handle)
     }   // switch-case
   }
 
+  // corresponding callback of this handle has been called => reset data_available flag here
+  // (see also comment in _rclc_read_input_data() function)
+  if (handle->data_available == true) {
+    handle->data_available = false;
+  }
+
   return rc;
 }
 
