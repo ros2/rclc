@@ -1510,10 +1510,12 @@ _rclc_execute(rclc_executor_handle_t * handle)
         // TODO(pablogs9): Handle action client status
         if (handle->action_client->goal_response_available) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for available_goal_response flag
           while (goal_handle =
             rclc_action_find_first_handle_with_goal_response(handle->action_client),
             NULL != goal_handle)
           {
+            // Clear flag
             goal_handle->available_goal_response = false;
             handle->action_client->goal_callback(
               goal_handle, goal_handle->goal_accepted,
@@ -1529,9 +1531,11 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         if (handle->action_client->feedback_available) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for available_feedback flag
           while (goal_handle = rclc_action_find_first_handle_with_feedback(handle->action_client),
             NULL != goal_handle)
           {
+            // Clear flag
             goal_handle->available_feedback = false;
             if (handle->action_client->feedback_callback != NULL) {
               handle->action_client->feedback_callback(
@@ -1543,10 +1547,12 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         if (handle->action_client->cancel_response_available) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for available_cancel_response flag
           while (goal_handle =
             rclc_action_find_first_handle_with_cancel_response(handle->action_client),
             NULL != goal_handle)
           {
+            // Clear flag
             goal_handle->available_cancel_response = false;
             if (handle->action_client->cancel_callback != NULL) {
               handle->action_client->cancel_callback(
@@ -1558,10 +1564,12 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         if (handle->action_client->result_response_available) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for available_result_response flag
           while (goal_handle =
             rclc_action_find_first_handle_with_result_response(handle->action_client),
             NULL != goal_handle)
           {
+            // Clear flag
             goal_handle->available_result_response = false;
             handle->action_client->result_callback(
               goal_handle,
@@ -1575,16 +1583,19 @@ _rclc_execute(rclc_executor_handle_t * handle)
       case ACTION_SERVER:
         if (handle->action_server->goal_ended) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for terminated status (SUCCEEDED, CANCELED or ABORTED)
           while (goal_handle =
             rclc_action_find_first_terminated_handle(handle->action_server),
             NULL != goal_handle)
           {
+            // Pop goal from used goals
             rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
           }
           handle->action_server->goal_ended = false;
         }
         if (handle->action_server->goal_request_available) {
           rclc_action_goal_handle_t * goal_handle;
+          // Check used goals for initial status (UNKNOWN)
           while (goal_handle =
             rclc_action_find_first_handle_by_status(handle->action_server, GOAL_STATE_UNKNOWN),
             NULL != goal_handle)
@@ -1594,11 +1605,13 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->callback_context);
             switch (ret) {
               case RCL_RET_ACTION_GOAL_ACCEPTED:
+                // Modify goal status to accepted
                 rclc_action_server_response_goal_request(goal_handle, true);
                 goal_handle->status = GOAL_STATE_ACCEPTED;
                 break;
               case RCL_RET_ACTION_GOAL_REJECTED:
               default:
+                // Pop rejected goal from used goals
                 rclc_action_server_response_goal_request(goal_handle, false);
                 rclc_action_put_goal_handle(handle->action_server, goal_handle);
                 break;
@@ -1608,6 +1621,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
         }
         if (handle->action_server->cancel_request_available) {
           rclc_action_goal_handle_t * goal_handle = handle->action_server->used_goal_handles;
+          // Iterate used goals for canceling status (GOAL_STATE_CANCELING)
           while (goal_handle =
             rclc_action_find_next_handle_by_status(goal_handle, GOAL_STATE_CANCELING),
             NULL != goal_handle)
@@ -1615,9 +1629,11 @@ _rclc_execute(rclc_executor_handle_t * handle)
             goal_handle->goal_cancelled =
               handle->action_server->cancel_callback(goal_handle, handle->callback_context);
             if (goal_handle->goal_cancelled) {
+              // Accept cancel request and move iteration to next goal
               rclc_action_server_goal_cancel_accept(goal_handle);
               goal_handle = goal_handle->next;
             } else {
+              // Modify goal status back to executing
               rclc_action_server_goal_cancel_reject(
                 handle->action_server, CANCEL_STATE_REJECTED,
                 goal_handle->cancel_request_header);
