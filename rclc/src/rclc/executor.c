@@ -1537,49 +1537,36 @@ _rclc_execute(rclc_executor_handle_t * handle)
           }
         }
         if (handle->action_client->feedback_available) {
-          // Handle action client feedback messages
-          //
-          // Pre-condition:
-          // - goal in action_client->used_goal_handles list
-          // - goal->available_feedback = true
-          //
-          // Post-condition:
-          // - goal->available_feedback = false
           rclc_action_goal_handle_t * goal_handle;
-          while (goal_handle = rclc_action_find_first_handle_with_feedback(handle->action_client),
-            NULL != goal_handle)
+          for (goal_handle = handle->action_client->used_goal_handles; NULL != goal_handle;
+            goal_handle = goal_handle->next)
           {
-            // Set post-condition
-            goal_handle->available_feedback = false;
-            if (handle->action_client->feedback_callback != NULL) {
-              handle->action_client->feedback_callback(
-                goal_handle,
-                handle->action_client->ros_feedback,
-                handle->callback_context);
+            if (handle->available_feedback) {
+              goal_handle->available_feedback = false;
+
+              if (handle->action_client->feedback_callback != NULL) {
+                handle->action_client->feedback_callback(
+                  goal_handle,
+                  handle->action_client->ros_feedback,
+                  handle->callback_context);
+              }
             }
           }
         }
         if (handle->action_client->cancel_response_available) {
           rclc_action_goal_handle_t * goal_handle;
-          // Handle action client cancel response messages
-          //
-          // Pre-condition:
-          // - goal in action_client->used_goal_handles list
-          // - goal->available_cancel_response = true
-          //
-          // Post-condition:
-          // - goal->available_cancel_response = false
-          while (goal_handle =
-            rclc_action_find_first_handle_with_cancel_response(handle->action_client),
-            NULL != goal_handle)
+          for (goal_handle = handle->action_client->used_goal_handles; NULL != goal_handle;
+            goal_handle = goal_handle->next)
           {
-            // Set post-condition
-            goal_handle->available_cancel_response = false;
-            if (handle->action_client->cancel_callback != NULL) {
-              handle->action_client->cancel_callback(
-                goal_handle,
-                goal_handle->goal_cancelled,
-                handle->callback_context);
+            if (handle->available_cancel_response) {
+              goal_handle->available_cancel_response = false;
+
+              if (handle->action_client->cancel_callback != NULL) {
+                handle->action_client->cancel_callback(
+                  goal_handle,
+                  goal_handle->goal_cancelled,
+                  handle->callback_context);
+              }
             }
           }
         }
@@ -1667,34 +1654,21 @@ _rclc_execute(rclc_executor_handle_t * handle)
           handle->action_server->goal_request_available = false;
         }
         if (handle->action_server->cancel_request_available) {
-          // Handle action server goal cancel request
-          //
-          // Pre-condition:
-          // - goal in action_server->used_goal_handles list
-          // - goal is after current goal iterator in used_goal_handles list
-          // - goal->status = GOAL_STATE_CANCELING
-          //
-          // Accepted post-condition:
-          // - Move goal iterator to next goal in used_goal_handles list
-          // Rejected post-condition:
-          // - goal->status = GOAL_STATE_EXECUTING
-          rclc_action_goal_handle_t * goal_handle = handle->action_server->used_goal_handles;
-          while (goal_handle =
-            rclc_action_find_next_handle_by_status(goal_handle, GOAL_STATE_CANCELING),
-            NULL != goal_handle)
+          rclc_action_goal_handle_t * goal_handle;
+          for (goal_handle = handle->action_server->used_goal_handles; NULL != goal_handle;
+            goal_handle = goal_handle->next)
           {
-            goal_handle->goal_cancelled =
-              handle->action_server->cancel_callback(goal_handle, handle->callback_context);
-            if (goal_handle->goal_cancelled) {
-              rclc_action_server_goal_cancel_accept(goal_handle);
-              // Set accepted post-condition
-              goal_handle = goal_handle->next;
-            } else {
-              rclc_action_server_goal_cancel_reject(
-                handle->action_server, CANCEL_STATE_REJECTED,
-                goal_handle->cancel_request_header);
-              // Set rejected post-condition
-              goal_handle->status = GOAL_STATE_EXECUTING;
+            if (GOAL_STATE_CANCELING == handle->status) {
+              goal_handle->goal_cancelled =
+                handle->action_server->cancel_callback(goal_handle, handle->callback_context);
+              if (goal_handle->goal_cancelled) {
+                rclc_action_server_goal_cancel_accept(goal_handle);
+              } else {
+                rclc_action_server_goal_cancel_reject(
+                  handle->action_server, CANCEL_STATE_REJECTED,
+                  goal_handle->cancel_request_header);
+                goal_handle->status = GOAL_STATE_EXECUTING;
+              }
             }
           }
           handle->action_server->cancel_request_available = false;
