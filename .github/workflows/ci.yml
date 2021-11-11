@@ -1,10 +1,10 @@
-name: CI RCLC Galactic
+name: CI RCLC Rolling
 
 on:
   push:
-    branches: [ galactic ]
+    branches: [ master ]
   pull_request:
-    branches: [ galactic ]
+    branches: [ master ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -17,10 +17,10 @@ jobs:
       matrix:
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ galactic ]
+        ros_distribution: [ rolling ]
         include:
           - docker_image: ubuntu:focal
-            ros_distribution: galactic
+            ros_distribution: rolling
     container:
       image: ${{ matrix.docker_image }}
     steps:

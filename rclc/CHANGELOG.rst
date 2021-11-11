@@ -1,13 +1,6 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-2.0.4 (2021-08-19)
-------------------
-* Refactoring: remove callback_type
-* Improvement: Checking for valid ROS context in spin_some
-* Bug fix: Ignoring unsuccessful SERVICE_TAKE
-* Bug fix: Updated ci workflow dependency on galactic
-* Improvement: Updated codecov configuration to ignore unit tests
 
 3.0.3 (2021-07-28)
 ------------------

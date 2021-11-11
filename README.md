@@ -77,4 +77,4 @@ Bloom release status of all packages in repository [github.com/ros2/rclc/](https
 ## Code coverage
 The code coverage is tested with every commit, pull request. Results are available at [codecov](https://app.codecov.io/gh/ros2/rclc/branch/master/).
 
-[![codecov](https://codecov.io/gh/ros2/rclc/branch/galactic/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
+[![codecov](https://codecov.io/gh/ros2/rclc/branch/master/graph/badge.svg?token=QzyykDh4zF)](https://codecov.io/gh/ros2/rclc)
