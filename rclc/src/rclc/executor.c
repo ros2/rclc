@@ -1688,7 +1688,6 @@ _rclc_execute(rclc_executor_handle_t * handle)
   if (handle->data_available == true) {
     handle->data_available = false;
   }
-
   return rc;
 }
 
