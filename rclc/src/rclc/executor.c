@@ -1031,7 +1031,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
   switch (handle->type) {
     case SUBSCRIPTION:
     case SUBSCRIPTION_WITH_CONTEXT:
-      handle->data_available = NULL != wait_set->subscriptions[handle->index];
+      handle->data_available = (NULL != wait_set->subscriptions[handle->index]);
       break;
 
     case TIMER:
@@ -1059,18 +1059,18 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
     case SERVICE:
     case SERVICE_WITH_REQUEST_ID:
     case SERVICE_WITH_CONTEXT:
-      handle->data_available = NULL != wait_set->services[handle->index];
+      handle->data_available = (NULL != wait_set->services[handle->index]);
       break;
 
     case CLIENT:
     case CLIENT_WITH_REQUEST_ID:
       // case CLIENT_WITH_CONTEXT:
-      handle->data_available = NULL != wait_set->clients[handle->index];
+      handle->data_available = (NULL != wait_set->clients[handle->index]);
       break;
 
     case GUARD_CONDITION:
       // case GUARD_CONDITION_WITH_CONTEXT:
-      handle->data_available = NULL != wait_set->guard_conditions[handle->index];
+      handle->data_available = (NULL != wait_set->guard_conditions[handle->index]);
       break;
 
     case ACTION_CLIENT:
