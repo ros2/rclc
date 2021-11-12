@@ -1049,6 +1049,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
           handle->data_available = true;
         } else {
           // this should never happen
+          handle->data_available = false;
           PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_should_be_ready);
           return RCL_RET_ERROR;
         }
@@ -1683,11 +1684,6 @@ _rclc_execute(rclc_executor_handle_t * handle)
     }   // switch-case
   }
 
-  // corresponding callback of this handle has been called => reset data_available flag here
-  // (see also comment in _rclc_read_input_data() function)
-  if (handle->data_available == true) {
-    handle->data_available = false;
-  }
   return rc;
 }
 
