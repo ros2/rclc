@@ -1245,7 +1245,7 @@ _rclc_take_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
             &goal_handle->goal_request_header,
             goal_handle->ros_goal_request);
           if (rc != RCL_RET_OK) {
-            rclc_action_put_goal_handle(handle->action_server, goal_handle);
+            rclc_action_remove_used_goal_handle(handle->action_server, goal_handle);
             PRINT_RCLC_ERROR(rclc_take_new_data, rcl_action_take_goal_request);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
             return rc;
@@ -1530,7 +1530,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
             if (!goal_handle->goal_accepted ||
               RCL_RET_OK != rclc_action_send_result_request(goal_handle))
             {
-              rclc_action_put_goal_handle(handle->action_client, goal_handle);
+              rclc_action_remove_used_goal_handle(handle->action_client, goal_handle);
             } else {
               goal_handle->status = GOAL_STATE_ACCEPTED;
             }
@@ -1593,7 +1593,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
               handle->callback_context);
 
             // Set second post-condition
-            rclc_action_put_goal_handle(handle->action_client, goal_handle);
+            rclc_action_remove_used_goal_handle(handle->action_client, goal_handle);
           }
         }
         break;
@@ -1614,7 +1614,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
             NULL != goal_handle)
           {
             // Set post-condition
-            rclc_action_put_goal_handle(goal_handle->action_server, goal_handle);
+            rclc_action_remove_used_goal_handle(goal_handle->action_server, goal_handle);
           }
           handle->action_server->goal_ended = false;
         }
@@ -1647,7 +1647,7 @@ _rclc_execute(rclc_executor_handle_t * handle)
               default:
                 rclc_action_server_response_goal_request(goal_handle, false);
                 // Set rejected/error post-condition
-                rclc_action_put_goal_handle(handle->action_server, goal_handle);
+                rclc_action_remove_used_goal_handle(handle->action_server, goal_handle);
                 break;
             }
           }
