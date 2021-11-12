@@ -108,7 +108,7 @@ rclc_action_send_goal_request(
     &handle->goal_request_sequence_number);
 
   if (rc != RCL_RET_OK) {
-    rclc_action_put_goal_handle(action_client, handle);
+    rclc_action_remove_used_goal_handle(action_client, handle);
     PRINT_RCLC_ERROR(rclc_action_send_goal_request, rcl_action_send_goal_request);
     return RCL_RET_ERROR;
   }

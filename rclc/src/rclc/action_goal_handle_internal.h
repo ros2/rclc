@@ -49,7 +49,7 @@ rclc_action_goal_handle_t * rclc_action_take_goal_handle(
 void rclc_action_init_goal_handle_memory(
   void * untyped_entity);
 
-void rclc_action_put_goal_handle(
+void rclc_action_remove_used_goal_handle(
   void * untyped_entity,
   rclc_action_goal_handle_t * goal_handle);
 
