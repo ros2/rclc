@@ -15,6 +15,7 @@
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <build_depend>rcl</build_depend>
+  <build_depend>rcl_action</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rosidl_generator_c</build_depend>
   <build_depend>rosidl_typesupport_c</build_depend>
@@ -32,6 +33,8 @@
   <test_depend>std_msgs</test_depend>
   <test_depend>test_msgs</test_depend>
   <test_depend>example_interfaces</test_depend>
+  <test_depend>rclcpp</test_depend>
+  <test_depend>rclcpp_action</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
