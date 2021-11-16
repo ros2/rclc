@@ -87,30 +87,7 @@ int main(int argc, const char * argv[])
     return -1;
   }
 
-<<<<<<< HEAD
   // register callbacks
-=======
-  // Executor
-  rclc_executor_t executor;
-  RCCHECK(
-    rclc_executor_init(
-      &executor,
-      &support.context,
-      4, // 1 for the node + 1 for each lifecycle service
-      &allocator));
-
-  unsigned int rcl_wait_timeout = 1000;  // in ms
-  RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
-
-  // Register lifecycle services
-  printf("registering lifecycle services...\n");
-  RCCHECK(rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor));
-  RCCHECK(rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor));
-  RCCHECK(rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor));
-
-  // Register lifecycle service callbacks
-  printf("registering callbacks...\n");
->>>>>>> ef67977 ([backport galactic, foxy] data_available optimization (#212))
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
 
