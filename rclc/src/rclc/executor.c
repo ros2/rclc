@@ -788,15 +788,6 @@ rclc_executor_remove_guard_condition(
   return ret;
 }
 
-
-/***
- * operates on handle executor->handles[i]
- * - evaluates the status bit in the wait_set for this handle
- * - if new message is available or timer is ready, assigns executor->handles[i].data_available = true
- */
-
-// todo refactor parameters: (rclc_executor_handle_t *, rcl_wait_set_t * wait_set)
-
 static
 rcl_ret_t
 _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
