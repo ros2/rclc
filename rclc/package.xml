@@ -24,6 +24,8 @@
   <exec_depend>rcutils</exec_depend>
   <exec_depend>rosidl_generator_c</exec_depend>
 
+  <build_export_depend>rcl_action</build_export_depend>
+
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
