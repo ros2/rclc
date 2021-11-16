@@ -12,8 +12,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include<iostream>
-#include<functional>
+#include <iostream>
+#include <functional>
 #include <stdio.h>
 #include <std_msgs/msg/string.h>
 #include <rclc/executor.h>
@@ -36,10 +36,12 @@ std_msgs__msg__String pongNode_ping_msg;
 std_msgs__msg__String pongNode_pong_msg;
 
 
-class MySubscription {
-public: 
-  MySubscription(){};
-  static void on_update(const void * msgin) {
+class MySubscription
+{
+public:
+  MySubscription() {}
+  static void on_update(const void * msgin)
+  {
     const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
     if (msg == NULL) {
       printf("Callback: msg NULL\n");
@@ -48,8 +50,9 @@ public:
     }
     // number++; not possible to use member variables
   }
-  private:
-    int number;
+
+private:
+  int number;
 
 };
 
@@ -75,16 +78,15 @@ void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 void pong_subscription_callback(const void * msgin)
 {
   // pong_subscription_callback_on_update(msgin);
-  
+
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
   if (msg == NULL) {
     printf("Callback: msg NULL\n");
   } else {
     printf("Callback: I heard: %s\n", msg->data.data);
   }
-  
-}
 
+}
 
 
 /***************************** PONG NODE CALLBACKS ***********************************/
@@ -117,7 +119,6 @@ void pong_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 }
 
 
-
 /******************** MAIN PROGRAM ****************************************/
 int main(int argc, const char * argv[])
 {
@@ -134,7 +135,7 @@ int main(int argc, const char * argv[])
 
 //*******************************************************//
   // create rcl_node ping
-  rcl_node_t ping_node ;
+  rcl_node_t ping_node;
   rc = rclc_node_init_default(&ping_node, "ping", "", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -164,7 +165,7 @@ int main(int argc, const char * argv[])
   }
 
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
-  rcl_timer_t ping_timer ;
+  rcl_timer_t ping_timer;
   const unsigned int timer_timeout = 50; //50 milliseconds userdefined value
   rc = rclc_timer_init_default(
     &ping_timer,
@@ -206,10 +207,9 @@ int main(int argc, const char * argv[])
 //*******************************************************//
 
 
-
 //*******************************************************//
   // create rcl_node pong
-  rcl_node_t pong_node ;
+  rcl_node_t pong_node;
   rc = rclc_node_init_default(&pong_node, "pong", "", &support);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_node_init_default\n");
@@ -218,7 +218,7 @@ int main(int argc, const char * argv[])
 
   // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
   // my_pub is global, so that the timer callback can access this publisher.
-  
+
   /* <jst3si>  duplicated declaration
   const char * ping_topic_name = "ping";
   const rosidl_message_type_support_t * ping_type_support =
@@ -241,7 +241,7 @@ int main(int argc, const char * argv[])
   }
 
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
-  rcl_timer_t pong_timer ;
+  rcl_timer_t pong_timer;
   const unsigned int pong_timer_timeout = 50; //50 milliseconds userdefined value
   rc = rclc_timer_init_default(
     &pong_timer,
@@ -283,14 +283,11 @@ int main(int argc, const char * argv[])
 //*******************************************************//
 
 
-
-
   ////////////////////////////////////////////////////////////////////////////
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
   bool oneExecutor = false; // false => using two exectors
-  if (oneExecutor)
-  {
+  if (oneExecutor) {
     rclc_executor_t executor;
     executor = rclc_executor_get_zero_initialized_executor();
     // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
@@ -298,13 +295,13 @@ int main(int argc, const char * argv[])
     printf("Debug: number of DDS handles: %u\n", num_handles);
     rclc_executor_init(&executor, &support.context, num_handles, &allocator);
 
-  //add publisher (timer)
-  rc= rclc_executor_add_timer(&executor, &ping_timer);
+    //add publisher (timer)
+    rc = rclc_executor_add_timer(&executor, &ping_timer);
 
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_timer.\n");
     }
-  rc= rclc_executor_add_timer(&executor, &pong_timer);
+    rc = rclc_executor_add_timer(&executor, &pong_timer);
 
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_timer.\n");
@@ -318,8 +315,8 @@ int main(int argc, const char * argv[])
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_subscription. \n");
     }
-    
-      rc = rclc_executor_add_subscription(
+
+    rc = rclc_executor_add_subscription(
       &executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
       ON_NEW_DATA);
 
@@ -327,14 +324,14 @@ int main(int argc, const char * argv[])
       printf("Error in rclc_executor_add_subscription. \n");
     }
 
-  
+
     // Optional prepare for avoiding allocations during spin
     rclc_executor_prepare(&executor);
 
     // rclc_executor_spin(&executor ); end less loop
 
     for (unsigned int i = 0; i < 10; i++) {
-        // timeout specified in nanoseconds (here 1s)
+      // timeout specified in nanoseconds (here 1s)
       rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
     }
 
@@ -362,7 +359,7 @@ int main(int argc, const char * argv[])
   } else {
     // use two executors
 
-    // executor for ping node 
+    // executor for ping node
     rclc_executor_t ping_executor;
     ping_executor = rclc_executor_get_zero_initialized_executor();
     // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
@@ -371,11 +368,11 @@ int main(int argc, const char * argv[])
     rclc_executor_init(&ping_executor, &support.context, pingNode_num_handles, &allocator);
 
     //add publisher (timer) for ping_msg
-    rc= rclc_executor_add_timer(&ping_executor, &ping_timer);
+    rc = rclc_executor_add_timer(&ping_executor, &ping_timer);
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_timer.\n");
     }
- 
+
     // add subscription for pong_msg
     // rc = rclc_executor_add_subscription(
     //   &ping_executor, &pong_subscription, &pingNode_pong_msg, &pong_subscription_callback,
@@ -388,7 +385,6 @@ int main(int argc, const char * argv[])
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_subscription. \n");
     }
-    
 
 
     // pong node
@@ -398,21 +394,21 @@ int main(int argc, const char * argv[])
     unsigned int pongNode_num_handles = 1 + 1;
     printf("Debug: number of DDS handles: %u\n", pongNode_num_handles);
     rclc_executor_init(&pong_executor, &support.context, pongNode_num_handles, &allocator);
-    
+
     // add subscription of ping_msg
     rc = rclc_executor_add_subscription(
-    &pong_executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
-    ON_NEW_DATA);
+      &pong_executor, &ping_subscription, &pongNode_ping_msg, &ping_subscription_callback,
+      ON_NEW_DATA);
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_subscription. \n");
     }
     // add publisher (timer) of pong_msg
-    rc= rclc_executor_add_timer(&pong_executor, &pong_timer);
+    rc = rclc_executor_add_timer(&pong_executor, &pong_timer);
     if (rc != RCL_RET_OK) {
       printf("Error in rclc_executor_add_timer.\n");
     }
 
-  
+
     // Optional prepare for avoiding allocations during spin
     rclc_executor_prepare(&ping_executor);
     rclc_executor_prepare(&pong_executor);
@@ -420,9 +416,9 @@ int main(int argc, const char * argv[])
     // rclc_executor_spin(&executor ); end less loop
 
     for (unsigned int i = 0; i < 10; i++) {
-        // timeout specified in nanoseconds (here 1s)
-      rclc_executor_spin_some(&ping_executor, RCL_MS_TO_NS( 1000 ));
-      rclc_executor_spin_some(&pong_executor, RCL_MS_TO_NS( 1000 ));
+      // timeout specified in nanoseconds (here 1s)
+      rclc_executor_spin_some(&ping_executor, RCL_MS_TO_NS(1000));
+      rclc_executor_spin_some(&pong_executor, RCL_MS_TO_NS(1000));
     }
 
     // clean up
