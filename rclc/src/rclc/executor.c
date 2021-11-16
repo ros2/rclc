@@ -788,15 +788,6 @@ rclc_executor_remove_guard_condition(
   return ret;
 }
 
-
-/***
- * operates on handle executor->handles[i]
- * - evaluates the status bit in the wait_set for this handle
- * - if new message is available or timer is ready, assigns executor->handles[i].data_available = true
- */
-
-// todo refactor parameters: (rclc_executor_handle_t *, rcl_wait_set_t * wait_set)
-
 static
 rcl_ret_t
 _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
@@ -808,9 +799,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
   switch (handle->type) {
     case SUBSCRIPTION:
     case SUBSCRIPTION_WITH_CONTEXT:
-      if (wait_set->subscriptions[handle->index]) {
-        handle->data_available = true;
-      }
+      handle->data_available = (NULL != wait_set->subscriptions[handle->index]);
       break;
 
     case TIMER:
@@ -827,7 +816,8 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
         if (timer_is_ready) {
           handle->data_available = true;
         } else {
-          // this should never happen
+          // this code should never be executed
+          handle->data_available = false;
           PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_should_be_ready);
           return RCL_RET_ERROR;
         }
@@ -837,27 +827,22 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
     case SERVICE:
     case SERVICE_WITH_REQUEST_ID:
     case SERVICE_WITH_CONTEXT:
-      if (wait_set->services[handle->index]) {
-        handle->data_available = true;
-      }
+      handle->data_available = (NULL != wait_set->services[handle->index]);
       break;
 
     case CLIENT:
     case CLIENT_WITH_REQUEST_ID:
       // case CLIENT_WITH_CONTEXT:
-      if (wait_set->clients[handle->index]) {
-        handle->data_available = true;
-      }
+      handle->data_available = (NULL != wait_set->clients[handle->index]);
       break;
 
     case GUARD_CONDITION:
       // case GUARD_CONDITION_WITH_CONTEXT:
-      if (wait_set->guard_conditions[handle->index]) {
-        handle->data_available = true;
-      }
+      handle->data_available = (NULL != wait_set->guard_conditions[handle->index]);
       break;
 
     default:
+      handle->data_available = false;
       RCUTILS_LOG_DEBUG_NAMED(
         ROS_PACKAGE_NAME, "Error in _rclc_check_for_new_data:wait_set unknwon handle type: %d",
         handle->type);
@@ -865,9 +850,6 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
   }    // switch-case
   return rc;
 }
-
-// call rcl_take for subscription
-// todo change function signature (rclc_executor_handle_t * handle, rcl_wait_set_t * wait_set)
 
 static
 rcl_ret_t
@@ -1075,11 +1057,6 @@ _rclc_execute(rclc_executor_handle_t * handle)
     }   // switch-case
   }
 
-  // corresponding callback of this handle has been called => reset data_available flag here
-  // (see also comment in _rclc_read_input_data() function)
-  if (handle->data_available == true) {
-    handle->data_available = false;
-  }
   return rc;
 }
 
