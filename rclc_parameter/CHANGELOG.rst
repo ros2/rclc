@@ -2,6 +2,11 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.4 (2021-11-17)
+------------------
+* Add rclc_parameter Quality Declaration (#144)
+* Check all dynamic allocations in parameter server init (#169)
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump

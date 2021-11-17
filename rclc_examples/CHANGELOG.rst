@@ -1,6 +1,12 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.0.4 (2021-11-17)
+------------------
+* added pingpong example (#172)
+* Provide lifecycle services in the rclc lifecycle nodes (#51)
+* RCLC Actions Implementation (#170)
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump
