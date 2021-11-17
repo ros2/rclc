@@ -2,6 +2,10 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.4 (2021-11-17)
+------------------
+* Provide lifecycle services in the rclc lifecycle nodes (#51) 
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump

@@ -1,6 +1,17 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.0.4 (2021-11-17)
+------------------
+* Ignoring unsuccessful SERVICE_TAKE (#175)
+* Add rclc_parameter Quality Declaration (#144)
+* use-ros2-testing (#185)
+* Fix: printf in executor spin (#195)
+* Fix init options handling (#202) (#205)
+* Remove init options from support (#203)
+* RCLC Actions Implementation (#170)
+* Add rcl_action as build export dependency (#211)
+
 
 3.0.3 (2021-07-28)
 ------------------
