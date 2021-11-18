@@ -1001,7 +1001,8 @@ TEST_F(TestDefaultExecutor, executor_spin_timer) {
   rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  const unsigned int spin_timeout = 500;
+  // spin_timeout must be < timer1_timeout
+  const unsigned int spin_timeout = 50;
   const unsigned int spin_repeat = 10;
   const unsigned int expected_callbacks = (spin_timeout * spin_repeat) / timer1_timeout;
   _cbt_cnt = 0;
