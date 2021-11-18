@@ -804,7 +804,8 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
 
     case TIMER:
       // case TIMER_WITH_CONTEXT:
-      if (wait_set->timers[handle->index]) {
+      handle->data_available = (NULL != wait_set->timers[handle->index]);
+      if (handle->data_available) {
         bool timer_is_ready = false;
         rc = rcl_timer_is_ready(handle->timer, &timer_is_ready);
         if (rc != RCL_RET_OK) {
@@ -813,9 +814,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
         }
         // actually this is a unnecessary check: if wait_set.timers[i] is true, then also
         // rcl_timer_is_ready() should return true.
-        if (timer_is_ready) {
-          handle->data_available = true;
-        } else {
+        if (!timer_is_ready) {
           // this code should never be executed
           handle->data_available = false;
           PRINT_RCLC_ERROR(rclc_read_input_data, rcl_timer_should_be_ready);
