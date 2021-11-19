@@ -49,6 +49,8 @@
 static unsigned int _executor_results[TC_SPIN_SOME_MAX_MSGS];
 static unsigned int _executor_results_i;
 
+// callback for timer
+static unsigned int _cbt_cnt = 0;
 // callback for topic "chatter1"
 static unsigned int _cb1_cnt = 0;
 static unsigned int _cb1_int_value = 0;
@@ -395,6 +397,7 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {
     // printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
+    _cbt_cnt++;
   }
 }
 
@@ -986,6 +989,32 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   exp_number_of_timers = 1;
   EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_spin_timer) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // spin_timeout must be < timer1_timeout
+  const unsigned int spin_timeout = 50;
+  const unsigned int spin_repeat = 10;
+  const unsigned int expected_callbacks = (spin_timeout * spin_repeat) / timer1_timeout;
+  _cbt_cnt = 0;
+
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  for (size_t i = 0; i < spin_repeat; i++) {
+    rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spin_timeout));
+  }
+
+  EXPECT_EQ(_cbt_cnt, expected_callbacks);
 
   // tear down
   rc = rclc_executor_fini(&executor);
