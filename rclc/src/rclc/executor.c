@@ -1036,6 +1036,7 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
 
     case TIMER:
       // case TIMER_WITH_CONTEXT:
+<<<<<<< HEAD
       if (wait_set->timers[handle->index]) {
         bool timer_is_ready = false;
         rc = rcl_timer_is_ready(handle->timer, &timer_is_ready);
@@ -1054,6 +1055,9 @@ _rclc_check_for_new_data(rclc_executor_handle_t * handle, rcl_wait_set_t * wait_
           return RCL_RET_ERROR;
         }
       }
+=======
+      handle->data_available = (NULL != wait_set->timers[handle->index]);
+>>>>>>> 2f129f4 (Fix data_available reset for timer (#215))
       break;
 
     case SERVICE:
