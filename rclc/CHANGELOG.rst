@@ -1,6 +1,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.0.5 (2021-11-23)
+------------------
+* Fix data_available reset for timer (backport #215) (#217)
+
 3.0.4 (2021-11-17)
 ------------------
 * Ignoring unsuccessful SERVICE_TAKE (#175)
