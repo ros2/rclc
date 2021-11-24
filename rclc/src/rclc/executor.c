@@ -1433,6 +1433,10 @@ _rclc_execute(rclc_executor_handle_t * handle)
       case TIMER:
         // case TIMER_WITH_CONTEXT:
         rc = rcl_timer_call(handle->timer);
+        if (rc == RCL_RET_TIMER_CANCELED) {
+          break;
+        }
+
         if (rc != RCL_RET_OK) {
           PRINT_RCLC_ERROR(rclc_execute, rcl_timer_call);
           return rc;
