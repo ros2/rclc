@@ -1038,8 +1038,8 @@ TEST_F(TestDefaultExecutor, executor_spin_timer_cancelled) {
 
   for (size_t i = 0; i < spin_repeat; i++) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spin_timeout));
-    if(i > spin_repeat / 2){
-      rcl_timer_cancel (&this->timer1);
+    if (i > spin_repeat / 2) {
+      rcl_timer_cancel(&this->timer1);
     }
   }
 
