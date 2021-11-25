@@ -1021,6 +1021,35 @@ TEST_F(TestDefaultExecutor, executor_spin_timer) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 }
 
+TEST_F(TestDefaultExecutor, executor_spin_timer_cancelled) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // spin_timeout must be < timer1_timeout
+  const unsigned int spin_timeout = 50;
+  const unsigned int spin_repeat = 10;
+  const unsigned int expected_callbacks = (spin_timeout * spin_repeat) / timer1_timeout;
+  _cbt_cnt = 0;
+
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  for (size_t i = 0; i < spin_repeat; i++) {
+    rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spin_timeout));
+    if(i > spin_repeat / 2){
+      rcl_timer_cancel (&this->timer1);
+    }
+  }
+
+  EXPECT_LT(_cbt_cnt, expected_callbacks);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
 TEST_F(TestDefaultExecutor, executor_remove_timer) {
   rcl_ret_t rc;
   rclc_executor_t executor;
