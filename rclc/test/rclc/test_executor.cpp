@@ -1048,6 +1048,7 @@ TEST_F(TestDefaultExecutor, executor_spin_publisher_timer_cancelled) {
   unsigned int max_tries = 100;
   uint64_t timeout_ns = 100000000;  // 100ms
 
+  rc = rcl_timer_cancel(&this->timer1);
   // process subscriptions. Assumption: messages for sub1 available
   for (unsigned int i = 0; i < 100; i++) {
     // Assumption: messages for all sub1, sub2 and sub3 are available
@@ -1056,9 +1057,6 @@ TEST_F(TestDefaultExecutor, executor_spin_publisher_timer_cancelled) {
       &success);
     ASSERT_TRUE(success);
 
-    if (i > 50) {
-      rc = rcl_timer_cancel(&this->timer1);
-    }
 
     EXPECT_EQ(RCL_RET_OK, rc) << "failed to cancel timer";
 
