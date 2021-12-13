@@ -51,6 +51,7 @@ rclc_make_node_a_lifecycle_node(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   lifecycle_node->node = node;
+  lifecycle_node->publish_transitions = enable_communication_interface;
 
   rcl_lifecycle_state_machine_options_t state_machine_options =
     rcl_lifecycle_get_default_state_machine_options();
@@ -334,23 +335,21 @@ rclc_lifecycle_execute_callback(
 
 rcl_ret_t
 rclc_lifecycle_init_get_state_server(
-  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_lifecycle_service_context_t * context,
   rclc_executor_t * executor)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    context, "context is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  rclc_lifecycle_service_context_t context;
-  context.lifecycle_node = lifecycle_node;
 
   rcl_ret_t rc = rclc_executor_add_service_with_context(
     executor,
-    &lifecycle_node->state_machine->com_interface.srv_get_state,
-    &lifecycle_node->gs_req,
-    &lifecycle_node->gs_res,
+    &context->lifecycle_node->state_machine->com_interface.srv_get_state,
+    &context->lifecycle_node->gs_req,
+    &context->lifecycle_node->gs_res,
     rclc_lifecycle_get_state_callback,
-    &context);
+    context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
     return RCL_RET_ERROR;
@@ -370,6 +369,8 @@ rclc_lifecycle_get_state_callback(
     (lifecycle_msgs__srv__GetState_Response *) res;
   rclc_lifecycle_service_context_t * context_in =
     (rclc_lifecycle_service_context_t *) context;
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    context, "context is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_lifecycle_state_machine_t * sm =
     context_in->lifecycle_node->state_machine;
@@ -387,24 +388,19 @@ rclc_lifecycle_get_state_callback(
 
 rcl_ret_t
 rclc_lifecycle_init_get_available_states_server(
-  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_lifecycle_service_context_t * context,
   rclc_executor_t * executor)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
     executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  rclc_lifecycle_service_context_t context;
-  context.lifecycle_node = lifecycle_node;
 
   rcl_ret_t rc = rclc_executor_add_service_with_context(
     executor,
-    &lifecycle_node->state_machine->com_interface.srv_get_available_states,
-    &lifecycle_node->gas_req,
-    &lifecycle_node->gas_res,
+    &context->lifecycle_node->state_machine->com_interface.srv_get_available_states,
+    &context->lifecycle_node->gas_req,
+    &context->lifecycle_node->gas_res,
     rclc_lifecycle_get_available_states_callback,
-    &context);
+    context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
     return RCL_RET_ERROR;
@@ -446,22 +442,16 @@ rclc_lifecycle_get_available_states_callback(
 
 rcl_ret_t
 rclc_lifecycle_init_change_state_server(
-  rclc_lifecycle_node_t * lifecycle_node,
+  rclc_lifecycle_service_context_t * context,
   rclc_executor_t * executor)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
-  rclc_lifecycle_service_context_t context;
-  context.lifecycle_node = lifecycle_node;
-
   rcl_ret_t rc = rclc_executor_add_service_with_context(
     executor,
-    &lifecycle_node->state_machine->com_interface.srv_change_state,
-    &lifecycle_node->cs_req,
-    &lifecycle_node->cs_res,
+    &context->lifecycle_node->state_machine->com_interface.srv_change_state,
+    &context->lifecycle_node->cs_req,
+    &context->lifecycle_node->cs_res,
     rclc_lifecycle_change_state_callback,
-    &context);
+    context);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(main, rclc_executor_add_service_with_context);
     return RCL_RET_ERROR;
@@ -482,6 +472,8 @@ rclc_lifecycle_change_state_callback(
     (lifecycle_msgs__srv__ChangeState_Response *) res;
   rclc_lifecycle_service_context_t * context_in =
     (rclc_lifecycle_service_context_t *) context;
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    context, "context is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rclc_lifecycle_node_t * ln = context_in->lifecycle_node;
   rcl_ret_t rc = rclc_lifecycle_change_state(ln, req_in->transition.id, true);

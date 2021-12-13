@@ -252,6 +252,9 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &callback_mockup_2);
   rclc_lifecycle_register_on_cleanup(&lifecycle_node, &callback_mockup_3);
 
+  rclc_lifecycle_service_context_t lcontext;
+  lcontext.lifecycle_node = &lifecycle_node;
+
   // create lifecycle servers
   rclc_executor_t executor;
   res = rclc_executor_init(
@@ -262,9 +265,9 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   EXPECT_EQ(RCL_RET_OK, res);
 
   // Too little executor handles
-  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  res = rclc_lifecycle_init_get_state_server(&lcontext, &executor);
   EXPECT_EQ(RCL_RET_OK, res);
-  res = rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor);
+  res = rclc_lifecycle_init_get_available_states_server(&lcontext, &executor);
   EXPECT_EQ(RCL_RET_ERROR, res);
 
   // Now with correct number of handles
@@ -273,11 +276,11 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
     &context,
     3,  // 1 for each lifecycle service
     &allocator);
-  res = rclc_lifecycle_init_get_state_server(&lifecycle_node, &executor);
+  res = rclc_lifecycle_init_get_state_server(&lcontext, &executor);
   EXPECT_EQ(RCL_RET_OK, res);
-  res = rclc_lifecycle_init_get_available_states_server(&lifecycle_node, &executor);
+  res = rclc_lifecycle_init_get_available_states_server(&lcontext, &executor);
   EXPECT_EQ(RCL_RET_OK, res);
-  res = rclc_lifecycle_init_change_state_server(&lifecycle_node, &executor);
+  res = rclc_lifecycle_init_change_state_server(&lcontext, &executor);
   EXPECT_EQ(RCL_RET_OK, res);
 
   // Cleanup
