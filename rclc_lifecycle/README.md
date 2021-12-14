@@ -86,4 +86,4 @@ An example, how to use the RCLC Lifecycle Node is given in the file `lifecycle_n
 
 ## Limitations
 
-The state machine publishes state changes, however, lifecycle services are not yet exposed via ROS 2 services (tbd).
+* The state machine publishes state changes, however, lifecycle services are not yet exposed via ROS 2 services. This has been added for rolling.
