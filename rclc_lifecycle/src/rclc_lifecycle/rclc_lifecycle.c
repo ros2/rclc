@@ -369,8 +369,6 @@ rclc_lifecycle_get_state_callback(
     (lifecycle_msgs__srv__GetState_Response *) res;
   rclc_lifecycle_service_context_t * context_in =
     (rclc_lifecycle_service_context_t *) context;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    context, "context is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_lifecycle_state_machine_t * sm =
     context_in->lifecycle_node->state_machine;
@@ -472,8 +470,6 @@ rclc_lifecycle_change_state_callback(
     (lifecycle_msgs__srv__ChangeState_Response *) res;
   rclc_lifecycle_service_context_t * context_in =
     (rclc_lifecycle_service_context_t *) context;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    context, "context is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   rclc_lifecycle_node_t * ln = context_in->lifecycle_node;
   rcl_ret_t rc = rclc_lifecycle_change_state(ln, req_in->transition.id, true);
