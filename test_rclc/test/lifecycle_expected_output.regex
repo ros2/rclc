@@ -1,0 +1,2 @@
+lifecycle_node:.on_configure.*?callback.called
+lifecycle_node:.on_activate.*?callback.called

@@ -1,0 +1,98 @@
+import os
+
+import unittest
+
+import ament_index_python
+import launch
+import launch_ros
+import launch_testing
+import launch_testing.actions
+import launch_testing.asserts
+import launch_testing.util
+import launch_testing_ros
+
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess
+from launch.events import matches_action
+from launch.events.process import ShutdownProcess
+
+import lifecycle_msgs.msg
+import lifecycle_msgs.srv
+
+from launch_ros.actions.lifecycle_node import LifecycleNode
+from launch_ros.events.lifecycle import ChangeState
+from launch_ros.events.lifecycle import StateTransition
+
+def generate_test_description():
+    os.environ['OSPL_VERBOSITY'] = '8'
+    os.environ['RCUTILS_CONSOLE_OUTPUT_FORMAT'] = '{message}'
+
+    # Example Lifecycle Service Node
+    node = launch_ros.actions.LifecycleNode(
+        name='example_lifecycle_node', namespace='rclc',
+        package='rclc_examples',
+        executable='example_lifecycle_node',
+        emulate_tty=True,
+        output='screen')
+
+    node_configure = launch.actions.TimerAction(
+        period=2.,
+        actions=[
+            launch.actions.LogInfo(
+                    msg="Now configuring 'example_lifecycle_node'..."),
+            launch.actions.EmitEvent(
+                event=ChangeState(
+                    lifecycle_node_matcher=launch.events.matchers.matches_action(node),
+                    transition_id=lifecycle_msgs.msg.Transition.TRANSITION_CONFIGURE))
+        ]
+    )
+    node_activate = launch.actions.TimerAction(
+        period=2.,
+        actions=[
+            launch.actions.LogInfo(
+                    msg="'example_lifecycle_node' reached 'inactive' state, now activating ..."),
+            launch.actions.EmitEvent(
+                event=ChangeState(
+                    lifecycle_node_matcher=launch.events.matchers.matches_action(node),
+                    transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE))
+        ]
+    )
+
+    # Handlers
+    on_inactive_handler = launch.actions.RegisterEventHandler(
+        launch_ros.event_handlers.OnStateTransition(
+            target_lifecycle_node=node,
+            goal_state='inactive',
+            entities=[node_activate]))
+
+    launch_description = LaunchDescription()
+    launch_description.add_action(node)
+    launch_description.add_action(on_inactive_handler)
+    launch_description.add_action(launch_testing.util.KeepAliveProc())
+    launch_description.add_action(launch_testing.actions.ReadyToTest())
+    launch_description.add_action(node_configure)
+
+    return launch_description, locals()
+
+class TestModeManagement(unittest.TestCase):
+
+    def test_processes_output(self, proc_output, node):
+        """Check node output for expected strings."""
+
+        from launch_testing.tools.output import get_default_filtered_prefixes
+        output_filter = launch_testing_ros.tools.basic_output_filter(
+            filtered_prefixes=get_default_filtered_prefixes() + ['service not available, waiting...'],
+            filtered_rmw_implementation='@rmw_implementation@'
+        )
+        proc_output.assertWaitFor(
+            expected_output=launch_testing.tools.expected_output_from_file(path="@EXPECTED_OUTPUT@"),
+            process=node,
+            output_filter=output_filter,
+            timeout=15
+        )
+
+@launch_testing.post_shutdown_test()
+class TestModeManagementShutdown(unittest.TestCase):
+
+    def test_last_process_exit_code(self, proc_info, node):
+        launch_testing.asserts.assertExitCodes(proc_info, process=node)

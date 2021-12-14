@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>test_rclc</name>
+  <version>3.0.5</version>
+  <description>
+    Launch tests for the ROS 2 C client library (rclc).
+  </description>
+  <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
+  <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
+  <license>Apache License 2.0</license>
+
+  <author email="arne.nordmann@de.bosch.com">Arne Nordmann</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclc</depend>
+  <depend>rclc_lifecycle</depend>
+  <depend>rclc_parameter</depend>
+  <depend>rclc_examples</depend>
+
+  <test_depend>ament_cmake_pep257</test_depend>
+  <test_depend>ament_cmake_flake8</test_depend>
+  <test_depend>ament_index_python</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
+  <test_depend>launch_testing_ros</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
