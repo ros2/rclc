@@ -2603,7 +2603,8 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
   _results_initialize_service_client();
   EXPECT_EQ(srv1_cnt, (unsigned int) 0);
   EXPECT_EQ(srv1_value, (unsigned int) 0);
-  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);
+  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);  // input value for context
+  EXPECT_EQ(srv1_id, (unsigned int) 0);     // output value of context (in callback)
 
   // spin executor, which will
   // - receive request from client
@@ -2614,7 +2615,7 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
 
   EXPECT_EQ(srv1_cnt, (unsigned int) 1);  // check that service callback was called
   EXPECT_EQ(srv1_value, (unsigned int) 1);  // check value of 'a' in request message
-  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);  // check context value
+  EXPECT_EQ(srv1_id, (unsigned int) 42);  // check context value in callback
 
   // spin executor, which will
   // - receive response message from server
