@@ -77,4 +77,4 @@ An example, how to use the RCLC Lifecycle Node is given in the file `lifecycle_n
 
 ## Limitations
 
-* Lifecycle services cannot yet be called via `ros2 lifecycle` CLI, e.g., `ros2 lifecycle set /node configure`. Instead use the `ros2 service` CLI, e.g., `ros2 service call /node/change_state lifecycle_msgs/ChangeState "{transition: {id: 1, label: configure}}"`.
+* Lifecycle services have a known regression in foxy and galactic (https://github.com/ros2/rclc/issues/223). This has been fixed for rolling, but cannot be backported to foxy and galactic due to ABI/API breaks, which are restricted by our [Quality Declaration](./QUALITY_DECLARATION.md).
