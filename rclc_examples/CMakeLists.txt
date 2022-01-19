@@ -29,6 +29,8 @@ find_package(rclc_parameter REQUIRED)
 
 include_directories(include)
 
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
 add_executable(example_executor src/example_executor.c)
 ament_target_dependencies(example_executor rcl rclc std_msgs)
 
