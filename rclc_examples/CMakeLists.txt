@@ -26,6 +26,7 @@ find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(rclc_parameter REQUIRED)
+find_package(Threads REQUIRED)
 
 include_directories(include)
 
