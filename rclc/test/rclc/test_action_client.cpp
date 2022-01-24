@@ -22,17 +22,16 @@ extern "C"
 #include <example_interfaces/action/fibonacci.h>
 }
 
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_action/rclcpp_action.hpp>
-
-#include <example_interfaces/action/fibonacci.hpp>
-
 #include <chrono>
 #include <thread>
 #include <memory>
 #include <map>
 #include <vector>
 #include <utility>
+
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <example_interfaces/action/fibonacci.hpp>
 
 #define RCLC_MAX_GOALS 10
 
