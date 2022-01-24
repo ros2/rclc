@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 
-
 extern "C"
 {
 #include <rclc/rclc.h>
