@@ -20,11 +20,11 @@ extern "C"
 #include <rclc_parameter/rclc_parameter.h>
 }
 
-#include <rclcpp/rclcpp.hpp>
-
 #include <string>
 #include <memory>
 #include <vector>
+
+#include <rclcpp/rclcpp.hpp>
 
 using namespace std::chrono_literals;
 
