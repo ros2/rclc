@@ -14,13 +14,13 @@
 
 #include <gtest/gtest.h>
 
-#include <rclcpp/rclcpp.hpp>
-
 extern "C"
 {
 #include <rclc/node.h>
 #include <rclc_parameter/rclc_parameter.h>
 }
+
+#include <rclcpp/rclcpp.hpp>
 
 #include <string>
 #include <memory>

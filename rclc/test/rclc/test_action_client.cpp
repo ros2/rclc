@@ -15,15 +15,15 @@
 
 #include <gtest/gtest.h>
 
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_action/rclcpp_action.hpp>
-
 extern "C"
 {
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <example_interfaces/action/fibonacci.h>
 }
+
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 
 #include <example_interfaces/action/fibonacci.hpp>
 
