@@ -37,7 +37,6 @@ find_package(rcutils REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
-find_package(Threads REQUIRED)
 
 #################################################
 # create library

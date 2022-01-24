@@ -16,7 +16,6 @@ find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl_lifecycle REQUIRED)
 find_package(rclc REQUIRED)
-find_package(Threads REQUIRED)
 
 if("${rcl_lifecycle_VERSION}" VERSION_LESS "1.0.0")
   message(STATUS "Found rcl_lifecycle version ${rcl_lifecycle_VERSION}, which belongs to Eloquent or earlier")
