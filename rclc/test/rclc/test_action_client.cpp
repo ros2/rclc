@@ -15,19 +15,19 @@
 
 #include <gtest/gtest.h>
 
-#include <chrono>
-#include <thread>
-#include <memory>
-#include <map>
-#include <vector>
-#include <utility>
-
 extern "C"
 {
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <example_interfaces/action/fibonacci.h>
 }
+
+#include <chrono>
+#include <thread>
+#include <memory>
+#include <map>
+#include <vector>
+#include <utility>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
