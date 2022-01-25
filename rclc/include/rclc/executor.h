@@ -485,6 +485,253 @@ rclc_executor_add_guard_condition(
 
 
 /**
+ *  substitute a message pointer used in callbacks, located by rcl_handle
+ *  Locates the first executor->handle carrying rcl_handle and matching handle_type,
+ *   and replaces the allocated message in executor->handle->data
+ *
+ *  if search_cache is not NULL, it will be updated to point to the relevant rclc executor handle.
+ *   The actual value of search_cache is not intended to be used except for this function
+ *    and will be invalid after any call that removes a handle from the executor
+ *  this function assumes that rcl_handle is unique in the executor,
+ *   and will change the message of the first matching handle
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] handle_type a rclc_executor_handle_type_t used to enforce type safety
+ * \param [in] rcl_handle pointer to the rcl_handle the subscription was initiliased around
+ * \param [in] new_message function pointer to a callback function
+ * \param [inout] search_cache a pointer to a user-held pointer indicating where to search first.
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, rcl_handle, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
+RCLC_LOCAL
+rcl_ret_t
+_rclc_executor_change_message_by_handle(
+  rclc_executor_t * executor,
+  rclc_executor_handle_type_t handle_type,
+  const void * rcl_handle,
+  void * new_message,
+  void ** search_cache);
+
+/**
+ *  substitute a message pointer used in subscription callbacks, located by rcl handle
+ *  Locates the first subscription handle carrying the subscription pointer
+ *  and replaces its message with the new_message pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the subscription callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_message empty
+ * * An error is returned if subscription is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] subscription pointer to rcl subscription used in rclc_executor_add_subscription
+ * \param [in] new_message pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, subscription, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the subscription is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_change_subscription_message(
+  rclc_executor_t * executor,
+  const rcl_subscription_t * subscription,
+  void * new_message,
+  void ** search_cache);
+
+
+/**
+ *  substitute a message pointer used in client callbacks, located by rcl handle
+ *  Locates the first client handle carrying the client pointer
+ *  and replaces its message with the new_response pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the client callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_response empty
+ * * An error is returned if client is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] client pointer the rcl client used in rclc_executor_add_client
+ * \param [in] new_response pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, client, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the client is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_change_client_response(
+  rclc_executor_t * executor,
+  const rcl_client_t * client,
+  void * new_response,
+  void ** search_cache);
+
+
+/**
+ *  substitute a message pointer used in service callbacks, located by rcl handle
+ *  Locates the first service handle carrying the service pointer
+ *  and replaces its message with the new_request pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the service callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_request empty
+ * * An error is returned if service is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] service pointer to a rcl service used in rclc_executor_add_service
+ * \param [in] new_request pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, service, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the service is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_change_service_request(
+  rclc_executor_t * executor,
+  const rcl_service_t * service,
+  void * new_request,
+  void ** search_cache);
+
+
+/**
+ *  substitute a message pointer used in subscription callbacks, located by message pointer
+ *  Locates the first subscription handle carrying the old_message pointer
+ *  and replaces its message with the new_message pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the subscription callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_message empty
+ * * An error is returned if old_message is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] old_message pointer to a message held by a subscription
+ * \param [in] new_message pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, old_message, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the old_message is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_swap_subscription_message(
+  rclc_executor_t * executor,
+  const void * old_message,
+  void * new_message,
+  void ** search_cache);
+
+
+/**
+ *  substitute a message pointer used in client callbacks, located by message pointer
+ *  Locates the first client handle carrying the old_response pointer
+ *  and replaces its message with the new_response pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the client callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_response empty
+ * * An error is returned if old_response is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] old_response pointer to a message held by a client
+ * \param [in] new_response pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, old_message, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the old_message is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_swap_client_response(
+  rclc_executor_t * executor,
+  const void * old_response,
+  void * new_response,
+  void ** search_cache);
+
+
+/**
+ *  substitute a message pointer used in service callbacks, located by message pointer
+ *  Locates the first service handle carrying the old_request pointer
+ *  and replaces its message with the new_request pointer,
+ *  the new message pointer must be initialised and allocated
+ * * this should only be used during the service callback, or between calls to spin()
+ *   calling this at other times risks discarding data from the rmw and running
+ *     the callback with new_request empty
+ * * An error is returned if old_request is not found in the handles of the executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to initialized executor
+ * \param [in] old_request pointer to a message held by service
+ * \param [in] new_request pointer to a replacement message pointer
+ * \param [inout] search_cache a pointer to a user-held pointer to reduce time spent searching (may be NULL)
+ * \return `RCL_RET_OK` if message substitution was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if executor, old_message, or new_message is a null pointer
+ * \return `RCL_RET_ERROR` if the old_message is not found
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_swap_service_request(
+  rclc_executor_t * executor,
+  const void * old_request,
+  void * new_request,
+  void ** search_cache);
+
+
+/**
  *  Removes a subscription from an executor.
  * * An error is returned if {@link rclc_executor_t.handles} array is empty.
  * * An error is returned if subscription is not found in {@link rclc_executor_t.handles}.
