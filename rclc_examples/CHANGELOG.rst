@@ -2,6 +2,11 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.6 (2022-01-25)
+------------------
+* Create service context in main (#224)
+* Add thread dependency to examples (Rolling) (#237)
+
 3.0.5 (2021-11-23)
 ------------------
 * no change

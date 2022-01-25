@@ -1,6 +1,14 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.6 (2022-01-25)
+------------------
+* executor ignore canceled timers (#220)
+* uddated documentation README.md (#229)
+* resolved error in unit test see issue #230 (#231)
+* Add thread dependency to examples (Rolling) (#237) (resolves in this package only cpplint errors)
+
 3.0.5 (2021-11-23)
 ------------------
 * Fix data_available reset for timer (backport #215) (#217)

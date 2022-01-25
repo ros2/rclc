@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.6 (2022-01-25)
+------------------
+* Add thread dependency to examples (Rolling) (#237) (resolves in this package only cpplint errors)
+
 3.0.5 (2021-11-23)
 ------------------
 * no change
