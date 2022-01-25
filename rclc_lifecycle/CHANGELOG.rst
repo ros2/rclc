@@ -2,6 +2,10 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2022-01-25)
+------------------
+* Note wrt services implemented for rolling (#226)
+
 1.0.2 (2021-07-17)
 ------------------
 * Bumped version (tag with version 1.0.1 already exists)
