@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2.0.6 (2022-01-25)
+------------------
+* [backport galactic, foxy] data_available optimization (#212)
+
 2.0.5 (2021-11-08)
 ------------------
 * Bumped version
