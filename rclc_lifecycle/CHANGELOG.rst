@@ -1,6 +1,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2.0.6 (2022-01-25)
+------------------
+* Note regression in lifecycle services (#227)
+
 2.0.5 (2021-11-08)
 ------------------
 * Bumped version

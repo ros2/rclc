@@ -1,6 +1,15 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2.0.6 (2022-01-25)
+------------------
+* [backport galactic, foxy] data_available optimization (#212)
+* Fix data_available reset for timer (#215) (#216)
+* Executor ignore canceled timers (#220) (#221)
+* Resolved error in unit test see issue #230 (#231) (#232)
+* Updated documentation README.md (#229)
+
 2.0.5 (2021-11-08)
 ------------------
 * Fix printf in executor spin
