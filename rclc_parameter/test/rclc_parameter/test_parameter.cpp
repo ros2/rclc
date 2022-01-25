@@ -14,8 +14,6 @@
 
 #include <gtest/gtest.h>
 
-#include <rclcpp/rclcpp.hpp>
-
 extern "C"
 {
 #include <rclc/node.h>
@@ -25,6 +23,8 @@ extern "C"
 #include <string>
 #include <memory>
 #include <vector>
+
+#include <rclcpp/rclcpp.hpp>
 
 using namespace std::chrono_literals;
 

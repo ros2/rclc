@@ -15,9 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_action/rclcpp_action.hpp>
-
 extern "C"
 {
 #include <rclc/rclc.h>
@@ -25,14 +22,16 @@ extern "C"
 #include <example_interfaces/action/fibonacci.h>
 }
 
-#include <example_interfaces/action/fibonacci.hpp>
-
 #include <chrono>
 #include <thread>
 #include <memory>
 #include <map>
 #include <vector>
 #include <utility>
+
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <example_interfaces/action/fibonacci.hpp>
 
 #define RCLC_MAX_GOALS 10
 
@@ -429,12 +428,12 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
           auto feedback = std::make_shared<Fibonacci::Feedback>();
           auto & sequence = feedback->sequence;
 
-          while (sequence.size() < (size_t) goal->order) {
+          while (sequence.size() < static_cast<size_t>(goal->order)) {
             sequence.push_back(sequence.size());
           }
 
           size_t sent_feedback = 0;
-          while (sent_feedback < (size_t)goal->order) {
+          while (sent_feedback < static_cast<size_t>(goal->order)) {
             goal_handle->publish_feedback(feedback);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             ++sent_feedback;
@@ -514,12 +513,12 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_abort) {
           auto feedback = std::make_shared<Fibonacci::Feedback>();
           auto & sequence = feedback->sequence;
 
-          while (sequence.size() < (size_t) goal->order) {
+          while (sequence.size() < static_cast<size_t>(goal->order)) {
             sequence.push_back(sequence.size());
           }
 
           size_t sent_feedback = 0;
-          while (sent_feedback < (size_t)goal->order) {
+          while (sent_feedback < static_cast<size_t>(goal->order)) {
             goal_handle->publish_feedback(feedback);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             ++sent_feedback;
@@ -600,7 +599,7 @@ TEST_F(ActionClientTest, goal_accept_cancel_success) {
           auto feedback = std::make_shared<Fibonacci::Feedback>();
           auto & sequence = feedback->sequence;
 
-          while (sequence.size() < (size_t) goal->order) {
+          while (sequence.size() < static_cast<size_t>(goal->order)) {
             sequence.push_back(sequence.size());
           }
 
@@ -683,12 +682,12 @@ TEST_F(ActionClientTest, goal_accept_cancel_reject) {
           auto feedback = std::make_shared<Fibonacci::Feedback>();
           auto & sequence = feedback->sequence;
 
-          while (sequence.size() < (size_t) goal->order) {
+          while (sequence.size() < static_cast<size_t>(goal->order)) {
             sequence.push_back(sequence.size());
           }
 
           size_t sent_feedback = 0;
-          while (sent_feedback < (size_t)goal->order) {
+          while (sent_feedback < static_cast<size_t>(goal->order)) {
             goal_handle->publish_feedback(feedback);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             ++sent_feedback;
@@ -805,7 +804,7 @@ TEST_F(ActionClientTest, multi_goal_accept_feedback_and_result) {
           auto feedback = std::make_shared<Fibonacci::Feedback>();
           auto & sequence = feedback->sequence;
 
-          while (sequence.size() < (size_t) goal->order) {
+          while (sequence.size() < static_cast<size_t>(goal->order)) {
             sequence.push_back(sequence.size());
           }
 
