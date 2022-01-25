@@ -2,6 +2,23 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2022-01-25)
+------------------
+* Update codecov to ignore rclc_examples and all test folders (backport #145) (#150)
+* Updated table of bloom releases (removed dashing, inserted galactic) (backport #147) (#152)
+* Refactor #116 remove callback_type (#154)
+* Fix codecov to ignore unit tests and rclc_examples package (backport #155) (#162)
+* Feature request: check for valid ros context in spin_some (#165) (#167)
+* Ignoring unsuccessful SERVICE_TAKE (#175) (#177)
+* Backport windows port of PR #144 (#182)
+* Fix: printf in executor spin (#195) (#197)
+* Fix init options handling (#202) (#204)
+* [backport galactic, foxy] data_available optimization (backport #212) (#213)
+* Fix data_available reset for timer (#215)
+* Executor ignore canceled timers (#220) (#222)
+* Resolved error in unit test see issue #230 (#231) (#233)
+* Updated documentation README.md (#234)
+
 1.0.2 (2021-07-17)
 ------------------
 * Bumped version (tag with version 1.0.1 already exists)

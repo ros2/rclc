@@ -1,6 +1,12 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.1.0 (2022-01-25)
+------------------
+* Feature request: check for valid ros context in spin_some (#165) (#167)
+* Ignoring unsuccessful SERVICE_TAKE (#175) (#177)
+* added pingpong example (backport #172) (#187)
+* [backport galactic, foxy] data_available optimization (backport #212) (#213)
 
 1.0.2 (2021-07-17)
 ------------------
