@@ -44,7 +44,7 @@ TEST(Test, executor_handle_init) {
   size_t max_handles = 10;
   rc = rclc_executor_handle_init(&handle, max_handles);
   EXPECT_EQ(rc, RCL_RET_OK);
-  EXPECT_EQ(handle.type, NONE);
+  EXPECT_EQ(handle.type, RCLC_NONE);
   EXPECT_EQ(handle.invocation, ON_NEW_DATA);
 
   EXPECT_EQ(handle.subscription, nullptr);
@@ -122,35 +122,35 @@ TEST(Test, executor_handle_get_ptr) {
   EXPECT_EQ(ptr, nullptr);
 
   sub = rcl_get_zero_initialized_subscription();
-  handle.type = SUBSCRIPTION;
+  handle.type = RCLC_SUBSCRIPTION;
   handle.subscription = &sub;
   ptr = rclc_executor_handle_get_ptr(&handle);
   EXPECT_EQ(ptr, &sub);
   rcutils_reset_error();
 
   timer = rcl_get_zero_initialized_timer();
-  handle.type = TIMER;
+  handle.type = RCLC_TIMER;
   handle.timer = &timer;
   ptr = rclc_executor_handle_get_ptr(&handle);
   EXPECT_EQ(ptr, &timer);
   rcutils_reset_error();
 
   client = rcl_get_zero_initialized_client();
-  handle.type = CLIENT;
+  handle.type = RCLC_CLIENT;
   handle.client = &client;
   ptr = rclc_executor_handle_get_ptr(&handle);
   EXPECT_EQ(ptr, &client);
   rcutils_reset_error();
 
   service = rcl_get_zero_initialized_service();
-  handle.type = SERVICE;
+  handle.type = RCLC_SERVICE;
   handle.service = &service;
   ptr = rclc_executor_handle_get_ptr(&handle);
   EXPECT_EQ(ptr, &service);
   rcutils_reset_error();
 
   gc = rcl_get_zero_initialized_guard_condition();
-  handle.type = GUARD_CONDITION;
+  handle.type = RCLC_GUARD_CONDITION;
   handle.gc = &gc;
   ptr = rclc_executor_handle_get_ptr(&handle);
   EXPECT_EQ(ptr, &gc);
