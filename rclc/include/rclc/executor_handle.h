@@ -30,7 +30,6 @@ extern "C"
 /// Enumeration for timer, subscription, guard conditions etc to be waited on.
 typedef enum
 {
-<<<<<<< HEAD
   SUBSCRIPTION,
   SUBSCRIPTION_WITH_CONTEXT,
   TIMER,
@@ -44,23 +43,6 @@ typedef enum
   GUARD_CONDITION,
   // GUARD_CONDITION_WITH_CONTEXT,  //TODO
   NONE
-=======
-  RCLC_SUBSCRIPTION,
-  RCLC_SUBSCRIPTION_WITH_CONTEXT,
-  RCLC_TIMER,
-  // RCLC_TIMER_WITH_CONTEXT,  // TODO
-  RCLC_CLIENT,
-  RCLC_CLIENT_WITH_REQUEST_ID,
-  // RCLC_CLIENT_WITH_CONTEXT,  // TODO
-  RCLC_SERVICE,
-  RCLC_SERVICE_WITH_REQUEST_ID,
-  RCLC_SERVICE_WITH_CONTEXT,
-  RCLC_ACTION_CLIENT,
-  RCLC_ACTION_SERVER,
-  RCLC_GUARD_CONDITION,
-  // RCLC_GUARD_CONDITION_WITH_CONTEXT,  //TODO
-  RCLC_NONE
->>>>>>> ce42968 (Fix enum naming for avoid collision (#242))
 } rclc_executor_handle_type_t;
 
 /// Enumeration for invocation type. ON_NEW_DATA calls a callback only when new data is available
