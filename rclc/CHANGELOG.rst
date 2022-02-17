@@ -1,6 +1,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.0.7 (2022-02-17)
+------------------
+* Fix enum naming for avoid collision (#242)
+* Added dependency for package performance-test-fixture (#245)
 
 3.0.6 (2022-01-25)
 ------------------

@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.7 (2022-02-17)
+------------------
+* no changes
+
 3.0.6 (2022-01-25)
 ------------------
 * Create service context in main (#224)
