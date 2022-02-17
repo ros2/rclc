@@ -31,10 +31,10 @@ jobs:
         required-ros-distributions: ${{ matrix.ros_distribution }}
     - name : Download and install rclc-dependencies
       run: |
-        apt-get install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
-        apt-get install ros-${{ matrix.ros_distribution }}-test-msgs
-        apt-get install ros-${{ matrix.ros_distribution }}-rclcpp-action
-        apt-get install ros-${{ matrix.ros_distribution }}-performance-test-fixture
+        apt-get -y install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
+        apt-get -y install ros-${{ matrix.ros_distribution }}-test-msgs
+        apt-get -y install ros-${{ matrix.ros_distribution }}-rclcpp-action
+        apt-get -y install ros-${{ matrix.ros_distribution }}-performance-test-fixture
     - uses : ros-tooling/action-ros-ci@0.2.1
       with:
         package-name: "rclc rclc_examples rclc_lifecycle rclc_parameter"
