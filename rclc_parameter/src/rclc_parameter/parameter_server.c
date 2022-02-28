@@ -454,7 +454,6 @@ rclc_parameter_server_fini(
 
   size_t max_params = parameter_server->parameter_list.capacity;
 
-  rcl_interfaces__msg__ParameterEvent__fini(&parameter_server->event_list);
   rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
 
   for (size_t i = 0; i < max_params; i++) {
