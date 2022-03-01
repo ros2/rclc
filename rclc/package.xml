@@ -13,14 +13,13 @@
   <author email="william@osrfoundation.org">William Woodall</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
-  <build_depend>rmw</build_depend>
+
   <build_depend>rcl</build_depend>
   <build_depend>rcl_action</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rosidl_generator_c</build_depend>
   <build_depend>rosidl_typesupport_c</build_depend>
 
-  <exec_depend>rmw</exec_depend>
   <exec_depend>rcl</exec_depend>
   <exec_depend>rcutils</exec_depend>
   <exec_depend>rosidl_generator_c</exec_depend>

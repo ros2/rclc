@@ -36,9 +36,9 @@ jobs:
         apt-get install ros-${{ matrix.ros_distribution }}-rclcpp-action
         apt-get install ros-${{ matrix.ros_distribution }}-mimick-vendor
         apt-get -y install ros-${{ matrix.ros_distribution }}-performance-test-fixture
-    - uses : ros-tooling/action-ros-ci@0.2.3
+    - uses : ros-tooling/action-ros-ci@0.2.4
       with:
-        package-name: "rclc rclc_examples rclc_lifecycle rclc_parameter"
+        package-name: "rmw rclc rclc_examples rclc_lifecycle rclc_parameter"
         vcs-repo-file-url: dependencies.repos
         target-ros2-distro: ${{ matrix.ros_distribution }}
         colcon-defaults: |
