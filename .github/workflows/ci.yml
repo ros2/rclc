@@ -36,6 +36,12 @@ jobs:
         apt-get install ros-${{ matrix.ros_distribution }}-rclcpp-action
         apt-get install ros-${{ matrix.ros_distribution }}-mimick-vendor
         apt-get -y install ros-${{ matrix.ros_distribution }}-performance-test-fixture
+    - name: Download rmw-rolling remporary
+      run: |
+        git clone -b master https://github.com/ros2/rmw src/rmw
+    - name: Build rmw-rolling-temporary
+      run: . /opt/ros/$ROS_DISTRO/setup.sh && colcon build --symlink-install --cmake-args -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_FLAGS="-ftest-coverage --coverage -fno-inline -fno-inline-small-functions -fno-default-inline" -DCMAKE_CXX_OUTPUT_EXTENSION_REPLACE=ON -DCMAKE_C_FLAGS="-ftest-coverage --coverage -fno-inline -fno-inline-small-functions -fno-default-inline" -DCMAKE_C_OUTPUT_EXTENSION_REPLACE=ON
+
     - uses : ros-tooling/action-ros-ci@0.2.3
       with:
         package-name: "rclc rclc_examples rclc_lifecycle rclc_parameter"
