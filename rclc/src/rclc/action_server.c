@@ -207,6 +207,7 @@ rclc_action_server_fini(
     action_server->allocator->deallocate(
       action_server->goal_handles_memory,
       action_server->allocator->state);
+    action_server->goal_handles_memory = NULL;
   }
 
   rc = rcl_action_server_fini(&action_server->rcl_handle, node);

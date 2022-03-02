@@ -190,12 +190,14 @@ rclc_action_client_fini(
     action_client->allocator->deallocate(
       action_client->goal_handles_memory,
       action_client->allocator->state);
+    action_client->goal_handles_memory = NULL;
   }
 
   if (NULL != action_client->ros_cancel_response.goals_canceling.data) {
     action_client->allocator->deallocate(
       action_client->ros_cancel_response.goals_canceling.data,
       action_client->allocator->state);
+    action_client->ros_cancel_response.goals_canceling.data = NULL;
   }
 
   rc = rcl_action_client_fini(&action_client->rcl_handle, node);
