@@ -452,11 +452,9 @@ rclc_parameter_server_fini(
     ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
   }
 
-  size_t max_params = parameter_server->parameter_list.capacity;
-
   rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->describe_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->describe_request.names.data[i]);
     rosidl_runtime_c__String__fini(&parameter_server->describe_response.descriptors.data[i].name);
   }
@@ -467,7 +465,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__DescribeParameters_Response__fini(&parameter_server->describe_response);
   rcl_interfaces__srv__DescribeParameters_Request__fini(&parameter_server->describe_request);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->get_types_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->get_types_request.names.data[i]);
   }
 
@@ -476,7 +474,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__GetParameterTypes_Response__fini(&parameter_server->get_types_response);
   rcl_interfaces__srv__GetParameterTypes_Request__fini(&parameter_server->get_types_request);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->set_request.parameters.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->set_request.parameters.data[i].name);
     rosidl_runtime_c__String__fini(&parameter_server->set_response.results.data[i].reason);
   }
@@ -486,7 +484,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__SetParameters_Response__fini(&parameter_server->set_response);
   rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->get_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->get_request.names.data[i]);
   }
 
@@ -495,7 +493,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__GetParameters_Response__fini(&parameter_server->get_response);
   rcl_interfaces__srv__GetParameters_Request__fini(&parameter_server->get_request);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->list_response.result.names.data[i]);
   }
 
@@ -503,7 +501,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__ListParameters_Response__fini(&parameter_server->list_response);
   rcl_interfaces__srv__ListParameters_Request__fini(&parameter_server->list_request);
 
-  for (size_t i = 0; i < max_params; i++) {
+  for (size_t i = 0; i < parameter_server->parameter_list.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->parameter_list.data[i].name);
   }
 
