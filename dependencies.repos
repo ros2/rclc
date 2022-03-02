@@ -1,4 +1,21 @@
-- git:
-    local-name: rcl
-    uri: https://github.com/ros2/rcl.git
+repositories:
+  ros2/rcl:
+    type: git
+    url: https://github.com/ros2/rcl.git
+    version: master
+  ros2/rmw:
+    type: git
+    url: https://github.com/ros2/rmw.git
+    version: master
+  ros2/rmw_implementation:
+    type: git
+    url: https://github.com/ros2/rmw_implementation.git
+    version: master
+  ros2/rmw_connextdds:
+    type: git
+    url: https://github.com/ros2/rmw_connextdds.git
+    version: master
+  ros2/rmw_fastrtps:
+    type: git
+    url: https://github.com/ros2/rmw_fastrtps.git
     version: master
