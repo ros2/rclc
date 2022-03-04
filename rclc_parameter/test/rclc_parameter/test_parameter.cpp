@@ -253,4 +253,7 @@ TEST(Test, rclc_node_init_default) {
 
   spin = false;
   rclc_parameter_server_thread.join();
+
+  // Destroy parameter server
+  ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
 }
