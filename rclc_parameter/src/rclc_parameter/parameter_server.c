@@ -307,6 +307,9 @@ rclc_parameter_server_init_with_option(
   memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGTH);
   empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH - 1] = '\0';
 
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  // Init a parameter sequence
   bool mem_allocs_ok = true;
   mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
@@ -320,112 +323,97 @@ rclc_parameter_server_init_with_option(
       (const char *) empty_string);
   }
 
-  mem_allocs_ok &=
-    rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
-  mem_allocs_ok &= rcl_interfaces__srv__ListParameters_Response__init(
-    &parameter_server->list_response);
-  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
-    &parameter_server->list_response.result.names,
-    options->max_params);
-  parameter_server->list_response.result.names.size = 0;
 
-  // Pre-init strings
+  // List parameters:
+  //    - The request has no prefixes enabled nor depth.
+  //    - The response has a sequence of names taken from the names of each parameter
+  parameter_server->list_request.prefixes.data = NULL;
+  parameter_server->list_request.prefixes.size = 0;
+  parameter_server->list_request.prefixes.capacity = 0;
+
+  parameter_server->list_response.result.names.data = allocator.allocate(sizeof(rosidl_runtime_c__String) * options->max_params, allocator.state);
   for (size_t i = 0; i < options->max_params; i++) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->list_response.result.names.data[i],
-      (const char *) empty_string);
+  {
+    parameter_server->list_response.result.names.data[i].data = parameter_server->parameter_list.data[i].name.data;
+    parameter_server->list_response.result.names.data[i].capacity = parameter_server->parameter_list.data[i].name.capacity;
+    parameter_server->list_response.result.names.data[i].size = parameter_server->parameter_list.data[i].name.size;
   }
 
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
-  mem_allocs_ok &=
-    rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
-  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
-    &parameter_server->get_request.names,
-    options->max_params);
+  parameter_server->list_response.result.prefixes.data = NULL;
+  parameter_server->list_response.result.prefixes.size = 0;
+  parameter_server->list_response.result.prefixes.capacity = 0;
+
+  // Get parameters:
+  //    - Only one parameter can be set at once
+
+  parameter_server->get_request.names.data = allocator.allocate(sizeof(rosidl_runtime_c__String), allocator.state);
   parameter_server->get_request.names.size = 0;
-  mem_allocs_ok &= rcl_interfaces__msg__ParameterValue__Sequence__init(
-    &parameter_server->get_response.values,
-    options->max_params);
+  parameter_server->get_request.names.capacity = 1;
+
+  parameter_server->get_request.names.data[0].data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->get_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->get_request.names.data[0].size = 0;
+
+  parameter_server->get_response.values.data = allocator.zero_allocate(1, sizeof(rcl_interfaces__msg__ParameterValue), allocator.state);
   parameter_server->get_response.values.size = 0;
+  parameter_server->get_response.values.capacity = 1;
 
-  // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->get_request.names.data[i],
-      (const char *) empty_string);
-  }
 
-  mem_allocs_ok &= rcl_interfaces__srv__SetParameters_Request__init(&parameter_server->set_request);
-  mem_allocs_ok &=
-    rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
-  mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
-    &parameter_server->set_request.parameters,
-    options->max_params);
+  // Set parameters:
+  //    - Only one parameter can be set at once
+  parameter_server->set_request.parameters.data = allocator.zero_allocate(1, sizeof(rcl_interfaces__msg__Parameter), allocator.state);
   parameter_server->set_request.parameters.size = 0;
-  mem_allocs_ok &= rcl_interfaces__msg__SetParametersResult__Sequence__init(
-    &parameter_server->set_response.results,
-    options->max_params);
+  parameter_server->set_request.parameters.capacity = 1;
+
+  parameter_server->set_request.parameters.data[0].name.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->set_request.parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->set_request.parameters.data[0].name.size = 0;
+
+  parameter_server->set_response.results.data = allocator.zero_allocate(1, sizeof(rcl_interfaces__msg__SetParametersResult), allocator.state);
   parameter_server->set_response.results.size = 0;
+  parameter_server->set_response.results.capacity = 1;
 
-  // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->set_request.parameters.data[i].name,
-      (const char *) empty_string);
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->set_response.results.data[i].reason,
-      (const char *) empty_string);
-  }
+  parameter_server->set_response.results.data[0].reason.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->set_response.results.data[0].reason.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->set_response.results.data[0].reason.size = 0;
 
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Request__init(
-    &parameter_server->get_types_request);
-  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Response__init(
-    &parameter_server->get_types_response);
-  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
-    &parameter_server->get_types_request.names,
-    options->max_params);
+  // Get parameter types:
+  //    - Only one parameter can be set at once
+  parameter_server->get_types_request.names.data = allocator.allocate(sizeof(rosidl_runtime_c__String), allocator.state);
   parameter_server->get_types_request.names.size = 0;
-  mem_allocs_ok &= rosidl_runtime_c__uint8__Sequence__init(
-    &parameter_server->get_types_response.types,
-    options->max_params);
+  parameter_server->get_types_request.names.capacity = 1;
+
+  parameter_server->get_types_request.names.data[0].data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->get_types_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->get_types_request.names.data[0].size = 0;
+
+  parameter_server->get_types_response.types.data = allocator.zero_allocate(1, sizeof(uint8_t), allocator.state);
   parameter_server->get_types_response.types.size = 0;
+  parameter_server->get_types_response.types.capacity = 1;
 
-  for (size_t i = 0; i < options->max_params; i++) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->get_types_request.names.data[i],
-      (const char *) empty_string);
-  }
-
-  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Request__init(
-    &parameter_server->describe_request);
-  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Response__init(
-    &parameter_server->describe_response);
-  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
-    &parameter_server->describe_request.names,
-    options->max_params);
+  // Describe parameters:
+  //    - Only one parameter can be set at once
+  parameter_server->describe_request.names.data = allocator.allocate(sizeof(rosidl_runtime_c__String), allocator.state);
   parameter_server->describe_request.names.size = 0;
-  mem_allocs_ok &= rcl_interfaces__msg__ParameterDescriptor__Sequence__init(
-    &parameter_server->describe_response.descriptors,
-    options->max_params);
+  parameter_server->describe_request.names.capacity = 1;
+
+  parameter_server->describe_request.names.data[0].data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->describe_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->describe_request.names.data[0].size = 0;
+
+  parameter_server->describe_response.descriptors.data = allocator.zero_allocate(1, sizeof(rcl_interfaces__msg__ParameterDescriptor), allocator.state);
   parameter_server->describe_response.descriptors.size = 0;
+  parameter_server->describe_response.descriptors.capacity = 1;
 
-  for (size_t i = 0; i < options->max_params; i++) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->describe_request.names.data[i],
-      (const char *) empty_string);
-    mem_allocs_ok &= rosidl_runtime_c__String__assign(
-      &parameter_server->describe_response.descriptors.data[i].name,
-      (const char *) empty_string);
-  }
+  parameter_server->describe_response.descriptors.data[0].name.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->describe_response.descriptors.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->describe_response.descriptors.data[0].name.size = 0;
 
-  mem_allocs_ok &= rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
-  mem_allocs_ok &= rosidl_runtime_c__String__assign(
-    &parameter_server->event_list.node,
-    rcl_node_get_name(node));
 
-  if (!mem_allocs_ok) {
-    ret = RCL_RET_ERROR;
-  }
+  // Parameter event
+  parameter_server->event_list.node.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+  parameter_server->event_list.node.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+  parameter_server->event_list.node.size = 0;
 
   return ret;
 }
