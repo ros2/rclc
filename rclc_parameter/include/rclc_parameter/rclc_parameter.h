@@ -119,6 +119,7 @@ typedef struct rclc_parameter_server_t
   ModifiedParameter_Callback on_modification;
 
   bool notify_changed_over_dds;
+  bool low_mem_mode;
 } rclc_parameter_server_t;
 
 /**

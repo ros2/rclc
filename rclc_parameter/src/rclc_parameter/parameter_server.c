@@ -551,7 +551,8 @@ rclc_parameter_server_init_with_option(
       &rmw_qos_profile_parameter_events);
   }
 
-  if (options->low_mem_mode) {
+  parameter_server->low_mem_mode = options->low_mem_mode;
+  if (parameter_server->low_mem_mode) {
     ret = init_parameter_server_memory_low_memory(parameter_server, node, options);
   } else {
     ret = init_parameter_server_memory(parameter_server, node, options);
@@ -561,26 +562,10 @@ rclc_parameter_server_init_with_option(
 }
 
 rcl_ret_t
-rclc_parameter_server_fini(
-  rclc_parameter_server_t * parameter_server,
-  rcl_node_t * node)
+rclc_parameter_server_fini_memory(
+  rclc_parameter_server_t * parameter_server)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
   rcl_ret_t ret = RCL_RET_OK;
-
-  ret &= rcl_service_fini(&parameter_server->list_service, node);
-  ret &= rcl_service_fini(&parameter_server->set_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_types_service, node);
-  ret &= rcl_service_fini(&parameter_server->describe_service, node);
-
-  if (parameter_server->notify_changed_over_dds) {
-    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
-  }
 
   rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
 
@@ -636,6 +621,71 @@ rclc_parameter_server_fini(
   }
 
   rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->parameter_list);
+
+  return ret;
+}
+
+rcl_ret_t
+rclc_parameter_server_fini_memory_low_memory(
+  rclc_parameter_server_t * parameter_server)
+{
+  rcl_ret_t ret = RCL_RET_OK;
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  allocator.deallocate(parameter_server->get_request.names.data[0].data, allocator.state);
+  allocator.deallocate(parameter_server->describe_response.descriptors.data, allocator.state);
+  allocator.deallocate(parameter_server->describe_request.names.data[0].data, allocator.state);
+  allocator.deallocate(parameter_server->describe_request.names.data, allocator.state);
+  allocator.deallocate(parameter_server->get_types_response.types.data, allocator.state);
+  allocator.deallocate(parameter_server->get_types_request.names.data[0].data, allocator.state);
+  allocator.deallocate(parameter_server->get_types_request.names.data, allocator.state);
+  allocator.deallocate(parameter_server->set_response.results.data[0].reason.data, allocator.state);
+  allocator.deallocate(parameter_server->set_response.results.data, allocator.state);
+  allocator.deallocate(parameter_server->set_request.parameters.data[0].name.data, allocator.state);
+  allocator.deallocate(parameter_server->set_request.parameters.data, allocator.state);
+  allocator.deallocate(parameter_server->get_response.values.data, allocator.state);
+  allocator.deallocate(parameter_server->get_request.names.data[0].data, allocator.state);
+  allocator.deallocate(parameter_server->get_request.names.data, allocator.state);
+  allocator.deallocate(parameter_server->list_response.result.names.data, allocator.state);
+
+  for (size_t i = 0; i < parameter_server->parameter_list.capacity; i++)
+  {
+    allocator.deallocate(parameter_server->parameter_list.data[i].name.data, allocator.state);
+  }
+
+  allocator.deallocate(parameter_server->parameter_list.data, allocator.state);
+
+  return ret;
+}
+
+rcl_ret_t
+rclc_parameter_server_fini(
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = RCL_RET_OK;
+
+  ret &= rcl_service_fini(&parameter_server->list_service, node);
+  ret &= rcl_service_fini(&parameter_server->set_service, node);
+  ret &= rcl_service_fini(&parameter_server->get_service, node);
+  ret &= rcl_service_fini(&parameter_server->get_types_service, node);
+  ret &= rcl_service_fini(&parameter_server->describe_service, node);
+
+  if (parameter_server->notify_changed_over_dds) {
+    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
+  }
+
+  if (parameter_server->low_mem_mode) {
+    ret &= rclc_parameter_server_fini_memory_low_memory(parameter_server);
+  } else {
+    ret &= rclc_parameter_server_fini_memory(parameter_server);
+  }
 
   return ret;
 }
