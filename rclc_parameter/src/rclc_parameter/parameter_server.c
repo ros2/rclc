@@ -323,7 +323,6 @@ rclc_parameter_server_init_with_option(
       (const char *) empty_string);
   }
 
-
   // List parameters:
   //    - The request has no prefixes enabled nor depth.
   //    - The response has a sequence of names taken from the names of each parameter
@@ -333,7 +332,6 @@ rclc_parameter_server_init_with_option(
 
   parameter_server->list_response.result.names.data = allocator.allocate(sizeof(rosidl_runtime_c__String) * options->max_params, allocator.state);
   for (size_t i = 0; i < options->max_params; i++) {
-  {
     parameter_server->list_response.result.names.data[i].data = parameter_server->parameter_list.data[i].name.data;
     parameter_server->list_response.result.names.data[i].capacity = parameter_server->parameter_list.data[i].name.capacity;
     parameter_server->list_response.result.names.data[i].size = parameter_server->parameter_list.data[i].name.size;
