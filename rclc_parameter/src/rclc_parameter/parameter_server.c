@@ -224,7 +224,8 @@ rclc_parameter_server_set_service_callback(
 
 const rclc_parameter_options_t DEFAULT_PARAMETER_SERVER_OPTIONS = {
   .notify_changed_over_dds = true,
-  .max_params = 4
+  .max_params = 4,
+  .low_mem_mode = false,
 };
 
 rcl_ret_t rclc_parameter_server_init_default(
@@ -240,76 +241,17 @@ rcl_ret_t rclc_parameter_server_init_default(
     parameter_server, node, &DEFAULT_PARAMETER_SERVER_OPTIONS);
 }
 
-rcl_ret_t
-rclc_parameter_server_init_with_option(
+bool init_parameter_server_memory(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
   const rclc_parameter_options_t * options)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-
   rcl_ret_t ret = RCL_RET_OK;
-
-  const rosidl_service_type_support_t * get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
-    GetParameters);
-  ret &= rclc_parameter_server_init_service(
-    &parameter_server->get_service, node, "/get_parameters",
-    get_ts);
-
-  const rosidl_service_type_support_t * get_types_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces,
-    srv,
-    GetParameterTypes);
-  ret &= rclc_parameter_server_init_service(
-    &parameter_server->get_types_service, node,
-    "/get_parameter_types", get_types_ts);
-
-  const rosidl_service_type_support_t * set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
-    SetParameters);
-  ret &= rclc_parameter_server_init_service(
-    &parameter_server->set_service, node, "/set_parameters",
-    set_ts);
-
-  const rosidl_service_type_support_t * list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
-    ListParameters);
-  ret &= rclc_parameter_server_init_service(
-    &parameter_server->list_service, node,
-    "/list_parameters", list_ts);
-
-  const rosidl_service_type_support_t * describe_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
-    DescribeParameters);
-  ret &= rclc_parameter_server_init_service(
-    &parameter_server->describe_service, node,
-    "/describe_parameters", describe_ts);
-
-  parameter_server->notify_changed_over_dds = options->notify_changed_over_dds;
-  if (parameter_server->notify_changed_over_dds) {
-    const rosidl_message_type_support_t * event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(
-      rcl_interfaces,
-      msg,
-      ParameterEvent);
-    ret &= rclc_publisher_init(
-      &parameter_server->event_publisher, node, event_ts,
-      "/parameter_events",
-      &rmw_qos_profile_parameter_events);
-  }
 
   static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH];
   memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGTH);
   empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH - 1] = '\0';
 
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-
-  // Init a parameter sequence
   bool mem_allocs_ok = true;
   mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
@@ -321,6 +263,137 @@ rclc_parameter_server_init_with_option(
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
       &parameter_server->parameter_list.data[i].name,
       (const char *) empty_string);
+  }
+
+  mem_allocs_ok &=
+    rcl_interfaces__srv__ListParameters_Request__init(&parameter_server->list_request);
+  mem_allocs_ok &= rcl_interfaces__srv__ListParameters_Response__init(
+    &parameter_server->list_response);
+  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->list_response.result.names,
+    options->max_params);
+  parameter_server->list_response.result.names.size = 0;
+
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->list_response.result.names.data[i],
+      (const char *) empty_string);
+  }
+
+  mem_allocs_ok &= rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__GetParameters_Response__init(&parameter_server->get_response);
+  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->get_request.names,
+    options->max_params);
+  parameter_server->get_request.names.size = 0;
+  mem_allocs_ok &= rcl_interfaces__msg__ParameterValue__Sequence__init(
+    &parameter_server->get_response.values,
+    options->max_params);
+  parameter_server->get_response.values.size = 0;
+
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->get_request.names.data[i],
+      (const char *) empty_string);
+  }
+
+  mem_allocs_ok &= rcl_interfaces__srv__SetParameters_Request__init(&parameter_server->set_request);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__SetParameters_Response__init(&parameter_server->set_response);
+  mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
+    &parameter_server->set_request.parameters,
+    options->max_params);
+  parameter_server->set_request.parameters.size = 0;
+  mem_allocs_ok &= rcl_interfaces__msg__SetParametersResult__Sequence__init(
+    &parameter_server->set_response.results,
+    options->max_params);
+  parameter_server->set_response.results.size = 0;
+
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->set_request.parameters.data[i].name,
+      (const char *) empty_string);
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->set_response.results.data[i].reason,
+      (const char *) empty_string);
+  }
+
+  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Request__init(
+    &parameter_server->get_types_request);
+  mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Response__init(
+    &parameter_server->get_types_response);
+  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->get_types_request.names,
+    options->max_params);
+  parameter_server->get_types_request.names.size = 0;
+  mem_allocs_ok &= rosidl_runtime_c__uint8__Sequence__init(
+    &parameter_server->get_types_response.types,
+    options->max_params);
+  parameter_server->get_types_response.types.size = 0;
+
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->get_types_request.names.data[i],
+      (const char *) empty_string);
+  }
+
+  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Request__init(
+    &parameter_server->describe_request);
+  mem_allocs_ok &= rcl_interfaces__srv__DescribeParameters_Response__init(
+    &parameter_server->describe_response);
+  mem_allocs_ok &= rosidl_runtime_c__String__Sequence__init(
+    &parameter_server->describe_request.names,
+    options->max_params);
+  parameter_server->describe_request.names.size = 0;
+  mem_allocs_ok &= rcl_interfaces__msg__ParameterDescriptor__Sequence__init(
+    &parameter_server->describe_response.descriptors,
+    options->max_params);
+  parameter_server->describe_response.descriptors.size = 0;
+
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->describe_request.names.data[i],
+      (const char *) empty_string);
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->describe_response.descriptors.data[i].name,
+      (const char *) empty_string);
+  }
+
+  mem_allocs_ok &= rcl_interfaces__msg__ParameterEvent__init(&parameter_server->event_list);
+  mem_allocs_ok &= rosidl_runtime_c__String__assign(
+    &parameter_server->event_list.node,
+    rcl_node_get_name(node));
+
+  if (!mem_allocs_ok) {
+    ret = RCL_RET_ERROR;
+  }
+
+  return ret;
+}
+
+bool init_parameter_server_memory_low_memory(
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node,
+  const rclc_parameter_options_t * options)
+{
+  rcl_ret_t ret = RCL_RET_OK;
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  // Init a parameter sequence
+  parameter_server->parameter_list.data = allocator.zero_allocate(options->max_params, sizeof(rcl_interfaces__msg__Parameter), allocator.state);
+  parameter_server->parameter_list.size = 0;
+  parameter_server->parameter_list.capacity = options->max_params;
+
+  for (size_t i = 0; i < options->max_params; i++)
+  {
+    parameter_server->parameter_list.data[i].name.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
+    parameter_server->parameter_list.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
+    parameter_server->parameter_list.data[i].name.size = 0;
   }
 
   // List parameters:
@@ -407,11 +480,82 @@ rclc_parameter_server_init_with_option(
   parameter_server->describe_response.descriptors.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
   parameter_server->describe_response.descriptors.data[0].name.size = 0;
 
-
   // Parameter event
-  parameter_server->event_list.node.data = allocator.allocate(sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->event_list.node.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-  parameter_server->event_list.node.size = 0;
+  parameter_server->event_list.node.data = (char *) rcl_node_get_name(node);
+  parameter_server->event_list.node.capacity = strlen(rcl_node_get_name(node));
+  parameter_server->event_list.node.size = strlen(rcl_node_get_name(node));
+
+  return ret;
+}
+
+rcl_ret_t
+rclc_parameter_server_init_with_option(
+  rclc_parameter_server_t * parameter_server,
+  rcl_node_t * node,
+  const rclc_parameter_options_t * options)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = RCL_RET_OK;
+
+  const rosidl_service_type_support_t * get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces, srv,
+    GetParameters);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->get_service, node, "/get_parameters",
+    get_ts);
+
+  const rosidl_service_type_support_t * get_types_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces,
+    srv,
+    GetParameterTypes);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->get_types_service, node,
+    "/get_parameter_types", get_types_ts);
+
+  const rosidl_service_type_support_t * set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces, srv,
+    SetParameters);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->set_service, node, "/set_parameters",
+    set_ts);
+
+  const rosidl_service_type_support_t * list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces, srv,
+    ListParameters);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->list_service, node,
+    "/list_parameters", list_ts);
+
+  const rosidl_service_type_support_t * describe_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces, srv,
+    DescribeParameters);
+  ret &= rclc_parameter_server_init_service(
+    &parameter_server->describe_service, node,
+    "/describe_parameters", describe_ts);
+
+  parameter_server->notify_changed_over_dds = options->notify_changed_over_dds;
+  if (parameter_server->notify_changed_over_dds) {
+    const rosidl_message_type_support_t * event_ts = ROSIDL_GET_MSG_TYPE_SUPPORT(
+      rcl_interfaces,
+      msg,
+      ParameterEvent);
+    ret &= rclc_publisher_init(
+      &parameter_server->event_publisher, node, event_ts,
+      "/parameter_events",
+      &rmw_qos_profile_parameter_events);
+  }
+
+  if (options->low_mem_mode) {
+    ret = init_parameter_server_memory_low_memory(parameter_server, node, options);
+  } else {
+    ret = init_parameter_server_memory(parameter_server, node, options);
+  }
 
   return ret;
 }

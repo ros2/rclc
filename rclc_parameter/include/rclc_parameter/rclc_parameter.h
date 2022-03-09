@@ -84,6 +84,7 @@ typedef struct rclc_parameter_options_t
 {
   bool notify_changed_over_dds;
   size_t max_params;
+  bool low_mem_mode;
 } rclc_parameter_options_t;
 
 // Container for RCLC parameter server
