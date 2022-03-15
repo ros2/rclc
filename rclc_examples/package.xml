@@ -12,7 +12,7 @@
   <author email="arne.nordmann@de.bosch.com">Arne Nordmann</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
-  
+
   <build_depend>rcl</build_depend>
   <build_depend>rclc</build_depend>
   <build_depend>rclc_lifecycle</build_depend>
@@ -26,6 +26,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>lifecycle_msgs</exec_depend>
   <exec_depend>example_interfaces</exec_depend>
+
+  <depend>rclc_parameter</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
