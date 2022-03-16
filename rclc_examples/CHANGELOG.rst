@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.1.1 (2022-03-16)
+------------------
+* Backport parameters (#263)
+
 1.1.0 (2022-01-25)
 ------------------
 * Feature request: check for valid ros context in spin_some (#165) (#167)

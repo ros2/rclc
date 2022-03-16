@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.1.1 (2022-03-16)
+------------------
+* Fix enum naming for avoid collision (backport #242) (#243)
+* Backport parameters (#263)
+
 
 1.1.0 (2022-01-25)
 ------------------
