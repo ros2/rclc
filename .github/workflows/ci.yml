@@ -31,7 +31,7 @@ jobs:
         required-ros-distributions: ${{ matrix.ros_distribution }}
     - name : Download ind install python for jammy transition
       run: |
-        apt-get install python3.9-dev
+        apt-get -y install python3.9-dev
     - name : Download and install rclc-dependencies
       run: |
         apt-get install ros-${{ matrix.ros_distribution }}-osrf-testing-tools-cpp
