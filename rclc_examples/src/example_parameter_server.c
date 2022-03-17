@@ -30,10 +30,10 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   (void) timer;
   (void) last_call_time;
 
-  int value;
+  int64_t value;
   rclc_parameter_get_int(&param_server, "param2", &value);
   value++;
-  rclc_parameter_set_int(&param_server, "param2", (int64_t) value);
+  rclc_parameter_set_int(&param_server, "param2", value);
 }
 
 void on_parameter_changed(Parameter * param)
@@ -97,7 +97,7 @@ int main()
   rclc_parameter_set_double(&param_server, "param3", 0.01);
 
   bool param1;
-  int param2;
+  int64_t param2;
   double param3;
 
   rclc_parameter_get_bool(&param_server, "param1", &param1);
