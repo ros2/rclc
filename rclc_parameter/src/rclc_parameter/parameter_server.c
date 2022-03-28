@@ -52,23 +52,51 @@ rclc_parameter_server_describe_service_callback(
   DescribeParameters_Request * request = (DescribeParameters_Request *) req;
   DescribeParameters_Response * response = (DescribeParameters_Response *) res;
 
-  // Clean previous response msg
-  memset(
-    &response->descriptors.data[0], 0,
-    sizeof(response->descriptors.data[0]) * response->descriptors.capacity);
   response->descriptors.size = request->names.size;
-
   for (size_t i = 0; i < request->names.size; i++) {
     size_t index = rclc_parameter_search_index(
       &param_server->parameter_list,
       request->names.data[i].data);
 
+    ParameterDescriptor * response_descriptor = &response->descriptors.data[i];
+    rclc_parameter_set_string(&response_descriptor->name, request->names.data[i].data);
+    response_descriptor->floating_point_range.size = 0;
+    response_descriptor->integer_range.size = 0;
+
     if (index < param_server->parameter_descriptors.size) {
-      response->descriptors.data[i] = param_server->parameter_descriptors.data[index];
-      response->descriptors.data[i].name = param_server->parameter_list.data[index].name;
+      ParameterDescriptor * parameter_descriptor = &param_server->parameter_descriptors.data[index];
+
+      rclc_parameter_set_string(
+        &response_descriptor->description,
+        parameter_descriptor->description.data);
+      rclc_parameter_set_string(
+        &response_descriptor->additional_constraints,
+        parameter_descriptor->additional_constraints.data);
+      response_descriptor->type = parameter_descriptor->type;
+      response_descriptor->read_only = parameter_descriptor->read_only;
+
+      if (parameter_descriptor->floating_point_range.size == 1) {
+        response_descriptor->floating_point_range.data[0].from_value =
+          parameter_descriptor->floating_point_range.data[0].from_value;
+        response_descriptor->floating_point_range.data[0].to_value =
+          parameter_descriptor->floating_point_range.data[0].to_value;
+        response_descriptor->floating_point_range.data[0].step =
+          parameter_descriptor->floating_point_range.data[0].step;
+        response_descriptor->floating_point_range.size = 1;
+      } else if (parameter_descriptor->integer_range.size == 1) {
+        response_descriptor->integer_range.data[0].from_value =
+          parameter_descriptor->integer_range.data[0].from_value;
+        response_descriptor->integer_range.data[0].to_value =
+          parameter_descriptor->integer_range.data[0].to_value;
+        response_descriptor->integer_range.data[0].step =
+          parameter_descriptor->integer_range.data[0].step;
+        response_descriptor->integer_range.size = 1;
+      }
     } else {
-      response->descriptors.data[i].name = request->names.data[i];
-      response->descriptors.data[i].type = RCLC_PARAMETER_NOT_SET;
+      rclc_parameter_set_string(&response_descriptor->description, "");
+      rclc_parameter_set_string(&response_descriptor->additional_constraints, "");
+      response_descriptor->type = RCLC_PARAMETER_NOT_SET;
+      response_descriptor->read_only = false;
     }
   }
 }
@@ -87,7 +115,9 @@ rclc_parameter_server_list_service_callback(
   response->result.names.size = param_server->parameter_list.size;
 
   for (size_t i = 0; i < response->result.names.size; i++) {
-    response->result.names.data[i] = param_server->parameter_list.data[i].name;
+    rclc_parameter_set_string(
+      &response->result.names.data[i],
+      param_server->parameter_list.data[i].name.data);
   }
 }
 
@@ -105,10 +135,6 @@ rclc_parameter_server_get_service_callback(
     param_server->parameter_list.size :
     request->names.size;
 
-  // Clean previous response msg
-  memset(
-    &response->values.data[0], 0,
-    sizeof(response->values.data[0]) * response->values.capacity);
   response->values.size = size;
 
   for (size_t i = 0; i < size; i++) {
@@ -139,8 +165,6 @@ rclc_parameter_server_get_types_service_callback(
     return;
   }
 
-  // Clean previous response msg
-  memset(&response->types.data[0], 0, sizeof(response->types.data[0]) * response->types.capacity);
   response->types.size = request->names.size;
 
   for (size_t i = 0; i < response->types.size; i++) {
@@ -341,7 +365,7 @@ rclc_parameter_server_init_with_option(
       &rmw_qos_profile_parameter_events);
   }
 
-  char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH];
+  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH];
   memset(empty_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGTH);
   empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH - 1] = '\0';
 
@@ -367,6 +391,13 @@ rclc_parameter_server_init_with_option(
     &parameter_server->list_response.result.names,
     options->max_params);
   parameter_server->list_response.result.names.size = 0;
+
+  // Pre-init strings
+  for (size_t i = 0; i < options->max_params; i++) {
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->list_response.result.names.data[i],
+      (const char *) empty_string);
+  }
 
   // Init Get service msgs
   mem_allocs_ok &= rcl_interfaces__srv__GetParameters_Request__init(&parameter_server->get_request);
@@ -401,10 +432,6 @@ rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->set_response.results.size = 0;
 
-  char reason_empty_string[RCLC_SET_ERROR_MAX_STRING_LENGTH];
-  memset(reason_empty_string, ' ', RCLC_SET_ERROR_MAX_STRING_LENGTH);
-  reason_empty_string[RCLC_SET_ERROR_MAX_STRING_LENGTH - 1] = '\0';
-
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; i++) {
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
@@ -413,7 +440,7 @@ rclc_parameter_server_init_with_option(
 
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
       &parameter_server->set_response.results.data[i].reason,
-      (const char *) reason_empty_string);
+      (const char *) empty_string);
   }
 
   // Init Get types service msgs
@@ -457,8 +484,33 @@ rclc_parameter_server_init_with_option(
   parameter_server->parameter_descriptors.size = 0;
 
   for (size_t i = 0; i < options->max_params; i++) {
+    // Init describe_request members
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
       &parameter_server->describe_request.names.data[i],
+      (const char *) empty_string);
+
+    // Init describe_response members
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->describe_response.descriptors.data[i].name,
+      (const char *) empty_string);
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->describe_response.descriptors.data[i].description,
+      (const char *) empty_string);
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->describe_response.descriptors.data[i].additional_constraints,
+      (const char *) empty_string);
+    mem_allocs_ok &= rcl_interfaces__msg__FloatingPointRange__Sequence__init(
+      &parameter_server->describe_response.descriptors.data[i].floating_point_range,
+      rcl_interfaces__msg__ParameterDescriptor__floating_point_range__MAX_SIZE);
+    parameter_server->describe_response.descriptors.data[i].floating_point_range.size = 0;
+    mem_allocs_ok &= rcl_interfaces__msg__IntegerRange__Sequence__init(
+      &parameter_server->describe_response.descriptors.data[i].integer_range,
+      rcl_interfaces__msg__ParameterDescriptor__integer_range__MAX_SIZE);
+    parameter_server->describe_response.descriptors.data[i].integer_range.size = 0;
+
+    // Init parameter_descriptors members
+    mem_allocs_ok &= rosidl_runtime_c__String__assign(
+      &parameter_server->parameter_descriptors.data[i].name,
       (const char *) empty_string);
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
       &parameter_server->parameter_descriptors.data[i].description,
@@ -511,11 +563,22 @@ rclc_parameter_server_fini(
 
   if (parameter_server->notify_changed_over_dds) {
     ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
-    rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
   }
 
+  rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
+
+  // Fini describe msgs
   for (size_t i = 0; i < parameter_server->describe_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->describe_request.names.data[i]);
+    rosidl_runtime_c__String__fini(&parameter_server->describe_response.descriptors.data[i].name);
+    rosidl_runtime_c__String__fini(
+      &parameter_server->describe_response.descriptors.data[i].description);
+    rosidl_runtime_c__String__fini(
+      &parameter_server->describe_response.descriptors.data[i].additional_constraints);
+    rcl_interfaces__msg__IntegerRange__Sequence__fini(
+      &parameter_server->describe_response.descriptors.data[i].integer_range);
+    rcl_interfaces__msg__FloatingPointRange__Sequence__fini(
+      &parameter_server->describe_response.descriptors.data[i].floating_point_range);
   }
 
   rcl_interfaces__msg__ParameterDescriptor__Sequence__fini(
@@ -524,6 +587,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__DescribeParameters_Response__fini(&parameter_server->describe_response);
   rcl_interfaces__srv__DescribeParameters_Request__fini(&parameter_server->describe_request);
 
+  // Fini get types msgs
   for (size_t i = 0; i < parameter_server->get_types_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->get_types_request.names.data[i]);
   }
@@ -533,6 +597,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__GetParameterTypes_Response__fini(&parameter_server->get_types_response);
   rcl_interfaces__srv__GetParameterTypes_Request__fini(&parameter_server->get_types_request);
 
+  // Finish set msgs
   for (size_t i = 0; i < parameter_server->set_request.parameters.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->set_request.parameters.data[i].name);
     rosidl_runtime_c__String__fini(&parameter_server->set_response.results.data[i].reason);
@@ -543,6 +608,7 @@ rclc_parameter_server_fini(
   rcl_interfaces__srv__SetParameters_Response__fini(&parameter_server->set_response);
   rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
 
+  // Finish get msgs
   for (size_t i = 0; i < parameter_server->get_request.names.capacity; i++) {
     rosidl_runtime_c__String__fini(&parameter_server->get_request.names.data[i]);
   }
@@ -551,6 +617,11 @@ rclc_parameter_server_fini(
   rosidl_runtime_c__String__Sequence__fini(&parameter_server->get_request.names);
   rcl_interfaces__srv__GetParameters_Response__fini(&parameter_server->get_response);
   rcl_interfaces__srv__GetParameters_Request__fini(&parameter_server->get_request);
+
+  // Finish list msgs
+  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; i++) {
+    rosidl_runtime_c__String__fini(&parameter_server->list_response.result.names.data[i]);
+  }
 
   rosidl_runtime_c__String__Sequence__fini(&parameter_server->list_response.result.names);
   rcl_interfaces__srv__ListParameters_Response__fini(&parameter_server->list_response);
@@ -565,6 +636,7 @@ rclc_parameter_server_fini(
 
   // Free parameter descriptor list
   for (size_t i = 0; i < parameter_server->parameter_descriptors.capacity; i++) {
+    rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].name);
     rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].description);
     rosidl_runtime_c__String__fini(
       &parameter_server->parameter_descriptors.data[i].additional_constraints);
