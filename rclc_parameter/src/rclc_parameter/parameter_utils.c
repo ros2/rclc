@@ -67,6 +67,9 @@ rclc_parameter_search(
   Parameter__Sequence * parameter_list,
   const char * param_name)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_list, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
+
   for (size_t i = 0; i < parameter_list->size; i++) {
     if (!strcmp(param_name, parameter_list->data[i].name.data)) {
       return &parameter_list->data[i];
@@ -76,11 +79,33 @@ rclc_parameter_search(
   return NULL;
 }
 
+size_t
+rclc_parameter_search_index(
+  Parameter__Sequence * parameter_list,
+  const char * param_name)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_list, SIZE_MAX);
+  RCL_CHECK_ARGUMENT_FOR_NULL(param_name, SIZE_MAX);
+
+  size_t index = SIZE_MAX;
+  for (size_t i = 0; i < parameter_list->size; i++) {
+    if (!strcmp(param_name, parameter_list->data[i].name.data)) {
+      index = i;
+      break;
+    }
+  }
+
+  return index;
+}
+
 bool
 rclc_parameter_set_string(
   rosidl_runtime_c__String * str,
   const char * value)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(str, false);
+  RCL_CHECK_ARGUMENT_FOR_NULL(value, false);
+
   if (str->capacity >= (strlen(value) + 1)) {
     memcpy(str->data, value, strlen(value) + 1);
     str->size = strlen(str->data);
@@ -90,21 +115,63 @@ rclc_parameter_set_string(
   return false;
 }
 
-void rclc_parameter_prepare_parameter_event(
+rcl_ret_t rclc_parameter_prepare_new_event(
   ParameterEvent * event,
-  Parameter * parameter,
-  bool new)
+  Parameter * parameter)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    event, "event is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rclc_parameter_reset_parameter_event(event);
+  event->new_parameters.data = parameter;
+  event->new_parameters.capacity = 1;
+  event->new_parameters.size = 1;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rclc_parameter_prepare_changed_event(
+  ParameterEvent * event,
+  Parameter * parameter)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    event, "event is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rclc_parameter_reset_parameter_event(event);
+  event->changed_parameters.data = parameter;
+  event->changed_parameters.capacity = 1;
+  event->changed_parameters.size = 1;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rclc_parameter_prepare_deleted_event(
+  ParameterEvent * event,
+  Parameter * parameter)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    event, "event is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  rclc_parameter_reset_parameter_event(event);
+  event->deleted_parameters.data = parameter;
+  event->deleted_parameters.capacity = 1;
+  event->deleted_parameters.size = 1;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rclc_parameter_reset_parameter_event(
+  ParameterEvent * event)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_INVALID_ARGUMENT);
+
   memset(&event->new_parameters, 0, sizeof(Parameter__Sequence));
   memset(&event->changed_parameters, 0, sizeof(Parameter__Sequence));
-
-  Parameter__Sequence * seq = (new) ?
-    &event->new_parameters :
-    &event->changed_parameters;
-
-  seq->data = parameter;
-  seq->capacity = 1;
-  seq->size = 1;
+  memset(&event->deleted_parameters, 0, sizeof(Parameter__Sequence));
+  return RCL_RET_OK;
 }
 
 #if __cplusplus

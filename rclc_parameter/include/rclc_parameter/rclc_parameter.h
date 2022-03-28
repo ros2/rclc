@@ -62,13 +62,35 @@ typedef struct rcl_interfaces__srv__ListParameters_Response ListParameters_Respo
 typedef struct rcl_interfaces__msg__Parameter Parameter;
 typedef struct rcl_interfaces__msg__ParameterValue ParameterValue;
 typedef struct rcl_interfaces__msg__Parameter__Sequence Parameter__Sequence;
+typedef struct rcl_interfaces__msg__ParameterDescriptor ParameterDescriptor;
+typedef struct rcl_interfaces__msg__ParameterDescriptor__Sequence ParameterDescriptor__Sequence;
 typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 // Number of RCLC executor handles required for a parameter server
 #define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 5
+#define PARAMETER_MODIFICATION_REJECTED 4001
+#define PARAMETER_TYPE_MISMATCH 4002
 
-// On parameter modified callback
-typedef void (* ModifiedParameter_Callback)(Parameter * param);
+/**
+ *  Parameter event callback
+ *  This callback will allow the user to allow or reject the following events:
+ *  - Parameter value change: Set operation on existing parameter.
+ *  - Parameter creation: Set operation on unexisting parameter if `allow_undeclared_parameters` is set.
+ *  - Parameter delete: Delete operation on existing parameter.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] param Parameter actual value, `NULL` for new parameter request.
+ * \param[in] new_value Parameter new value, `NULL` for parameter removal request.
+ * \return `true` to accept the parameter event. The operation will be rejected on `false` return.
+ */
+typedef bool (* ModifiedParameter_Callback)(const Parameter * param, const Parameter * new_value);
 
 // Allowed RCLC parameter types
 typedef enum rclc_parameter_type_t
@@ -84,6 +106,7 @@ typedef struct rclc_parameter_options_t
 {
   bool notify_changed_over_dds;
   size_t max_params;
+  bool allow_undeclared_parameters;
 } rclc_parameter_options_t;
 
 // Container for RCLC parameter server
@@ -112,12 +135,14 @@ typedef struct rclc_parameter_server_t
   DescribeParameters_Response describe_response;
 
   Parameter__Sequence parameter_list;
+  ParameterDescriptor__Sequence parameter_descriptors;
 
   ParameterEvent event_list;
 
   ModifiedParameter_Callback on_modification;
 
   bool notify_changed_over_dds;
+  bool allow_undeclared_parameters;
 } rclc_parameter_server_t;
 
 /**
@@ -202,7 +227,7 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
-  ModifiedParameter_Callback on_modification);
+  ModifiedParameter_Callback ModifiedParameter_Callback);
 
 /**
  *  Adds a RCLC parameter to a server
@@ -226,6 +251,27 @@ rclc_add_parameter(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   rclc_parameter_type_t type);
+
+/**
+ *  Deletes a RCLC parameter from the server
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] parameter_name name of the parameter
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_delete_parameter(
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name);
 
 /**
  *  Sets the value of an existing a RCLC bool parameter
@@ -364,6 +410,85 @@ rclc_parameter_get_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   double * output);
+
+
+/**
+ * Add a description to a parameter.
+ * This description will be returned on describe parameters requests.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] parameter_name name of the parameter
+ * \param[in] parameter_description description of the parameter
+ * \param[in] read_only read only flag
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_add_parameter_description(
+  rclc_parameter_server_t * parameter_server, const char * parameter_name,
+  const char * parameter_description, bool read_only);
+
+/**
+ * Add constraint description for an integer parameter.
+ * This constraint description will be returned on describe parameters requests.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] parameter_name name of the parameter
+ * \param[in] additional_constraints constraints description
+ * \param[in] from_value start value for valid values, inclusive.
+ * \param[in] to_value end value for valid values, inclusive.
+ * \param[in] step size of valid steps between the from and to bound.
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_add_parameter_constraints_integer(
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name, const char * additional_constraints,
+  int64_t from_value, int64_t to_value, uint64_t step);
+
+/**
+ * Add constraint description for an double parameter.
+ * This constraint description will be returned on describe parameters requests.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] parameter_name name of the parameter
+ * \param[in] additional_constraints constraints description
+ * \param[in] from_value start value for valid values, inclusive.
+ * \param[in] to_value end value for valid values, inclusive.
+ * \param[in] step size of valid steps between the from and to bound.
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_add_parameter_constraints_double(
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name, const char * additional_constraints,
+  double from_value, double to_value, double step);
 
 #if __cplusplus
 }
