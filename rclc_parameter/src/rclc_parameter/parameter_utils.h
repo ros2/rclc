@@ -36,6 +36,11 @@ rclc_parameter_copy(
   Parameter * dst,
   const Parameter * src);
 
+rcl_ret_t
+rclc_parameter_descriptor_copy(
+  ParameterDescriptor * dst,
+  const ParameterDescriptor * src);
+
 Parameter *
 rclc_parameter_search(
   Parameter__Sequence * parameter_list,

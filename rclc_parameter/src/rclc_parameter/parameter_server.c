@@ -59,44 +59,18 @@ rclc_parameter_server_describe_service_callback(
       request->names.data[i].data);
 
     ParameterDescriptor * response_descriptor = &response->descriptors.data[i];
-    rclc_parameter_set_string(&response_descriptor->name, request->names.data[i].data);
-    response_descriptor->floating_point_range.size = 0;
-    response_descriptor->integer_range.size = 0;
 
     if (index < param_server->parameter_descriptors.size) {
       ParameterDescriptor * parameter_descriptor = &param_server->parameter_descriptors.data[index];
-
-      rclc_parameter_set_string(
-        &response_descriptor->description,
-        parameter_descriptor->description.data);
-      rclc_parameter_set_string(
-        &response_descriptor->additional_constraints,
-        parameter_descriptor->additional_constraints.data);
-      response_descriptor->type = parameter_descriptor->type;
-      response_descriptor->read_only = parameter_descriptor->read_only;
-
-      if (parameter_descriptor->floating_point_range.size == 1) {
-        response_descriptor->floating_point_range.data[0].from_value =
-          parameter_descriptor->floating_point_range.data[0].from_value;
-        response_descriptor->floating_point_range.data[0].to_value =
-          parameter_descriptor->floating_point_range.data[0].to_value;
-        response_descriptor->floating_point_range.data[0].step =
-          parameter_descriptor->floating_point_range.data[0].step;
-        response_descriptor->floating_point_range.size = 1;
-      } else if (parameter_descriptor->integer_range.size == 1) {
-        response_descriptor->integer_range.data[0].from_value =
-          parameter_descriptor->integer_range.data[0].from_value;
-        response_descriptor->integer_range.data[0].to_value =
-          parameter_descriptor->integer_range.data[0].to_value;
-        response_descriptor->integer_range.data[0].step =
-          parameter_descriptor->integer_range.data[0].step;
-        response_descriptor->integer_range.size = 1;
-      }
+      rclc_parameter_descriptor_copy(response_descriptor, parameter_descriptor);
     } else {
+      rclc_parameter_set_string(&response_descriptor->name, "");
       rclc_parameter_set_string(&response_descriptor->description, "");
       rclc_parameter_set_string(&response_descriptor->additional_constraints, "");
       response_descriptor->type = RCLC_PARAMETER_NOT_SET;
       response_descriptor->read_only = false;
+      response_descriptor->floating_point_range.size = 0;
+      response_descriptor->integer_range.size = 0;
     }
   }
 }
@@ -816,16 +790,16 @@ rclc_delete_parameter(
   // TODO(acuadros95): Reset floating_point_range and integer_range;
 
   // Move parameters and fix size TODO: Check this
-  for (size_t i = index; i < parameter_server->parameter_list.size; i++) {
+  for (size_t i = index; i < (parameter_server->parameter_list.size - 1); i++) {
     // Move parameter list
     rclc_parameter_copy(
       &parameter_server->parameter_list.data[i],
       &parameter_server->parameter_list.data[i + 1]);
 
     // Move descriptors
-    memcpy(
+    rclc_parameter_descriptor_copy(
       &parameter_server->parameter_descriptors.data[i],
-      &parameter_server->parameter_descriptors.data[i + 1], sizeof(ParameterDescriptor));
+      &parameter_server->parameter_descriptors.data[i + 1]);
   }
 
   parameter_server->parameter_descriptors.size--;

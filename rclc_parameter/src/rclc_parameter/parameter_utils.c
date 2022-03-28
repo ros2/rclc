@@ -62,6 +62,42 @@ rclc_parameter_copy(
   return rclc_parameter_value_copy(&dst->value, &src->value);
 }
 
+rcl_ret_t
+rclc_parameter_descriptor_copy(
+  ParameterDescriptor * dst,
+  const ParameterDescriptor * src)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
+
+  if (!rclc_parameter_set_string(&dst->name, src->name.data)) {
+    return RCL_RET_ERROR;
+  }
+
+  if (!rclc_parameter_set_string(&dst->description, src->description.data)) {
+    return RCL_RET_ERROR;
+  }
+
+  if (!rclc_parameter_set_string(&dst->additional_constraints, src->additional_constraints.data)) {
+    return RCL_RET_ERROR;
+  }
+
+  dst->type = src->type;
+  dst->read_only = src->read_only;
+
+  dst->floating_point_range.data[0].from_value = src->floating_point_range.data[0].from_value;
+  dst->floating_point_range.data[0].to_value = src->floating_point_range.data[0].to_value;
+  dst->floating_point_range.data[0].step = src->floating_point_range.data[0].step;
+  dst->floating_point_range.size = src->floating_point_range.size;
+
+  dst->integer_range.data[0].from_value = src->integer_range.data[0].from_value;
+  dst->integer_range.data[0].to_value = src->integer_range.data[0].to_value;
+  dst->integer_range.data[0].step = src->integer_range.data[0].step;
+  dst->integer_range.size = src->integer_range.size;
+
+  return RCL_RET_OK;
+}
+
 Parameter *
 rclc_parameter_search(
   Parameter__Sequence * parameter_list,
