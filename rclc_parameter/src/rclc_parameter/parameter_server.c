@@ -406,6 +406,10 @@ rclc_parameter_server_init_with_option(
     options->max_params);
   parameter_server->set_response.results.size = 0;
 
+  static char empty_string_reason[RCLC_SET_ERROR_MAX_STRING_LENGTH];
+  memset(empty_string_reason, ' ', RCLC_SET_ERROR_MAX_STRING_LENGTH);
+  empty_string_reason[RCLC_SET_ERROR_MAX_STRING_LENGTH - 1] = '\0';
+
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; i++) {
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
@@ -414,7 +418,7 @@ rclc_parameter_server_init_with_option(
 
     mem_allocs_ok &= rosidl_runtime_c__String__assign(
       &parameter_server->set_response.results.data[i].reason,
-      (const char *) empty_string);
+      (const char *) empty_string_reason);
   }
 
   // Init Get types service msgs
@@ -703,6 +707,13 @@ rclc_add_parameter(
   parameter_server->parameter_list.size++;
 
   // Add to parameter descriptors
+  if (!rclc_parameter_set_string(
+      &parameter_server->parameter_descriptors.data[index].name,
+      parameter_name))
+  {
+    return RCL_RET_ERROR;
+  }
+
   parameter_server->parameter_descriptors.data[index].type = type;
   parameter_server->parameter_descriptors.size++;
 
@@ -745,6 +756,13 @@ rclc_add_parameter_undeclared(
   parameter_server->parameter_list.size++;
 
   // Add to parameter descriptors
+  if (!rclc_parameter_set_string(
+      &parameter_server->parameter_descriptors.data[index].name,
+      parameter->name.data))
+  {
+    return RCL_RET_ERROR;
+  }
+
   parameter_server->parameter_descriptors.data[index].type =
     parameter_server->parameter_list.data[index].value.type;
   parameter_server->parameter_descriptors.size++;
@@ -787,9 +805,9 @@ rclc_delete_parameter(
   rclc_parameter_set_string(&param_description->description, "");
   rclc_parameter_set_string(&param_description->additional_constraints, "");
   param_description->type = RCLC_PARAMETER_NOT_SET;
-  // TODO(acuadros95): Reset floating_point_range and integer_range;
+  parameter_descriptor->floating_point_range.size = 0;
+  parameter_descriptor->integer_range.size = 0;
 
-  // Move parameters and fix size TODO: Check this
   for (size_t i = index; i < (parameter_server->parameter_list.size - 1); i++) {
     // Move parameter list
     rclc_parameter_copy(
