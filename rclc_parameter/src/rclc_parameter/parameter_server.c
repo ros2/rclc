@@ -805,8 +805,8 @@ rclc_delete_parameter(
   rclc_parameter_set_string(&param_description->description, "");
   rclc_parameter_set_string(&param_description->additional_constraints, "");
   param_description->type = RCLC_PARAMETER_NOT_SET;
-  parameter_descriptor->floating_point_range.size = 0;
-  parameter_descriptor->integer_range.size = 0;
+  param_description->floating_point_range.size = 0;
+  param_description->integer_range.size = 0;
 
   for (size_t i = index; i < (parameter_server->parameter_list.size - 1); i++) {
     // Move parameter list
