@@ -36,23 +36,31 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   rclc_parameter_set_int(&param_server, "param2", value);
 }
 
-void on_parameter_changed(Parameter * param)
+bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param)
 {
-  printf("Parameter %s modified.", param->name.data);
-  switch (param->value.type) {
-    case RCLC_PARAMETER_BOOL:
-      printf(" New value: %d (bool)", param->value.bool_value);
-      break;
-    case RCLC_PARAMETER_INT:
-      printf(" New value: %ld (int)", param->value.integer_value);
-      break;
-    case RCLC_PARAMETER_DOUBLE:
-      printf(" New value: %f (double)", param->value.double_value);
-      break;
-    default:
-      break;
+  if (old_param == NULL) {
+    printf("Creating new parameter %s\n", new_param->name.data);
+  } else if (new_param == NULL) {
+    printf("Deleting parameter %s\n", old_param->name.data);
+  } else {
+    printf("Parameter %s modified.", old_param->name.data);
+    switch (old_param->value.type) {
+      case RCLC_PARAMETER_BOOL:
+        printf(" Old value: %d, New value: %d (bool)", old_param->value.bool_value, new_param->value.bool_value);
+        break;
+      case RCLC_PARAMETER_INT:
+        printf(" Old value: %ld, New value: %ld (int)", old_param->value.integer_value, new_param->value.integer_value);
+        break;
+      case RCLC_PARAMETER_DOUBLE:
+        printf(" Old value: %f, New value: %f (double)", old_param->value.double_value, new_param->value.double_value);
+        break;
+      default:
+        break;
+    }
+    printf("\n");
   }
-  printf("\n");
+
+  return true;
 }
 
 int main()
@@ -95,6 +103,13 @@ int main()
   rclc_parameter_set_bool(&param_server, "param1", false);
   rclc_parameter_set_int(&param_server, "param2", 10);
   rclc_parameter_set_double(&param_server, "param3", 0.01);
+
+  // Add parameters constrains
+  rclc_add_parameter_description(&param_server, "param2", "Second parameter", false);
+  rclc_add_parameter_constraints_integer(&param_server, "param2", "Only even numbers", -10, 120, 2);
+
+  rclc_add_parameter_description(&param_server, "param3", "Third parameter", false);
+  rclc_add_parameter_constraints_double(&param_server, "param3", "", 0.0, 10.0, 0.1);
 
   bool param1;
   int64_t param2;
