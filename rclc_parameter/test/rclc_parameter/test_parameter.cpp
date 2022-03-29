@@ -18,7 +18,6 @@ extern "C"
 {
 #include <rclc/node.h>
 #include <rclc_parameter/rclc_parameter.h>
-#include "rclc_parameter/parameter_utils.h"
 }
 
 #include <rclcpp/rclcpp.hpp>
@@ -27,6 +26,7 @@ extern "C"
 #include <memory>
 #include <vector>
 
+#include "rclc_parameter/parameter_utils.h"
 
 using namespace std::chrono_literals;
 
@@ -114,134 +114,140 @@ TEST(ParameterTestUnitary, rclc_add_parameter) {
 class ParameterTestBase : public ::testing::Test
 {
 public:
-    ParameterTestBase()
-      : default_spin_timeout( std::chrono::duration<int64_t, std::milli>(10000))
-    {
-      callcack_calls = 0;
-      user_return = true;
-      old_parameter_name = "";
-      new_parameter_name = "";
-      new_parameter_value.type = RCLC_PARAMETER_NOT_SET;
-      old_parameter_value.type = RCLC_PARAMETER_NOT_SET;
-    }
+  ParameterTestBase()
+  : default_spin_timeout(std::chrono::duration<int64_t, std::milli>(10000))
+  {
+    callcack_calls = 0;
+    user_return = true;
+    strncpy(old_parameter_name, "", sizeof(old_parameter_name));
+    strncpy(new_parameter_name, "", sizeof(new_parameter_name));
+    new_parameter_value.type = RCLC_PARAMETER_NOT_SET;
+    old_parameter_value.type = RCLC_PARAMETER_NOT_SET;
+  }
 
-    ~ParameterTestBase(){}
+  ~ParameterTestBase() {}
 
-    void SetUp() override {
-      std::string node_name("test_node");
+  void SetUp() override
+  {
+    std::string node_name("test_node");
 
-      // Init RCLC support
-      rcl_allocator_t allocator = rcl_get_default_allocator();
-      EXPECT_EQ(rclc_support_init(&support, 0, nullptr, &allocator), RCL_RET_OK);
+    // Init RCLC support
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    EXPECT_EQ(rclc_support_init(&support, 0, nullptr, &allocator), RCL_RET_OK);
 
-      // Init node
-      EXPECT_EQ(rclc_node_init_default(&node, node_name.c_str(), "", &support), RCL_RET_OK);
+    // Init node
+    EXPECT_EQ(rclc_node_init_default(&node, node_name.c_str(), "", &support), RCL_RET_OK);
 
-      // Init parameter server with allow_undeclared_parameters flag
-      rclc_parameter_options_t options;
-      options.notify_changed_over_dds = true;
-      options.max_params = 4;
-      options.allow_undeclared_parameters = true;
+    // Init parameter server with allow_undeclared_parameters flag
+    rclc_parameter_options_t options;
+    options.notify_changed_over_dds = true;
+    options.max_params = 4;
+    options.allow_undeclared_parameters = true;
 
-      // Init parameter server
-      EXPECT_EQ(rclc_parameter_server_init_with_option(&param_server, &node, &options), RCL_RET_OK);
+    // Init parameter server
+    EXPECT_EQ(rclc_parameter_server_init_with_option(&param_server, &node, &options), RCL_RET_OK);
 
-      // Add parameter to executor
-      rclc_executor_init(
-        &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
-        &allocator);
-      EXPECT_EQ(rclc_executor_add_parameter_server(&executor, &param_server, ParameterTestBase::on_parameter_changed), RCL_RET_OK);
+    // Add parameter to executor
+    rclc_executor_init(
+      &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
+      &allocator);
+    EXPECT_EQ(
+      rclc_executor_add_parameter_server(
+        &executor, &param_server,
+        ParameterTestBase::on_parameter_changed), RCL_RET_OK);
 
-      // Add initial parameters
-      EXPECT_EQ(rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_BOOL), RCL_RET_OK);
-      EXPECT_EQ(rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT), RCL_RET_OK);
-      EXPECT_EQ(rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE), RCL_RET_OK);
+    // Add initial parameters
+    EXPECT_EQ(rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_BOOL), RCL_RET_OK);
+    EXPECT_EQ(rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT), RCL_RET_OK);
+    EXPECT_EQ(rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE), RCL_RET_OK);
 
-      // Spin RCLC parameter server in a thread
-      spin = true;
-      rclc_parameter_server_thread = std::thread([&]() -> void {
-          while (spin) {
-            ASSERT_EQ(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(500)), RCL_RET_OK);
-          }
+    // Spin RCLC parameter server in a thread
+    spin = true;
+    rclc_parameter_server_thread = std::thread(
+      [&]() -> void {
+        while (spin) {
+          ASSERT_EQ(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(500)), RCL_RET_OK);
         }
-      );
-
-      // Init rclcpp node
-      rclcpp::init(0, NULL);
-      param_client_node = std::make_shared<rclcpp::Node>("param_aux_client");
-      parameters_client = std::make_shared<rclcpp::SyncParametersClient>(
-        param_client_node,
-        node_name);
-
-      ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
-      std::this_thread::sleep_for(500ms);
-    }
-
-    void TearDown() override {
-      rclcpp::shutdown();
-
-      spin = false;
-      rclc_parameter_server_thread.join();
-
-      // Destroy parameter server
-      ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
-    }
-
-    static bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param)
-    {
-      if (new_param == NULL) {
-        new_parameter_name = "null";
-        new_parameter_value.type = RCLC_PARAMETER_NOT_SET;
-      } else {
-        rclc_parameter_value_copy(&new_parameter_value, &new_param->value);
-        new_parameter_name = new_param->name.data;
       }
+    );
 
-      if (old_param == NULL) {
-        old_parameter_name = "null";
-        old_parameter_value.type = RCLC_PARAMETER_NOT_SET;
-      } else {
-        rclc_parameter_value_copy(&old_parameter_value, &old_param->value);
-        old_parameter_name = old_param->name.data;
-      }
+    // Init rclcpp node
+    rclcpp::init(0, NULL);
+    param_client_node = std::make_shared<rclcpp::Node>("param_aux_client");
+    parameters_client = std::make_shared<rclcpp::SyncParametersClient>(
+      param_client_node,
+      node_name);
 
-      callcack_calls++;
-      return user_return;
+    ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
+    std::this_thread::sleep_for(500ms);
+  }
+
+  void TearDown() override
+  {
+    rclcpp::shutdown();
+
+    spin = false;
+    rclc_parameter_server_thread.join();
+
+    // Destroy parameter server
+    ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
+  }
+
+  static bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param)
+  {
+    if (new_param == NULL) {
+      strncpy(new_parameter_name, "null", sizeof(new_parameter_name));
+      new_parameter_value.type = RCLC_PARAMETER_NOT_SET;
+    } else {
+      strncpy(new_parameter_name, new_parameter_value->name.data, sizeof(new_parameter_name));
+      rclc_parameter_value_copy(&new_parameter_value, &new_param->value);
     }
+
+    if (old_param == NULL) {
+      strncpy(old_parameter_name, "null", sizeof(old_parameter_name));
+      old_parameter_value.type = RCLC_PARAMETER_NOT_SET;
+    } else {
+      strncpy(old_parameter_name, old_param->name.data, sizeof(old_parameter_name));
+      rclc_parameter_value_copy(&old_parameter_value, &old_param->value);
+    }
+
+    callcack_calls++;
+    return user_return;
+  }
 
 protected:
-    // Callback
-    static int callcack_calls;
-    static bool user_return;
-    static std::string old_parameter_name;
-    static std::string new_parameter_name;
-    static ParameterValue new_parameter_value;
-    static ParameterValue old_parameter_value;
+  // Callback
+  static int callcack_calls;
+  static bool user_return;
+  static char old_parameter_name[RCLC_PARAMETER_MAX_STRING_LENGTH];
+  static char new_parameter_name[RCLC_PARAMETER_MAX_STRING_LENGTH];
+  static ParameterValue new_parameter_value;
+  static ParameterValue old_parameter_value;
 
-    // Rclcpp
-    std::shared_ptr<rclcpp::Node> param_client_node;
-    std::shared_ptr<rclcpp::SyncParametersClient> parameters_client;    
-    std::chrono::duration<int64_t, std::milli> default_spin_timeout;
+  // Rclcpp
+  std::shared_ptr<rclcpp::Node> param_client_node;
+  std::shared_ptr<rclcpp::SyncParametersClient> parameters_client;
+  std::chrono::duration<int64_t, std::milli> default_spin_timeout;
 
-    // Rclc
-    rclc_support_t support;
-    rcl_node_t node;
-    rclc_executor_t executor;
-    rclc_parameter_server_t param_server;
-    std::thread rclc_parameter_server_thread;
-    bool spin;
+  // Rclc
+  rclc_support_t support;
+  rcl_node_t node;
+  rclc_executor_t executor;
+  rclc_parameter_server_t param_server;
+  std::thread rclc_parameter_server_thread;
+  bool spin;
 };
 
 int ParameterTestBase::callcack_calls;
 bool ParameterTestBase::user_return;
-std::string ParameterTestBase::old_parameter_name;
-std::string ParameterTestBase::new_parameter_name;
+char ParameterTestBase::old_parameter_name[];
+char ParameterTestBase::new_parameter_name[];
 ParameterValue ParameterTestBase::new_parameter_value;
 ParameterValue ParameterTestBase::old_parameter_value;
 
 TEST_F(ParameterTestBase, rclc_set_get_parameter) {
   int expected_callcack_calls = 1;
-  
+
   // Set parameters
   {
     const char * param_name = "param1";
@@ -254,8 +260,8 @@ TEST_F(ParameterTestBase, rclc_set_get_parameter) {
 
     // Set value
     ASSERT_EQ(rclc_parameter_set_bool(&param_server, param_name, set_value), RCL_RET_OK);
-    ASSERT_EQ(old_parameter_name, param_name);
-    ASSERT_EQ(new_parameter_name, param_name);
+    ASSERT_EQ(strcmp(old_parameter_name, param_name), 0);
+    ASSERT_EQ(strcmp(new_parameter_name, param_name), 0);
     ASSERT_EQ(old_parameter_value.type, RCLC_PARAMETER_BOOL);
     ASSERT_EQ(new_parameter_value.type, RCLC_PARAMETER_BOOL);
     ASSERT_EQ(old_parameter_value.bool_value, get_value);
@@ -272,15 +278,15 @@ TEST_F(ParameterTestBase, rclc_set_get_parameter) {
     const char * param_name = "param2";
     int set_value = 10;
     int get_value;
-  
+
     // Get initial value
     ASSERT_EQ(rclc_parameter_get_int(&param_server, param_name, &get_value), RCL_RET_OK);
     ASSERT_EQ(get_value, 0);
 
     // Set value
     ASSERT_EQ(rclc_parameter_set_int(&param_server, param_name, set_value), RCL_RET_OK);
-    ASSERT_EQ(old_parameter_name, param_name);
-    ASSERT_EQ(new_parameter_name, param_name);
+    ASSERT_EQ(strcmp(old_parameter_name, param_name), 0);
+    ASSERT_EQ(strcmp(new_parameter_name, param_name), 0);
     ASSERT_EQ(old_parameter_value.type, RCLC_PARAMETER_INT);
     ASSERT_EQ(new_parameter_value.type, RCLC_PARAMETER_INT);
     ASSERT_EQ(old_parameter_value.integer_value, 0);
@@ -297,16 +303,17 @@ TEST_F(ParameterTestBase, rclc_set_get_parameter) {
     const char * param_name = "param3";
     double set_value = 0.01;
     double get_value;
-  
+
     // Get initial value
     ASSERT_EQ(rclc_parameter_get_double(&param_server, param_name, &get_value), RCL_RET_OK);
     ASSERT_EQ(get_value, 0.0);
 
     // Set value
-    ASSERT_EQ(rclc_parameter_set_double(
-      &param_server, param_name, set_value), RCL_RET_OK);
-    ASSERT_EQ(old_parameter_name, param_name);
-    ASSERT_EQ(new_parameter_name, param_name);
+    ASSERT_EQ(
+      rclc_parameter_set_double(
+        &param_server, param_name, set_value), RCL_RET_OK);
+    ASSERT_EQ(strcmp(old_parameter_name, param_name), 0);
+    ASSERT_EQ(strcmp(new_parameter_name, param_name), 0);
     ASSERT_EQ(old_parameter_value.type, RCLC_PARAMETER_DOUBLE);
     ASSERT_EQ(new_parameter_value.type, RCLC_PARAMETER_DOUBLE);
     ASSERT_EQ(old_parameter_value.double_value, 0.0);
@@ -331,7 +338,10 @@ TEST_F(ParameterTestBase, rclc_set_get_parameter) {
     ASSERT_EQ(rclc_parameter_get_double(&param_server, param_name, &first_get_value), RCL_RET_OK);
 
     // Set value
-    ASSERT_EQ(rclc_parameter_set_double(&param_server, param_name, set_value), PARAMETER_MODIFICATION_REJECTED);
+    ASSERT_EQ(
+      rclc_parameter_set_double(
+        &param_server, param_name,
+        set_value), PARAMETER_MODIFICATION_REJECTED);
     ASSERT_EQ(callcack_calls, 4);
 
     // Get value
@@ -374,7 +384,7 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
     ASSERT_EQ(new_parameter_name, param_name);
     ASSERT_EQ(new_parameter_value.bool_value, param[0].as_bool());
     expected_callcack_calls++;
-  
+
     // Get new value
     get_value = parameters_client->get_parameter<bool>(param_name);
     ASSERT_EQ(param[0].as_bool(), get_value);
@@ -393,7 +403,7 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
     ASSERT_FALSE(result.empty());
     ASSERT_TRUE(result[0].successful);
     ASSERT_EQ(result[0].reason, "");
-  
+
     // Check callback values
     ASSERT_EQ(callcack_calls, expected_callcack_calls);
     ASSERT_EQ(new_parameter_value.type, RCLC_PARAMETER_INT);
@@ -409,7 +419,7 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
   {
     std::vector<rclcpp::Parameter> param = {rclcpp::Parameter(param_names[2], -0.01)};
     const std::string param_name = param[0].get_name();
-  
+
     // Get initial value
     double get_value = parameters_client->get_parameter<double>(param_name);
     ASSERT_EQ(get_value, false);
@@ -419,14 +429,14 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
     ASSERT_FALSE(result.empty());
     ASSERT_TRUE(result[0].successful);
     ASSERT_EQ(result[0].reason, "");
-  
+
     // Check callback values
     ASSERT_EQ(callcack_calls, expected_callcack_calls);
     ASSERT_EQ(new_parameter_value.type, RCLC_PARAMETER_DOUBLE);
     ASSERT_EQ(new_parameter_name, param_name);
     ASSERT_EQ(new_parameter_value.double_value, param[0].as_double());
     expected_callcack_calls++;
-  
+
     // Get new value
     get_value = parameters_client->get_parameter<double>(param_name);
     ASSERT_EQ(param[0].as_double(), get_value);
@@ -437,7 +447,7 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
   {
     std::vector<rclcpp::Parameter> param = {rclcpp::Parameter(param_names[2], -0.05)};
     const std::string param_name = param[0].get_name();
-    
+
     // Get initial value
     double first_get_value = parameters_client->get_parameter<double>(param_name);
 
@@ -474,7 +484,7 @@ TEST_F(ParameterTestBase, rclcpp_delete_parameter) {
 
   // Use RCLCPP to delete and check parameters
   user_return = false;
-  const std::vector<std::string> parameters = { "param1" };
+  const std::vector<std::string> parameters = {"param1"};
   auto result = parameters_client->delete_parameters(parameters, default_spin_timeout);
   ASSERT_FALSE(result.empty());
   ASSERT_FALSE(result[0].successful);
@@ -497,12 +507,15 @@ TEST_F(ParameterTestBase, rclcpp_delete_parameter) {
   // Use auxiliar RCLCPP node for check
   list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
   ASSERT_EQ(list_params.names.size(), 2U);
-  ASSERT_EQ(std::find(list_params.names.begin(), list_params.names.end(), parameters[0]), list_params.names.end());
+  ASSERT_EQ(
+    std::find(
+      list_params.names.begin(),
+      list_params.names.end(), parameters[0]), list_params.names.end());
 }
 
 TEST_F(ParameterTestBase, rclcpp_add_parameter) {
   int expected_callcack_calls = 1;
- 
+
   // Reject add parameter
   user_return = false;
   std::vector<rclcpp::Parameter> param =
@@ -516,8 +529,11 @@ TEST_F(ParameterTestBase, rclcpp_add_parameter) {
 
   auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
   ASSERT_EQ(list_params.names.size(), 3u);
-  ASSERT_EQ(std::find(list_params.names.begin(), list_params.names.end(), param[0].get_name()), list_params.names.end());
-  
+  ASSERT_EQ(
+    std::find(
+      list_params.names.begin(), list_params.names.end(),
+      param[0].get_name()), list_params.names.end());
+
   // Accept add parameter
   user_return = true;
   result = parameters_client->set_parameters(param, default_spin_timeout);
@@ -554,7 +570,7 @@ TEST_F(ParameterTestBase, notify_changed_over_dds) {
   bool parameter_deleted = false;
 
   auto sub = parameters_client->on_parameter_event(
-    [&](const rcl_interfaces::msg::ParameterEvent::SharedPtr event ) -> void
+    [&](const rcl_interfaces::msg::ParameterEvent::SharedPtr event) -> void
     {
       parameter_change = event->changed_parameters.size() > 0;
       parameter_added = event->new_parameters.size() > 0;
@@ -563,7 +579,11 @@ TEST_F(ParameterTestBase, notify_changed_over_dds) {
     });
 
   ASSERT_EQ(rclc_parameter_set_bool(&param_server, "param1", false), RCL_RET_OK);
-  ASSERT_EQ(rclcpp::spin_until_future_complete(param_client_node, future, default_spin_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      param_client_node, future,
+      default_spin_timeout),
+    rclcpp::FutureReturnCode::SUCCESS);
   ASSERT_TRUE(parameter_change);
   ASSERT_FALSE(parameter_added);
   ASSERT_FALSE(parameter_deleted);
@@ -576,10 +596,11 @@ TEST_F(ParameterTestBase, rclcpp_get_parameter_types) {
     "param2",
     "param3"
   };
-  std::vector<rclcpp::ParameterType> types = parameters_client->get_parameter_types(types_query, default_spin_timeout);
+  std::vector<rclcpp::ParameterType> types = parameters_client->get_parameter_types(
+    types_query,
+    default_spin_timeout);
   ASSERT_EQ(types.size(), 3u);
   ASSERT_EQ(types[0], rclcpp::ParameterType::PARAMETER_BOOL);
   ASSERT_EQ(types[1], rclcpp::ParameterType::PARAMETER_INTEGER);
   ASSERT_EQ(types[2], rclcpp::ParameterType::PARAMETER_DOUBLE);
 }
-
