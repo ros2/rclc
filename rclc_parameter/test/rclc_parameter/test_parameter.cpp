@@ -16,7 +16,9 @@
 
 extern "C"
 {
-#include <rclc/node.h>
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
 #include <rclc_parameter/rclc_parameter.h>
 }
 
@@ -31,8 +33,6 @@ extern "C"
 using namespace std::chrono_literals;
 
 TEST(ParameterTestUnitary, rclc_parameter_server_init_default) {
-  std::string node_name("test_node");
-
   // Init RCLC support
   rclc_support_t support;
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -40,7 +40,7 @@ TEST(ParameterTestUnitary, rclc_parameter_server_init_default) {
 
   // Init node
   rcl_node_t node;
-  ASSERT_EQ(rclc_node_init_default(&node, node_name.c_str(), "", &support), RCL_RET_OK);
+  ASSERT_EQ(rclc_node_init_default(&node, "test_node", "", &support), RCL_RET_OK);
 
   // Init parameter server
   rclc_parameter_server_t param_server;
@@ -62,27 +62,26 @@ TEST(ParameterTestUnitary, rclc_parameter_server_init_default) {
 
   // Destroy parameter server
   ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
+  ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
+  ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
 
 TEST(ParameterTestUnitary, rclc_add_parameter) {
-  std::string node_name("test_node");
-
   // Init RCLC support
   rclc_support_t support;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   ASSERT_EQ(rclc_support_init(&support, 0, nullptr, &allocator), RCL_RET_OK);
+
   // Init node
   rcl_node_t node;
-  ASSERT_EQ(rclc_node_init_default(&node, node_name.c_str(), "", &support), RCL_RET_OK);
+  ASSERT_EQ(rclc_node_init_default(&node, "test_node", "", &support), RCL_RET_OK);
 
   // Init parameter server
   rclc_parameter_server_t param_server;
   ASSERT_EQ(rclc_parameter_server_init_default(&param_server, &node), RCL_RET_OK);
 
   // Test add parameter
-  std::vector<std::string> param_names;
   ASSERT_EQ(rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_BOOL), RCL_RET_OK);
-  param_names.push_back("param1");
 
   // Fail on duplicated name
   ASSERT_EQ(rclc_add_parameter(&param_server, "param1", RCLC_PARAMETER_DOUBLE), RCL_RET_ERROR);
@@ -96,19 +95,15 @@ TEST(ParameterTestUnitary, rclc_add_parameter) {
 
   // Add more parameters
   ASSERT_EQ(rclc_add_parameter(&param_server, "param2", RCLC_PARAMETER_INT), RCL_RET_OK);
-  param_names.push_back("param2");
-
   ASSERT_EQ(rclc_add_parameter(&param_server, "param3", RCLC_PARAMETER_DOUBLE), RCL_RET_OK);
-  param_names.push_back("param3");
-
   ASSERT_EQ(rclc_add_parameter(&param_server, "param4", RCLC_PARAMETER_DOUBLE), RCL_RET_OK);
-  param_names.push_back("param4");
 
   // Fail on too much params
   ASSERT_EQ(rclc_add_parameter(&param_server, "param5", RCLC_PARAMETER_DOUBLE), RCL_RET_ERROR);
 
   // Destroy parameter server
   ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
+  ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
 
 class ParameterTestBase : public ::testing::Test
@@ -132,7 +127,7 @@ public:
     std::string node_name("test_node");
 
     // Init RCLC support
-    rcl_allocator_t allocator = rcl_get_default_allocator();
+    allocator = rcl_get_default_allocator();
     EXPECT_EQ(rclc_support_init(&support, 0, nullptr, &allocator), RCL_RET_OK);
 
     // Init node
@@ -166,7 +161,7 @@ public:
     rclc_parameter_server_thread = std::thread(
       [&]() -> void {
         while (spin) {
-          ASSERT_EQ(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(500)), RCL_RET_OK);
+          ASSERT_EQ(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)), RCL_RET_OK);
         }
       }
     );
@@ -184,13 +179,17 @@ public:
 
   void TearDown() override
   {
-    rclcpp::shutdown();
-
     spin = false;
     rclc_parameter_server_thread.join();
 
+    parameters_client.reset();
+    param_client_node.reset();
+    rclcpp::shutdown();
+
     // Destroy parameter server
     ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
+    ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
+    ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
   }
 
   static bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param)
@@ -199,7 +198,7 @@ public:
       strncpy(new_parameter_name, "null", sizeof(new_parameter_name));
       new_parameter_value.type = RCLC_PARAMETER_NOT_SET;
     } else {
-      strncpy(new_parameter_name, new_parameter_value->name.data, sizeof(new_parameter_name));
+      strncpy(new_parameter_name, new_param->name.data, sizeof(new_parameter_name));
       rclc_parameter_value_copy(&new_parameter_value, &new_param->value);
     }
 
@@ -230,6 +229,7 @@ protected:
   std::chrono::duration<int64_t, std::milli> default_spin_timeout;
 
   // Rclc
+  rcl_allocator_t allocator;
   rclc_support_t support;
   rcl_node_t node;
   rclc_executor_t executor;
@@ -240,8 +240,8 @@ protected:
 
 int ParameterTestBase::callcack_calls;
 bool ParameterTestBase::user_return;
-char ParameterTestBase::old_parameter_name[];
-char ParameterTestBase::new_parameter_name[];
+char ParameterTestBase::old_parameter_name[] = "";
+char ParameterTestBase::new_parameter_name[] = "";
 ParameterValue ParameterTestBase::new_parameter_value;
 ParameterValue ParameterTestBase::old_parameter_value;
 
