@@ -745,14 +745,13 @@ rclc_add_parameter_undeclared(
     return RCL_RET_ERROR;
   }
 
-  if (!rclc_parameter_set_string(
-      &parameter_server->parameter_list.data[index].name,
-      parameter->name.data))
+  if (RCL_RET_OK != rclc_parameter_copy(
+    &parameter_server->parameter_list.data[index],
+    parameter))
   {
     return RCL_RET_ERROR;
   }
 
-  parameter_server->parameter_list.data[index].value = parameter->value;
   parameter_server->parameter_list.size++;
 
   // Add to parameter descriptors
@@ -764,7 +763,7 @@ rclc_add_parameter_undeclared(
   }
 
   parameter_server->parameter_descriptors.data[index].type =
-    parameter_server->parameter_list.data[index].value.type;
+    parameter->value.type;
   parameter_server->parameter_descriptors.size++;
 
   if (parameter_server->notify_changed_over_dds) {
