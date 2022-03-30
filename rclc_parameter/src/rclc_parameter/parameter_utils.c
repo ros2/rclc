@@ -65,21 +65,27 @@ rclc_parameter_copy(
 rcl_ret_t
 rclc_parameter_descriptor_copy(
   ParameterDescriptor * dst,
-  const ParameterDescriptor * src)
+  const ParameterDescriptor * src,
+  bool low_mem)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
 
-  if (!rclc_parameter_set_string(&dst->name, src->name.data)) {
-    return RCL_RET_ERROR;
-  }
+  if (!low_mem) {
+    if (!rclc_parameter_set_string(&dst->name, src->name.data)) {
+      return RCL_RET_ERROR;
+    }
 
-  if (!rclc_parameter_set_string(&dst->description, src->description.data)) {
-    return RCL_RET_ERROR;
-  }
+    if (!rclc_parameter_set_string(&dst->description, src->description.data)) {
+      return RCL_RET_ERROR;
+    }
 
-  if (!rclc_parameter_set_string(&dst->additional_constraints, src->additional_constraints.data)) {
-    return RCL_RET_ERROR;
+    if (!rclc_parameter_set_string(
+        &dst->additional_constraints,
+        src->additional_constraints.data))
+    {
+      return RCL_RET_ERROR;
+    }
   }
 
   dst->type = src->type;

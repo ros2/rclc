@@ -70,13 +70,14 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 #define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 5
 #define PARAMETER_MODIFICATION_REJECTED 4001
 #define PARAMETER_TYPE_MISMATCH 4002
+#define UNSUPORTED_ON_LOW_MEM 4003
 
 /**
  *  Parameter event callback
  *  This callback will allow the user to allow or reject the following events:
- *  - Parameter value change: Set operation on existing parameter.
- *  - Parameter creation: Set operation on unexisting parameter if `allow_undeclared_parameters` is set.
- *  - Parameter delete: Delete operation on existing parameter.
+ *  - Parameter value change: Internal and external parameter set on existing parameters.
+ *  - Parameter creation: External parameter set on unexisting parameter if `allow_undeclared_parameters` is set.
+ *  - Parameter delete: External parameter delete on existing parameter.
  *
  * <hr>
  * Attribute          | Adherence
@@ -107,6 +108,7 @@ typedef struct rclc_parameter_options_t
   bool notify_changed_over_dds;
   size_t max_params;
   bool allow_undeclared_parameters;
+  bool low_mem_mode;
 } rclc_parameter_options_t;
 
 // Container for RCLC parameter server
@@ -143,6 +145,7 @@ typedef struct rclc_parameter_server_t
 
   bool notify_changed_over_dds;
   bool allow_undeclared_parameters;
+  bool low_mem_mode;
 } rclc_parameter_server_t;
 
 /**
@@ -413,7 +416,7 @@ rclc_parameter_get_double(
 
 
 /**
- * Add a description to a parameter.
+ * Add a description to a parameter (Unsuported on low memory mode).
  * This description will be returned on describe parameters requests.
  *
  * <hr>
@@ -427,14 +430,39 @@ rclc_parameter_get_double(
  * \param[in] parameter_server preallocated rclc_parameter_server_t
  * \param[in] parameter_name name of the parameter
  * \param[in] parameter_description description of the parameter
+ * \param[in] additional_constraints constraints description
  * \param[in] read_only read only flag
  * \return `RCL_RET_OK` if success
  */
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_description(
-  rclc_parameter_server_t * parameter_server, const char * parameter_name,
-  const char * parameter_description, bool read_only);
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name, const char * parameter_description,
+  const char * additional_constraints);
+
+/**
+ * Sets a parameter read only flag.
+ * Read only parameters can only be modified from the `rclc_parameter_set` API.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] parameter_name name of the parameter
+ * \param[in] read_only read only flag
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_set_parameter_read_only(
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name, bool read_only);
 
 /**
  * Add constraint description for an integer parameter.
@@ -450,7 +478,6 @@ rclc_add_parameter_description(
  *
  * \param[in] parameter_server preallocated rclc_parameter_server_t
  * \param[in] parameter_name name of the parameter
- * \param[in] additional_constraints constraints description
  * \param[in] from_value start value for valid values, inclusive.
  * \param[in] to_value end value for valid values, inclusive.
  * \param[in] step size of valid steps between the from and to bound.
@@ -460,8 +487,7 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_constraints_integer(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, const char * additional_constraints,
-  int64_t from_value, int64_t to_value, uint64_t step);
+  const char * parameter_name, int64_t from_value, int64_t to_value, uint64_t step);
 
 /**
  * Add constraint description for an double parameter.
@@ -477,7 +503,6 @@ rclc_add_parameter_constraints_integer(
  *
  * \param[in] parameter_server preallocated rclc_parameter_server_t
  * \param[in] parameter_name name of the parameter
- * \param[in] additional_constraints constraints description
  * \param[in] from_value start value for valid values, inclusive.
  * \param[in] to_value end value for valid values, inclusive.
  * \param[in] step size of valid steps between the from and to bound.
@@ -487,8 +512,7 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_constraints_double(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, const char * additional_constraints,
-  double from_value, double to_value, double step);
+  const char * parameter_name, double from_value, double to_value, double step);
 
 #if __cplusplus
 }
