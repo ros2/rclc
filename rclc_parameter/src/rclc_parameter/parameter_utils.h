@@ -39,7 +39,8 @@ rclc_parameter_copy(
 rcl_ret_t
 rclc_parameter_descriptor_copy(
   ParameterDescriptor * dst,
-  const ParameterDescriptor * src);
+  const ParameterDescriptor * src,
+  bool low_mem);
 
 Parameter *
 rclc_parameter_search(

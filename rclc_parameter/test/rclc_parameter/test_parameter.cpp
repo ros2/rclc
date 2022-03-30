@@ -106,11 +106,12 @@ TEST(ParameterTestUnitary, rclc_add_parameter) {
   ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
 
-class ParameterTestBase : public ::testing::Test
+class ParameterTestBase : public ::testing::TestWithParam<rclc_parameter_options_t>
 {
 public:
   ParameterTestBase()
-  : default_spin_timeout(std::chrono::duration<int64_t, std::milli>(10000))
+  : default_spin_timeout(std::chrono::duration<int64_t, std::milli>(10000)),
+    options(GetParam())
   {
     callcack_calls = 0;
     user_return = true;
@@ -132,12 +133,6 @@ public:
 
     // Init node
     EXPECT_EQ(rclc_node_init_default(&node, node_name.c_str(), "", &support), RCL_RET_OK);
-
-    // Init parameter server with allow_undeclared_parameters flag
-    rclc_parameter_options_t options;
-    options.notify_changed_over_dds = true;
-    options.max_params = 4;
-    options.allow_undeclared_parameters = true;
 
     // Init parameter server
     EXPECT_EQ(rclc_parameter_server_init_with_option(&param_server, &node, &options), RCL_RET_OK);
@@ -174,7 +169,6 @@ public:
       node_name);
 
     ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
-    std::this_thread::sleep_for(500ms);
   }
 
   void TearDown() override
@@ -233,6 +227,7 @@ protected:
   rclc_support_t support;
   rcl_node_t node;
   rclc_executor_t executor;
+  rclc_parameter_options_t options;
   rclc_parameter_server_t param_server;
   std::thread rclc_parameter_server_thread;
   bool spin;
@@ -245,7 +240,7 @@ char ParameterTestBase::new_parameter_name[] = "";
 ParameterValue ParameterTestBase::new_parameter_value;
 ParameterValue ParameterTestBase::old_parameter_value;
 
-TEST_F(ParameterTestBase, rclc_set_get_parameter) {
+TEST_P(ParameterTestBase, rclc_set_get_parameter) {
   int expected_callcack_calls = 1;
 
   // Set parameters
@@ -350,7 +345,7 @@ TEST_F(ParameterTestBase, rclc_set_get_parameter) {
   }
 }
 
-TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
+TEST_P(ParameterTestBase, rclcpp_set_get_parameter) {
   int expected_callcack_calls = 1;
 
   // List parameters check
@@ -465,7 +460,7 @@ TEST_F(ParameterTestBase, rclcpp_set_get_parameter) {
   }
 }
 
-TEST_F(ParameterTestBase, rclc_delete_parameter) {
+TEST_P(ParameterTestBase, rclc_delete_parameter) {
   // Get parameter
   const char * param_name = "param1";
   bool param_value;
@@ -479,7 +474,7 @@ TEST_F(ParameterTestBase, rclc_delete_parameter) {
   ASSERT_EQ(rclc_parameter_get_bool(&param_server, param_name, &param_value), RCL_RET_ERROR);
 }
 
-TEST_F(ParameterTestBase, rclcpp_delete_parameter) {
+TEST_P(ParameterTestBase, rclcpp_delete_parameter) {
   int expected_callcack_calls = 1;
 
   // Use RCLCPP to delete and check parameters
@@ -513,55 +508,203 @@ TEST_F(ParameterTestBase, rclcpp_delete_parameter) {
       list_params.names.end(), parameters[0]), list_params.names.end());
 }
 
-TEST_F(ParameterTestBase, rclcpp_add_parameter) {
-  int expected_callcack_calls = 1;
+TEST_P(ParameterTestBase, rclcpp_add_parameter) {
+  std::vector<rclcpp::Parameter> param = {rclcpp::Parameter("param4", 10.5)};
 
-  // Reject add parameter
-  user_return = false;
-  std::vector<rclcpp::Parameter> param =
-  {rclcpp::Parameter("param4", 10.5)};
+  if (options.allow_undeclared_parameters) {
+    int expected_callcack_calls = 1;
+
+    // Reject add parameter
+    user_return = false;
+    auto result = parameters_client->set_parameters(param, default_spin_timeout);
+    ASSERT_FALSE(result.empty());
+    ASSERT_FALSE(result[0].successful);
+    ASSERT_EQ(result[0].reason, "New parameter rejected");
+    ASSERT_EQ(callcack_calls, expected_callcack_calls);
+    expected_callcack_calls++;
+
+    auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
+    ASSERT_EQ(list_params.names.size(), 3u);
+    ASSERT_EQ(
+      std::find(
+        list_params.names.begin(), list_params.names.end(),
+        param[0].get_name()), list_params.names.end());
+
+    // Accept add parameter
+    user_return = true;
+    result = parameters_client->set_parameters(param, default_spin_timeout);
+    ASSERT_FALSE(result.empty());
+    ASSERT_TRUE(result[0].successful);
+    ASSERT_EQ(result[0].reason, "New parameter added");
+    ASSERT_EQ(callcack_calls, expected_callcack_calls);
+
+    list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
+    ASSERT_EQ(list_params.names.size(), 4u);
+    ASSERT_EQ(list_params.names[3], param[0].get_name());
+
+    // Check value and type
+    double param_value = parameters_client->get_parameter<double>(param[0].get_name());
+    ASSERT_EQ(param_value, 10.5);
+
+    // Reject parameter on full server
+    user_return = false;
+    param.clear();
+    param.push_back(rclcpp::Parameter("param5", 12.2));
+    result = parameters_client->set_parameters(param, default_spin_timeout);
+    ASSERT_FALSE(result.empty());
+    ASSERT_FALSE(result[0].successful);
+    ASSERT_EQ(result[0].reason, "Parameter server is full");
+    ASSERT_EQ(callcack_calls, expected_callcack_calls);
+  } else {
+    // Reject add parameter
+    auto result = parameters_client->set_parameters(param, default_spin_timeout);
+    ASSERT_FALSE(result.empty());
+    ASSERT_FALSE(result[0].successful);
+    ASSERT_EQ(result[0].reason, "Parameter not found");
+    ASSERT_EQ(callcack_calls, 0);
+
+    auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
+    ASSERT_EQ(list_params.names.size(), 3u);
+    ASSERT_EQ(
+      std::find(
+        list_params.names.begin(), list_params.names.end(),
+        param[0].get_name()), list_params.names.end());
+  }
+}
+
+TEST_P(ParameterTestBase, rclcpp_read_only_parameter) {
+  ASSERT_EQ(rclc_set_parameter_read_only(&param_server, "param2", true), RCL_RET_OK);
+
+  std::vector<rclcpp::Parameter> param = {rclcpp::Parameter("param2", 50)};
+
+  // Reject set parameter on read only parameter
   auto result = parameters_client->set_parameters(param, default_spin_timeout);
   ASSERT_FALSE(result.empty());
   ASSERT_FALSE(result[0].successful);
-  ASSERT_EQ(result[0].reason, "New parameter rejected");
-  ASSERT_EQ(callcack_calls, expected_callcack_calls);
-  expected_callcack_calls++;
+  ASSERT_EQ(result[0].reason, "Read only parameter");
+  ASSERT_EQ(callcack_calls, 0);
 
-  auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
-  ASSERT_EQ(list_params.names.size(), 3u);
-  ASSERT_EQ(
-    std::find(
-      list_params.names.begin(), list_params.names.end(),
-      param[0].get_name()), list_params.names.end());
-
-  // Accept add parameter
-  user_return = true;
-  result = parameters_client->set_parameters(param, default_spin_timeout);
-  ASSERT_FALSE(result.empty());
-  ASSERT_TRUE(result[0].successful);
-  ASSERT_EQ(result[0].reason, "New parameter added");
-  ASSERT_EQ(callcack_calls, expected_callcack_calls);
-
-  list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
-  ASSERT_EQ(list_params.names.size(), 4u);
-  ASSERT_EQ(list_params.names[3], param[0].get_name());
-
-  // Check value and type
-  double param_value = parameters_client->get_parameter<double>(param[0].get_name());
-  ASSERT_EQ(param_value, 10.5);
-
-  // Reject parameter on full server
-  user_return = false;
-  param.clear();
-  param.push_back(rclcpp::Parameter("param5", 12.2));
-  result = parameters_client->set_parameters(param, default_spin_timeout);
-  ASSERT_FALSE(result.empty());
-  ASSERT_FALSE(result[0].successful);
-  ASSERT_EQ(result[0].reason, "Parameter server is full");
-  ASSERT_EQ(callcack_calls, expected_callcack_calls);
+  // Check read only flag on descriptor
+  std::vector<std::string> params = {param[0].get_name()};
+  auto description = parameters_client->describe_parameters(params);
+  ASSERT_FALSE(description.empty());
+  ASSERT_TRUE(description[0].read_only);
 }
 
-TEST_F(ParameterTestBase, notify_changed_over_dds) {
+TEST_P(ParameterTestBase, rclcpp_parameter_description) {
+  if (options.low_mem_mode) {
+    GTEST_SKIP();
+  }
+
+  std::vector<std::string> params = {"param2", "param3"};
+  std::string parameter_description = "Parameter 2";
+  std::string additional_constraints = "Constrains applied";
+  int64_t int_from = -10;
+  int64_t int_to = 20;
+  uint64_t int_step = 2;
+  double double_from = -0.5;
+  double double_to = 0.5;
+  double double_step = 0.01;
+
+  // Set parameter description and constrains
+  ASSERT_EQ(
+    rclc_add_parameter_description(
+      &param_server, "param2", parameter_description.c_str(),
+      additional_constraints.c_str()), RCL_RET_OK);
+  ASSERT_EQ(
+    rclc_add_parameter_constraints_integer(
+      &param_server, "param2", int_from, int_to,
+      int_step), RCL_RET_OK);
+  ASSERT_EQ(
+    rclc_add_parameter_constraints_double(
+      &param_server, "param3", double_from, double_to,
+      double_step), RCL_RET_OK);
+
+  // Check parameter descriptions
+  auto description = parameters_client->describe_parameters(params);
+  ASSERT_EQ(description.size(), params.size());
+  ASSERT_EQ(description[0].name, params[0]);
+  ASSERT_EQ(description[0].type, RCLC_PARAMETER_INT);
+  ASSERT_EQ(description[0].description, parameter_description);
+  ASSERT_EQ(description[0].additional_constraints, additional_constraints);
+  ASSERT_EQ(description[0].floating_point_range.size(), 0U);
+  ASSERT_EQ(description[0].integer_range.size(), 1U);
+  ASSERT_EQ(description[0].integer_range[0].from_value, int_from);
+  ASSERT_EQ(description[0].integer_range[0].to_value, int_to);
+  ASSERT_EQ(description[0].integer_range[0].step, int_step);
+
+  ASSERT_EQ(description[1].name, params[1]);
+  ASSERT_EQ(description[1].type, RCLC_PARAMETER_DOUBLE);
+  // TODO(acuadros95): Check empty string filled with spaces
+  // ASSERT_TRUE(description[1].description.empty());
+  // ASSERT_TRUE(description[1].additional_constraints.empty());
+  ASSERT_EQ(description[1].integer_range.size(), 0U);
+  ASSERT_EQ(description[1].floating_point_range.size(), 1U);
+  ASSERT_EQ(description[1].floating_point_range[0].from_value, double_from);
+  ASSERT_EQ(description[1].floating_point_range[0].to_value, double_to);
+  ASSERT_EQ(description[1].floating_point_range[0].step, double_step);
+
+  // TODO(acuadros95): Test again after new/delete parameter
+}
+
+TEST_P(ParameterTestBase, rclcpp_parameter_description_low) {
+  if (!options.low_mem_mode) {
+    GTEST_SKIP();
+  }
+
+  std::vector<rclcpp::Parameter> param = {
+    rclcpp::Parameter("param2", 0),
+    rclcpp::Parameter("param3", 0.1)
+  };
+
+  int64_t int_from = -10;
+  int64_t int_to = 20;
+  uint64_t int_step = 2;
+  double double_from = -0.5;
+  double double_to = 0.5;
+  double double_step = 0.01;
+
+  // Set parameter constrains
+  ASSERT_EQ(
+    rclc_add_parameter_description(&param_server, "param2", "", ""), UNSUPORTED_ON_LOW_MEM);
+  ASSERT_EQ(
+    rclc_add_parameter_constraints_integer(
+      &param_server, "param2", int_from, int_to,
+      int_step), RCL_RET_OK);
+  ASSERT_EQ(
+    rclc_add_parameter_constraints_double(
+      &param_server, "param3", double_from, double_to,
+      double_step), RCL_RET_OK);
+
+  for (auto & parameter : param) {
+    std::vector<std::string> request = {parameter.get_name()};
+
+    // Check parameter descriptions
+    auto description = parameters_client->describe_parameters(request);
+    ASSERT_EQ(description.size(), request.size());
+    ASSERT_EQ(description[0].name, request[0]);
+
+    if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER) {
+      ASSERT_EQ(description[0].type, RCLC_PARAMETER_INT);
+      ASSERT_EQ(description[0].floating_point_range.size(), 0U);
+      ASSERT_EQ(description[0].integer_range.size(), 1U);
+      ASSERT_EQ(description[0].integer_range[0].from_value, int_from);
+      ASSERT_EQ(description[0].integer_range[0].to_value, int_to);
+      ASSERT_EQ(description[0].integer_range[0].step, int_step);
+    } else if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE) {
+      ASSERT_EQ(description[0].type, RCLC_PARAMETER_DOUBLE);
+      ASSERT_EQ(description[0].integer_range.size(), 0U);
+      ASSERT_EQ(description[0].floating_point_range.size(), 1U);
+      ASSERT_EQ(description[0].floating_point_range[0].from_value, double_from);
+      ASSERT_EQ(description[0].floating_point_range[0].to_value, double_to);
+      ASSERT_EQ(description[0].floating_point_range[0].step, double_step);
+    }
+
+    // TODO(acuadros95): Test again after new/delete parameter
+  }
+}
+
+TEST_P(ParameterTestBase, notify_changed_over_dds) {
   // Subscribe to on_parameter_event
   auto promise = std::make_shared<std::promise<void>>();
   auto future = promise->get_future().share();
@@ -589,18 +732,62 @@ TEST_F(ParameterTestBase, notify_changed_over_dds) {
   ASSERT_FALSE(parameter_deleted);
 }
 
-TEST_F(ParameterTestBase, rclcpp_get_parameter_types) {
+TEST_P(ParameterTestBase, rclcpp_get_parameter_types) {
   // External get types
-  const std::vector<std::string> types_query = {
-    "param1",
-    "param2",
-    "param3"
+  std::vector<rclcpp::Parameter> param = {
+    rclcpp::Parameter("param1", true),
+    rclcpp::Parameter("param2", 10),
+    rclcpp::Parameter("param3", 0.1)
   };
-  std::vector<rclcpp::ParameterType> types = parameters_client->get_parameter_types(
-    types_query,
-    default_spin_timeout);
-  ASSERT_EQ(types.size(), 3u);
-  ASSERT_EQ(types[0], rclcpp::ParameterType::PARAMETER_BOOL);
-  ASSERT_EQ(types[1], rclcpp::ParameterType::PARAMETER_INTEGER);
-  ASSERT_EQ(types[2], rclcpp::ParameterType::PARAMETER_DOUBLE);
+
+  if (options.low_mem_mode) {
+    // Request types one by one
+    for (auto & parameter : param) {
+      const std::vector<std::string> param_name = {
+        parameter.get_name()
+      };
+      auto types = parameters_client->get_parameter_types(
+        param_name,
+        default_spin_timeout);
+
+      ASSERT_EQ(types.size(), 1U);
+      ASSERT_EQ(types[0], parameter.get_type());
+    }
+  } else {
+    // Request all parameters at once
+    const std::vector<std::string> types_query = {
+      param[0].get_name(),
+      param[1].get_name(),
+      param[2].get_name()
+    };
+    std::vector<rclcpp::ParameterType> types = parameters_client->get_parameter_types(
+      types_query,
+      default_spin_timeout);
+    ASSERT_EQ(types.size(), types_query.size());
+    ASSERT_EQ(types[0], param[0].get_type());
+    ASSERT_EQ(types[1], param[1].get_type());
+    ASSERT_EQ(types[2], param[2].get_type());
+  }
 }
+
+// Init parameter server with allow_undeclared_parameters flag
+rclc_parameter_options_t options_low_mem = {
+  true,  // notify_changed_over_dds
+  4,  // max_params
+  true,  // allow_undeclared_parameters
+  true  // low_mem_mode
+};
+
+rclc_parameter_options_t default_options = {
+  true,  // notify_changed_over_dds
+  4,  // max_params
+  false,  // allow_undeclared_parameters
+  false  // low_mem_mode
+};
+
+INSTANTIATE_TEST_SUITE_P(
+  ParametersRclcpp,
+  ParameterTestBase,
+  ::testing::Values(
+    default_options,
+    options_low_mem));
