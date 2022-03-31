@@ -816,6 +816,9 @@ rclc_parameter_server_fini_memory_low_memory(
   parameter_server->get_request.names.size = 0;
 
   // Get response
+  allocator.deallocate(
+    parameter_server->get_response.values.data[0].string_value.data,
+    allocator.state);
   allocator.deallocate(parameter_server->get_response.values.data, allocator.state);
   parameter_server->get_response.values.capacity = 0;
   parameter_server->get_response.values.size = 0;
@@ -877,6 +880,14 @@ rclc_parameter_server_fini_memory_low_memory(
   // Parameter list and parameter descriptors
   for (size_t i = 0; i < parameter_server->parameter_list.capacity; i++) {
     allocator.deallocate(parameter_server->parameter_list.data[i].name.data, allocator.state);
+    allocator.deallocate(
+      parameter_server->parameter_list.data[i].value.string_value.data,
+      allocator.state);
+    allocator.deallocate(
+      parameter_server->parameter_descriptors.data[i].description.data,
+      allocator.state);
+    allocator.deallocate(
+      parameter_server->parameter_descriptors.data[i].additional_constraints.data, allocator.state);
     allocator.deallocate(
       parameter_server->parameter_descriptors.data[i].floating_point_range.data,
       allocator.state);
