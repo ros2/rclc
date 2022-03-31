@@ -22,11 +22,11 @@ extern "C"
 #include <rclc_parameter/rclc_parameter.h>
 }
 
-#include <rclcpp/rclcpp.hpp>
-
 #include <string>
 #include <memory>
 #include <vector>
+
+#include <rclcpp/rclcpp.hpp>
 
 #include "rclc_parameter/parameter_utils.h"
 
