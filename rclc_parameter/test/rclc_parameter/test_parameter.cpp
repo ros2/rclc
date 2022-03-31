@@ -721,6 +721,9 @@ TEST_P(ParameterTestBase, notify_changed_over_dds) {
       promise->set_value();
     });
 
+  // Sleep for pub/sub match
+  std::this_thread::sleep_for(500ms);
+
   ASSERT_EQ(rclc_parameter_set_bool(&param_server, "param1", false), RCL_RET_OK);
   ASSERT_EQ(
     rclcpp::spin_until_future_complete(
