@@ -711,28 +711,73 @@ TEST_P(ParameterTestBase, notify_changed_over_dds) {
   bool parameter_change = false;
   bool parameter_added = false;
   bool parameter_deleted = false;
+  std::string event_parameter = "";
 
   auto sub = parameters_client->on_parameter_event(
     [&](const rcl_interfaces::msg::ParameterEvent::SharedPtr event) -> void
     {
-      parameter_change = event->changed_parameters.size() > 0;
-      parameter_added = event->new_parameters.size() > 0;
-      parameter_deleted = event->deleted_parameters.size() > 0;
+      parameter_change = event->changed_parameters.size() == 1;
+      parameter_added = event->new_parameters.size() == 1;
+      parameter_deleted = event->deleted_parameters.size() == 1;
+      event_parameter = "";
+
+      if (parameter_change) {
+        event_parameter = event->changed_parameters[0].name;
+      }
+
+      if (parameter_added) {
+        event_parameter = event->new_parameters[0].name;
+      }
+
+      if (parameter_deleted) {
+        event_parameter = event->deleted_parameters[0].name;
+      }
+
       promise->set_value();
     });
 
   // Sleep for pub/sub match
   std::this_thread::sleep_for(500ms);
 
+  // Parameter change event
   ASSERT_EQ(rclc_parameter_set_bool(&param_server, "param1", false), RCL_RET_OK);
   ASSERT_EQ(
     rclcpp::spin_until_future_complete(
       param_client_node, future,
       default_spin_timeout),
     rclcpp::FutureReturnCode::SUCCESS);
+  ASSERT_EQ(event_parameter, "param1");
   ASSERT_TRUE(parameter_change);
   ASSERT_FALSE(parameter_added);
   ASSERT_FALSE(parameter_deleted);
+
+  // Parameter added event
+  promise = std::make_shared<std::promise<void>>();
+  future = promise->get_future().share();
+  ASSERT_EQ(rclc_add_parameter(&param_server, "new_param", RCLC_PARAMETER_BOOL), RCL_RET_OK);
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      param_client_node, future,
+      default_spin_timeout),
+    rclcpp::FutureReturnCode::SUCCESS);
+  ASSERT_EQ(event_parameter, "new_param");
+  ASSERT_TRUE(parameter_added);
+  ASSERT_FALSE(parameter_change);
+  ASSERT_FALSE(parameter_deleted);
+
+  // Parameter deleted event
+  promise = std::make_shared<std::promise<void>>();
+  future = promise->get_future().share();
+  ASSERT_EQ(rclc_delete_parameter(&param_server, "new_param"), RCL_RET_OK);
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      param_client_node, future,
+      default_spin_timeout),
+    rclcpp::FutureReturnCode::SUCCESS);
+  ASSERT_EQ(event_parameter, "new_param");
+  ASSERT_TRUE(parameter_deleted);
+  ASSERT_FALSE(parameter_change);
+  ASSERT_FALSE(parameter_added);
 }
 
 TEST_P(ParameterTestBase, rclcpp_get_parameter_types) {
