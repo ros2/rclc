@@ -71,13 +71,16 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 #define PARAMETER_MODIFICATION_REJECTED 4001
 #define PARAMETER_TYPE_MISMATCH 4002
 #define UNSUPORTED_ON_LOW_MEM 4003
+#define DISABLE_ON_CALLBACK 40004
 
 /**
- *  Parameter event callback
+ *  Parameter event callback.
  *  This callback will allow the user to allow or reject the following events:
  *  - Parameter value change: Internal and external parameter set on existing parameters.
  *  - Parameter creation: External parameter set on unexisting parameter if `allow_undeclared_parameters` is set.
  *  - Parameter delete: External parameter delete on existing parameter.
+ *
+ *  Parameters modifications are disabled while this callback is executed.
  *
  * <hr>
  * Attribute          | Adherence
@@ -91,7 +94,9 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
  * \param[in] new_value Parameter new value, `NULL` for parameter removal request.
  * \return `true` to accept the parameter event. The operation will be rejected on `false` return.
  */
-typedef bool (* ModifiedParameter_Callback)(const Parameter * param, const Parameter * new_value);
+typedef bool (* ModifiedParameter_Callback)(
+  const Parameter * old_param,
+  const Parameter * new_param);
 
 // Allowed RCLC parameter types
 typedef enum rclc_parameter_type_t
@@ -142,6 +147,7 @@ typedef struct rclc_parameter_server_t
   ParameterEvent event_list;
 
   ModifiedParameter_Callback on_modification;
+  bool on_callback;
 
   bool notify_changed_over_dds;
   bool allow_undeclared_parameters;
@@ -230,10 +236,11 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
-  ModifiedParameter_Callback ModifiedParameter_Callback);
+  ModifiedParameter_Callback on_modification);
 
 /**
  *  Adds a RCLC parameter to a server
+ *  This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -256,7 +263,8 @@ rclc_add_parameter(
   rclc_parameter_type_t type);
 
 /**
- *  Deletes a RCLC parameter from the server
+ *  Deletes a RCLC parameter from the server.
+ *  This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -277,7 +285,8 @@ rclc_delete_parameter(
   const char * parameter_name);
 
 /**
- *  Sets the value of an existing a RCLC bool parameter
+ *  Sets the value of an existing a RCLC bool parameter.
+ *  This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -300,7 +309,8 @@ rclc_parameter_set_bool(
   bool value);
 
 /**
- *  Sets the value of an existing a RCLC integer parameter
+ *  Sets the value of an existing a RCLC integer parameter.
+ *  This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -323,7 +333,8 @@ rclc_parameter_set_int(
   int64_t value);
 
 /**
- *  Sets the value of an existing a RCLC double parameter
+ *  Sets the value of an existing a RCLC double parameter.
+ *  This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -444,6 +455,7 @@ rclc_add_parameter_description(
 /**
  * Sets a parameter read only flag.
  * Read only parameters can only be modified from the `rclc_parameter_set` API.
+ * This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -467,6 +479,7 @@ rclc_set_parameter_read_only(
 /**
  * Add constraint description for an integer parameter.
  * This constraint description will be returned on describe parameters requests.
+ * This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
@@ -492,6 +505,7 @@ rclc_add_parameter_constraints_integer(
 /**
  * Add constraint description for an double parameter.
  * This constraint description will be returned on describe parameters requests.
+ * This method is disabled on user callback execution.
  *
  * <hr>
  * Attribute          | Adherence
