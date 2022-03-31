@@ -470,8 +470,11 @@ TEST_P(ParameterTestBase, rclc_delete_parameter) {
   // Delete parameter
   EXPECT_EQ(rclc_delete_parameter(&param_server, param_name), RCL_RET_OK);
 
-  // Get deleted parameter
+  // Fail on get deleted parameter
   ASSERT_EQ(rclc_parameter_get_bool(&param_server, param_name, &param_value), RCL_RET_ERROR);
+
+  // Fail on deleted parameter
+  EXPECT_EQ(rclc_delete_parameter(&param_server, param_name), RCL_RET_ERROR);
 }
 
 TEST_P(ParameterTestBase, rclcpp_delete_parameter) {
@@ -635,9 +638,8 @@ TEST_P(ParameterTestBase, rclcpp_parameter_description) {
 
   ASSERT_EQ(description[1].name, params[1]);
   ASSERT_EQ(description[1].type, RCLC_PARAMETER_DOUBLE);
-  // TODO(acuadros95): Check empty string filled with spaces
-  // ASSERT_TRUE(description[1].description.empty());
-  // ASSERT_TRUE(description[1].additional_constraints.empty());
+  ASSERT_TRUE(description[1].description.empty());
+  ASSERT_TRUE(description[1].additional_constraints.empty());
   ASSERT_EQ(description[1].integer_range.size(), 0U);
   ASSERT_EQ(description[1].floating_point_range.size(), 1U);
   ASSERT_EQ(description[1].floating_point_range[0].from_value, double_from);
