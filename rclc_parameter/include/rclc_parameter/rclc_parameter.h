@@ -68,10 +68,10 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 // Number of RCLC executor handles required for a parameter server
 #define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 5
-#define PARAMETER_MODIFICATION_REJECTED 4001
-#define PARAMETER_TYPE_MISMATCH 4002
-#define UNSUPORTED_ON_LOW_MEM 4003
-#define DISABLE_ON_CALLBACK 40004
+#define RCLC_PARAMETER_MODIFICATION_REJECTED 4001
+#define RCLC_PARAMETER_TYPE_MISMATCH 4002
+#define RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM 4003
+#define RCLC_PARAMETER_DISABLED_ON_CALLBACK 40004
 
 /**
  *  Parameter event callback.
@@ -92,11 +92,13 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
  *
  * \param[in] param Parameter actual value, `NULL` for new parameter request.
  * \param[in] new_value Parameter new value, `NULL` for parameter removal request.
+ * \param[in] context Context of the callback.
  * \return `true` to accept the parameter event. The operation will be rejected on `false` return.
  */
-typedef bool (* ModifiedParameter_Callback)(
+typedef bool (* rclc_parameter_callback_t)(
   const Parameter * old_param,
-  const Parameter * new_param);
+  const Parameter * new_param,
+  void * context);
 
 // Allowed RCLC parameter types
 typedef enum rclc_parameter_type_t
@@ -146,7 +148,8 @@ typedef struct rclc_parameter_server_t
 
   ParameterEvent event_list;
 
-  ModifiedParameter_Callback on_modification;
+  rclc_parameter_callback_t on_modification;
+  void * context;
   bool on_callback;
 
   bool notify_changed_over_dds;
@@ -236,7 +239,31 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
-  ModifiedParameter_Callback on_modification);
+  rclc_parameter_callback_t on_modification);
+
+/**
+ *  Adds a RCLC parameter server to an RCLC executor
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] executor RCLC executor
+ * \param[in] parameter_server preallocated rclc_parameter_server_t
+ * \param[in] on_modification on parameter modification callback
+ * \param[in] context context of the parameter modification callback
+ * \return `RCL_RET_OK` if success
+ */
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t rclc_executor_add_parameter_server_with_context(
+  rclc_executor_t * executor,
+  rclc_parameter_server_t * parameter_server,
+  rclc_parameter_callback_t on_modification,
+  void * context);
 
 /**
  *  Adds a RCLC parameter to a server

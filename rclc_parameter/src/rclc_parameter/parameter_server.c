@@ -256,9 +256,9 @@ rclc_parameter_server_set_service_callback(
 
       if (ret == RCL_RET_INVALID_ARGUMENT) {
         rclc_parameter_set_string(message, "Set parameter error");
-      } else if (ret == PARAMETER_MODIFICATION_REJECTED) {
+      } else if (ret == RCLC_PARAMETER_MODIFICATION_REJECTED) {
         rclc_parameter_set_string(message, "Rejected by server");
-      } else if (ret == PARAMETER_TYPE_MISMATCH) {
+      } else if (ret == RCLC_PARAMETER_TYPE_MISMATCH) {
         rclc_parameter_set_string(message, "Type mismatch");
       } else {
         response->results.data[i].successful = true;
@@ -1067,7 +1067,19 @@ rcl_ret_t
 rclc_executor_add_parameter_server(
   rclc_executor_t * executor,
   rclc_parameter_server_t * parameter_server,
-  ModifiedParameter_Callback on_modification)
+  rclc_parameter_callback_t on_modification)
+{
+  return rclc_executor_add_parameter_server_with_context(
+    executor, parameter_server,
+    on_modification, NULL);
+}
+
+rcl_ret_t
+rclc_executor_add_parameter_server_with_context(
+  rclc_executor_t * executor,
+  rclc_parameter_server_t * parameter_server,
+  rclc_parameter_callback_t on_modification,
+  void * context)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     executor, "executor is a null pointer", return RCL_RET_INVALID_ARGUMENT);
@@ -1077,6 +1089,7 @@ rclc_executor_add_parameter_server(
   rcl_ret_t ret;
 
   parameter_server->on_modification = on_modification;
+  parameter_server->context = context;
 
   ret = rclc_executor_add_service_with_context(
     executor, &parameter_server->list_service,
@@ -1121,7 +1134,7 @@ rclc_add_parameter(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   size_t index = parameter_server->parameter_list.size;
@@ -1223,7 +1236,7 @@ rclc_delete_parameter(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   // Find parameter
@@ -1286,7 +1299,7 @@ rclc_parameter_set_bool(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   Parameter * parameter =
@@ -1297,18 +1310,16 @@ rclc_parameter_set_bool(
   }
 
   if (parameter->value.type != RCLC_PARAMETER_BOOL) {
-    return PARAMETER_TYPE_MISMATCH;
+    return RCLC_PARAMETER_TYPE_MISMATCH;
   }
 
-  if (parameter_server->on_modification) {
-    Parameter new_parameter = *parameter;
-    new_parameter.value.bool_value = value;
+  Parameter new_parameter = *parameter;
+  new_parameter.value.bool_value = value;
 
-    if (RCL_RET_OK !=
-      rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
-    {
-      return PARAMETER_MODIFICATION_REJECTED;
-    }
+  if (RCL_RET_OK !=
+    rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
+  {
+    return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
   if (parameter_server->notify_changed_over_dds) {
@@ -1333,7 +1344,7 @@ rclc_parameter_set_int(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   Parameter * parameter =
@@ -1344,18 +1355,16 @@ rclc_parameter_set_int(
   }
 
   if (parameter->value.type != RCLC_PARAMETER_INT) {
-    return PARAMETER_TYPE_MISMATCH;
+    return RCLC_PARAMETER_TYPE_MISMATCH;
   }
 
-  if (parameter_server->on_modification) {
-    Parameter new_parameter = *parameter;
-    new_parameter.value.integer_value = value;
+  Parameter new_parameter = *parameter;
+  new_parameter.value.integer_value = value;
 
-    if (RCL_RET_OK !=
-      rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
-    {
-      return PARAMETER_MODIFICATION_REJECTED;
-    }
+  if (RCL_RET_OK !=
+    rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
+  {
+    return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
   if (parameter_server->notify_changed_over_dds) {
@@ -1380,7 +1389,7 @@ rclc_parameter_set_double(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   Parameter * parameter =
@@ -1391,18 +1400,16 @@ rclc_parameter_set_double(
   }
 
   if (parameter->value.type != RCLC_PARAMETER_DOUBLE) {
-    return PARAMETER_TYPE_MISMATCH;
+    return RCLC_PARAMETER_TYPE_MISMATCH;
   }
 
-  if (parameter_server->on_modification) {
-    Parameter new_parameter = *parameter;
-    new_parameter.value.double_value = value;
+  Parameter new_parameter = *parameter;
+  new_parameter.value.double_value = value;
 
-    if (RCL_RET_OK !=
-      rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
-    {
-      return PARAMETER_MODIFICATION_REJECTED;
-    }
+  if (RCL_RET_OK !=
+    rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
+  {
+    return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
   if (parameter_server->notify_changed_over_dds) {
@@ -1544,7 +1551,7 @@ rcl_ret_t rclc_add_parameter_description(
   const char * additional_constraints)
 {
   if (parameter_server->low_mem_mode) {
-    return UNSUPORTED_ON_LOW_MEM;
+    return RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM;
   }
 
   size_t index = rclc_parameter_search_index(&parameter_server->parameter_list, parameter_name);
@@ -1576,7 +1583,7 @@ rcl_ret_t rclc_set_parameter_read_only(
   const char * parameter_name, bool read_only)
 {
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   size_t index = rclc_parameter_search_index(&parameter_server->parameter_list, parameter_name);
@@ -1599,7 +1606,7 @@ rcl_ret_t rclc_add_parameter_constraints_double(
   double to_value, double step)
 {
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   size_t index = rclc_parameter_search_index(&parameter_server->parameter_list, parameter_name);
@@ -1628,7 +1635,7 @@ rcl_ret_t rclc_add_parameter_constraints_integer(
   int64_t to_value, uint64_t step)
 {
   if (parameter_server->on_callback) {
-    return DISABLE_ON_CALLBACK;
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
 
   size_t index = rclc_parameter_search_index(&parameter_server->parameter_list, parameter_name);
@@ -1659,11 +1666,11 @@ rcl_ret_t rclc_parameter_execute_callback(
 
   if (parameter_server->on_modification) {
     parameter_server->on_callback = true;
-    ret = parameter_server->on_modification(old_param, new_param);
+    ret = parameter_server->on_modification(old_param, new_param, parameter_server->context);
     parameter_server->on_callback = false;
   }
 
-  return ret ? RCL_RET_OK : PARAMETER_MODIFICATION_REJECTED;
+  return ret ? RCL_RET_OK : RCLC_PARAMETER_MODIFICATION_REJECTED;
 }
 
 #if __cplusplus

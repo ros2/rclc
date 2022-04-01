@@ -36,8 +36,10 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   rclc_parameter_set_int(&param_server, "param2", (int64_t) value);
 }
 
-bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param)
+bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param, void * context)
 {
+  (void) context;
+
   if (old_param == NULL) {
     printf("Creating new parameter %s\n", new_param->name.data);
   } else if (new_param == NULL) {
@@ -46,13 +48,19 @@ bool on_parameter_changed(const Parameter * old_param, const Parameter * new_par
     printf("Parameter %s modified.", old_param->name.data);
     switch (old_param->value.type) {
       case RCLC_PARAMETER_BOOL:
-        printf(" Old value: %d, New value: %d (bool)", old_param->value.bool_value, new_param->value.bool_value);
+        printf(
+          " Old value: %d, New value: %d (bool)", old_param->value.bool_value,
+          new_param->value.bool_value);
         break;
       case RCLC_PARAMETER_INT:
-        printf(" Old value: %ld, New value: %ld (int)", old_param->value.integer_value, new_param->value.integer_value);
+        printf(
+          " Old value: %ld, New value: %ld (int)", old_param->value.integer_value,
+          new_param->value.integer_value);
         break;
       case RCLC_PARAMETER_DOUBLE:
-        printf(" Old value: %f, New value: %f (double)", old_param->value.double_value, new_param->value.double_value);
+        printf(
+          " Old value: %f, New value: %f (double)", old_param->value.double_value,
+          new_param->value.double_value);
         break;
       default:
         break;
@@ -106,7 +114,7 @@ int main()
 
   // Add parameters constrains
   rclc_add_parameter_description(&param_server, "param2", "Second parameter", "Only even numbers");
-  rclc_add_parameter_constraints_integer(&param_server, "param2",  -10, 120, 2);
+  rclc_add_parameter_constraints_integer(&param_server, "param2", -10, 120, 2);
 
   rclc_add_parameter_description(&param_server, "param3", "Third parameter", "");
   rclc_set_parameter_read_only(&param_server, "param3", true);
