@@ -271,7 +271,7 @@ TEST_F(ActionServerTest, goal_accept) {
   goal_msg.order = 10;
 
   // Prepare RCLC
-  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * ) -> rcl_ret_t {
+  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void *) -> rcl_ret_t {
       example_interfaces__action__Fibonacci_SendGoal_Request * req =
         reinterpret_cast<example_interfaces__action__Fibonacci_SendGoal_Request *>(goal_handle->
         ros_goal_request);
@@ -301,7 +301,7 @@ TEST_F(ActionServerTest, goal_accept) {
 TEST_F(ActionServerTest, goal_reject) {
   // Prepare RCLC
   handle_goal =
-    [](rclc_action_goal_handle_t * , void * ) -> rcl_ret_t {
+    [](rclc_action_goal_handle_t *, void *) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_REJECTED;
     };
 
@@ -330,7 +330,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
   // Prepare RCLC
   std::thread feedback_thread;
 
-  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * ) -> rcl_ret_t {
+  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void *) -> rcl_ret_t {
       feedback_thread = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
@@ -405,7 +405,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
   // Prepare RCLC
   std::thread feedback_thread;
 
-  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * ) -> rcl_ret_t {
+  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void *) -> rcl_ret_t {
       feedback_thread = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
@@ -480,7 +480,7 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
   // Prepare RCLC
   std::thread feedback_thread;
   handle_goal =
-    [&](rclc_action_goal_handle_t * goal_handle, void * ) -> rcl_ret_t {
+    [&](rclc_action_goal_handle_t * goal_handle, void *) -> rcl_ret_t {
       feedback_thread = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
@@ -498,7 +498,7 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  handle_cancel = [&](rclc_action_goal_handle_t * , void * ) -> bool {
+  handle_cancel = [&](rclc_action_goal_handle_t *, void *) -> bool {
       return true;
     };
 
@@ -555,11 +555,11 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
 TEST_F(ActionServerTest, goal_accept_cancel_reject) {
   // Prepare RCLC
   handle_goal =
-    [&](rclc_action_goal_handle_t * , void * ) -> rcl_ret_t {
+    [&](rclc_action_goal_handle_t *, void *) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  handle_cancel = [&](rclc_action_goal_handle_t * , void * ) -> bool {
+  handle_cancel = [&](rclc_action_goal_handle_t *, void *) -> bool {
       return false;
     };
 
@@ -605,7 +605,7 @@ TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
 
   size_t feedback_per_goal = 10;
 
-  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * ) -> rcl_ret_t {
+  handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void *) -> rcl_ret_t {
       std::thread worker = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
@@ -737,10 +737,10 @@ TEST(Test, rclc_action_server_regression_1) {
     RCLC_MAX_GOALS,
     ros_goal_request,
     sizeof(example_interfaces__action__Fibonacci_SendGoal_Request),
-    [](rclc_action_goal_handle_t * , void * ) -> rcl_ret_t {
+    [](rclc_action_goal_handle_t *, void *) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_REJECTED;
     },
-    [](rclc_action_goal_handle_t * , void * ) -> bool {
+    [](rclc_action_goal_handle_t *, void *) -> bool {
       return false;
     },
     &action_server);
@@ -758,5 +758,3 @@ int main(int args, char ** argv)
   ::testing::InitGoogleTest(&args, argv);
   return RUN_ALL_TESTS();
 }
-
-
