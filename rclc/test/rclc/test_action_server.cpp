@@ -266,7 +266,6 @@ protected:
   std::chrono::duration<int64_t, std::milli> rclcpp_timeout;
 };
 
-/*
 TEST_F(ActionServerTest, goal_accept) {
   auto goal_msg = Fibonacci::Goal();
   goal_msg.order = 10;
@@ -760,4 +759,4 @@ int main(int args, char ** argv)
   return RUN_ALL_TESTS();
 }
 
-*/
+
