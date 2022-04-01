@@ -737,7 +737,7 @@ rcl_ret_t
 rclc_parameter_get_int(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
-  int * output)
+  int64_t * output)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);

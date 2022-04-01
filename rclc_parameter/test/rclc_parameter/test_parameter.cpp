@@ -151,7 +151,7 @@ TEST(Test, rclc_node_init_default) {
 
   // Get parameters
   bool param1;
-  int param2;
+  int64_t param2;
   double param3;
 
   rclc_parameter_get_bool(&param_server, "param1", &param1);
