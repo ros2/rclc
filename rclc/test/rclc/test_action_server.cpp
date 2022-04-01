@@ -124,10 +124,10 @@ TEST(Test, rclc_action_server) {
     RCLC_MAX_GOALS,
     ros_goal_request,
     sizeof(example_interfaces__action__Fibonacci_SendGoal_Request),
-    [](rclc_action_goal_handle_t * , void * ) -> rcl_ret_t {
+    [](rclc_action_goal_handle_t *, void *) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_REJECTED;
     },
-    [](rclc_action_goal_handle_t * , void * ) -> bool {
+    [](rclc_action_goal_handle_t *, void *) -> bool {
       return false;
     },
     &action_server);
