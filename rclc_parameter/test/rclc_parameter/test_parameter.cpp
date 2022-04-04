@@ -247,8 +247,8 @@ TEST_P(ParameterTestBase, rclc_set_get_parameter) {
 
   {
     const char * param_name = "param2";
-    int set_value = 10;
-    int get_value;
+    int64_t set_value = 10;
+    int64_t get_value;
 
     // Get initial value
     ASSERT_EQ(rclc_parameter_get_int(&param_server, param_name, &get_value), RCL_RET_OK);
