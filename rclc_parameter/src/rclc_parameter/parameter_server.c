@@ -258,7 +258,7 @@ rclc_parameter_server_init_with_option(
   const rosidl_service_type_support_t * get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces, srv,
     GetParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->get_service, node, "/get_parameters",
     get_ts);
 
@@ -266,28 +266,28 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     GetParameterTypes);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->get_types_service, node,
     "/get_parameter_types", get_types_ts);
 
   const rosidl_service_type_support_t * set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces, srv,
     SetParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->set_service, node, "/set_parameters",
     set_ts);
 
   const rosidl_service_type_support_t * list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces, srv,
     ListParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->list_service, node,
     "/list_parameters", list_ts);
 
   const rosidl_service_type_support_t * describe_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces, srv,
     DescribeParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->describe_service, node,
     "/describe_parameters", describe_ts);
 
@@ -297,7 +297,7 @@ rclc_parameter_server_init_with_option(
       rcl_interfaces,
       msg,
       ParameterEvent);
-    ret &= rclc_publisher_init(
+    ret |= rclc_publisher_init(
       &parameter_server->event_publisher, node, event_ts,
       "/parameter_events",
       &rmw_qos_profile_parameter_events);
@@ -442,14 +442,14 @@ rclc_parameter_server_fini(
 
   rcl_ret_t ret = RCL_RET_OK;
 
-  ret &= rcl_service_fini(&parameter_server->list_service, node);
-  ret &= rcl_service_fini(&parameter_server->set_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_types_service, node);
-  ret &= rcl_service_fini(&parameter_server->describe_service, node);
+  ret |= rcl_service_fini(&parameter_server->list_service, node);
+  ret |= rcl_service_fini(&parameter_server->set_service, node);
+  ret |= rcl_service_fini(&parameter_server->get_service, node);
+  ret |= rcl_service_fini(&parameter_server->get_types_service, node);
+  ret |= rcl_service_fini(&parameter_server->describe_service, node);
 
   if (parameter_server->notify_changed_over_dds) {
-    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
+    ret |= rcl_publisher_fini(&parameter_server->event_publisher, node);
   }
 
   rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
@@ -530,24 +530,24 @@ rclc_executor_add_parameter_server(
     &parameter_server->list_request, &parameter_server->list_response,
     rclc_parameter_server_list_service_callback, parameter_server);
 
-  ret &= rclc_executor_add_service_with_context(
+  ret |= rclc_executor_add_service_with_context(
     executor, &parameter_server->get_types_service,
     &parameter_server->get_types_request, &parameter_server->get_types_response,
     rclc_parameter_server_get_types_service_callback, parameter_server);
 
-  ret &= rclc_executor_add_service_with_context(
+  ret |= rclc_executor_add_service_with_context(
     executor, &parameter_server->set_service,
     &parameter_server->set_request, &parameter_server->set_response,
     rclc_parameter_server_set_service_callback,
     parameter_server);
 
-  ret &= rclc_executor_add_service_with_context(
+  ret |= rclc_executor_add_service_with_context(
     executor, &parameter_server->get_service,
     &parameter_server->get_request, &parameter_server->get_response,
     rclc_parameter_server_get_service_callback,
     parameter_server);
 
-  ret &= rclc_executor_add_service_with_context(
+  ret |= rclc_executor_add_service_with_context(
     executor, &parameter_server->describe_service,
     &parameter_server->describe_request, &parameter_server->describe_response,
     rclc_parameter_server_describe_service_callback,
@@ -798,13 +798,13 @@ rclc_parameter_service_publish_event(
   rcl_ret_t ret = RCL_RET_OK;
 
   rcutils_time_point_value_t now;
-  ret &= rcutils_system_time_now(&now);
+  ret |= rcutils_system_time_now(&now);
 
   parameter_server->event_list.stamp.sec = RCUTILS_NS_TO_S(now);
   parameter_server->event_list.stamp.nanosec =
     now - RCUTILS_S_TO_NS(parameter_server->event_list.stamp.sec);
 
-  ret &= rcl_publish(
+  ret |= rcl_publish(
     &parameter_server->event_publisher, &parameter_server->event_list,
     NULL);
 
