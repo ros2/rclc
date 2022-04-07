@@ -1,6 +1,6 @@
 # The rclc parameter package
 
-ROS 2 parameters allow the user to create variables on a node and manipulate/read them with different ROS 2 commands. Further information about ROS 2 parameters can be found [here](https://docs.ros.org/en/galactic/Tutorials/Parameters/Understanding-ROS2-Parameters.html)
+ROS 2 parameters allow the user to create variables on a node and manipulate/read them with different ROS 2 commands. Further information about ROS 2 parameters can be found [here](https://docs.ros.org/en/rolling/Tutorials/Parameters/Understanding-ROS2-Parameters.html)
 
 This package provides the rclc with parameter server instances with full ROS 2 parameters client compatibility. A parameters client for rclc has not been implemented (yet).
 Ready to use code related to this tutorial can be found in [`rclc/rclc_examples/src/example_parameter_server.c`](../rclc_examples/src/example_parameter_server.c).
@@ -231,7 +231,7 @@ micro-ROS parameter server supports the following parameter types:
     ```
 
 Parameters can also be created by external clients if `allow_undeclared_parameters` flag is set.
-They client just needs to set a value on a unexisting parameter, the parameter will be created if the server is not full and the callback allows the operation.
+The client just needs to set a value on a unexisting parameter, the parameter will be created if the server is not full and the callback allows the operation.
 
 *Max name size is controlled by the compile-time option `RCLC_PARAMETER_MAX_STRING_LENGTH`, default value is 50.*
 
@@ -289,4 +289,4 @@ To destroy an initialized parameter server:
 rclc_parameter_server_fini(&param_server, &node);
 ```
 
-This will delete any automatically created infrastructure on the agent (if possible) and deallocate used memory on the client side.
+This will delete any automatically created infrastructure on the agent (if possible) and deallocate used memory on the parameter server side.
