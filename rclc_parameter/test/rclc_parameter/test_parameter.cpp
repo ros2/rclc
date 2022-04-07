@@ -186,7 +186,7 @@ public:
     void * context)
   {
     ParameterTestBase * obj = reinterpret_cast<ParameterTestBase *>(context);
-    obj->callback_calls++;
+    ++obj->callback_calls;
     return obj->on_parameter_changed(old_param, new_param);
   }
 
@@ -238,7 +238,7 @@ TEST_P(ParameterTestBase, rclc_set_get_parameter) {
 
     ASSERT_EQ(rclc_parameter_set_bool(&param_server, param_name, set_value), RCL_RET_OK);
     EXPECT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     ASSERT_EQ(rclc_parameter_get_bool(&param_server, param_name, &get_value), RCL_RET_OK);
@@ -267,7 +267,7 @@ TEST_P(ParameterTestBase, rclc_set_get_parameter) {
 
     ASSERT_EQ(rclc_parameter_set_int(&param_server, param_name, set_value), RCL_RET_OK);
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     ASSERT_EQ(rclc_parameter_get_int(&param_server, param_name, &get_value), RCL_RET_OK);
@@ -298,7 +298,7 @@ TEST_P(ParameterTestBase, rclc_set_get_parameter) {
       rclc_parameter_set_double(
         &param_server, param_name, set_value), RCL_RET_OK);
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     ASSERT_EQ(rclc_parameter_get_double(&param_server, param_name, &get_value), RCL_RET_OK);
@@ -368,7 +368,7 @@ TEST_P(ParameterTestBase, rclcpp_set_get_parameter) {
     ASSERT_TRUE(result[0].successful);
     ASSERT_EQ(result[0].reason, "");
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     get_value = parameters_client->get_parameter<bool>(param_name);
@@ -399,7 +399,7 @@ TEST_P(ParameterTestBase, rclcpp_set_get_parameter) {
 
     // Check callback values
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     get_value = parameters_client->get_parameter<int>(param_name);
@@ -430,7 +430,7 @@ TEST_P(ParameterTestBase, rclcpp_set_get_parameter) {
 
     // Check callback values
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get new value
     get_value = parameters_client->get_parameter<double>(param_name);
@@ -456,7 +456,7 @@ TEST_P(ParameterTestBase, rclcpp_set_get_parameter) {
     ASSERT_FALSE(result[0].successful);
     ASSERT_EQ(result[0].reason, "Rejected by server");
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     // Get value
     double second_get_value = parameters_client->get_parameter<double>(param_name);
@@ -507,7 +507,7 @@ TEST_P(ParameterTestBase, rclcpp_delete_parameter) {
   ASSERT_FALSE(result[0].successful);
   ASSERT_EQ(result[0].reason, "Rejected by server");
   ASSERT_EQ(callback_calls, expected_callback_calls);
-  expected_callback_calls++;
+  ++expected_callback_calls;
 
   auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
   ASSERT_EQ(list_params.names.size(), 3u);
@@ -524,7 +524,7 @@ TEST_P(ParameterTestBase, rclcpp_delete_parameter) {
   ASSERT_TRUE(result[0].successful);
   ASSERT_EQ(result[0].reason, "");
   ASSERT_EQ(callback_calls, expected_callback_calls);
-  expected_callback_calls++;
+  ++expected_callback_calls;
 
   // Use auxiliar RCLCPP node for check
   list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
@@ -555,7 +555,7 @@ TEST_P(ParameterTestBase, rclcpp_add_parameter) {
     ASSERT_FALSE(result[0].successful);
     ASSERT_EQ(result[0].reason, "New parameter rejected");
     ASSERT_EQ(callback_calls, expected_callback_calls);
-    expected_callback_calls++;
+    ++expected_callback_calls;
 
     auto list_params = parameters_client->list_parameters({}, 4, default_spin_timeout);
     ASSERT_EQ(list_params.names.size(), 3u);
@@ -665,11 +665,11 @@ TEST_P(ParameterTestBase, rclcpp_parameter_description) {
       &param_server, "param2", parameter_description.c_str(),
       additional_constraints.c_str()), RCL_RET_OK);
   ASSERT_EQ(
-    rclc_add_parameter_constraints_integer(
+    rclc_add_parameter_constraint_integer(
       &param_server, "param2", int_from, int_to,
       int_step), RCL_RET_OK);
   ASSERT_EQ(
-    rclc_add_parameter_constraints_double(
+    rclc_add_parameter_constraint_double(
       &param_server, "param3", double_from, double_to,
       double_step), RCL_RET_OK);
 
@@ -722,11 +722,11 @@ TEST_P(ParameterTestBase, rclcpp_parameter_description_low) {
       &param_server, "param2", "",
       ""), RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM);
   ASSERT_EQ(
-    rclc_add_parameter_constraints_integer(
+    rclc_add_parameter_constraint_integer(
       &param_server, "param2", int_from, int_to,
       int_step), RCL_RET_OK);
   ASSERT_EQ(
-    rclc_add_parameter_constraints_double(
+    rclc_add_parameter_constraint_double(
       &param_server, "param3", double_from, double_to,
       double_step), RCL_RET_OK);
 

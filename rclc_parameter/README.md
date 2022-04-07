@@ -114,44 +114,37 @@ Callback parameters:
 ```c
 bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param, void * context)
 {
-    (void) context;
+  (void) context;
 
-    if (old_param == NULL)
-    {
-        printf("Creating new parameter %s\n", new_param->name.data);
+  if (old_param == NULL) {
+    printf("Creating new parameter %s\n", new_param->name.data);
+  } else if (new_param == NULL) {
+    printf("Deleting parameter %s\n", old_param->name.data);
+  } else {
+    printf("Parameter %s modified.", old_param->name.data);
+    switch (old_param->value.type) {
+      case RCLC_PARAMETER_BOOL:
+        printf(
+          " Old value: %d, New value: %d (bool)", old_param->value.bool_value,
+          new_param->value.bool_value);
+        break;
+      case RCLC_PARAMETER_INT:
+        printf(
+          " Old value: %ld, New value: %ld (int)", old_param->value.integer_value,
+          new_param->value.integer_value);
+        break;
+      case RCLC_PARAMETER_DOUBLE:
+        printf(
+          " Old value: %f, New value: %f (double)", old_param->value.double_value,
+          new_param->value.double_value);
+        break;
+      default:
+        break;
     }
-    else if (new_param == NULL)
-    {
-        printf("Deleting parameter %s\n", old_param->name.data);
-    }
-    else
-    {
-        printf("Parameter %s modified.", old_param->name.data);
-        switch (old_param->value.type)
-        {
-            case RCLC_PARAMETER_BOOL:
-                printf(
-                " Old value: %d, New value: %d (bool)", old_param->value.bool_value,
-                new_param->value.bool_value);
-                break;
-            case RCLC_PARAMETER_INT:
-                printf(
-                " Old value: %ld, New value: %ld (int)", old_param->value.integer_value,
-                new_param->value.integer_value);
-                break;
-            case RCLC_PARAMETER_DOUBLE:
-                printf(
-                " Old value: %f, New value: %f (double)", old_param->value.double_value,
-                new_param->value.double_value);
-                break;
-            default:
-                break;
-        }
+    printf("\n");
+  }
 
-        printf("\n");
-    }
-
-    return true;
+  return true;
 }
 ```
 
@@ -162,8 +155,8 @@ Parameters modifications are disabled while this callback is executed, causing t
 - rclc_parameter_set_int
 - rclc_parameter_set_double
 - rclc_set_parameter_read_only
-- rclc_add_parameter_constraints_double
-- rclc_add_parameter_constraints_integer
+- rclc_add_parameter_constraint_double
+- rclc_add_parameter_constraint_integer
 
 Once the parameter server and the executor are initialized, the parameter server must be added to the executor in order to accept parameters commands from ROS 2:
 ```c
@@ -262,20 +255,20 @@ Note that for external delete requests, the server callback will be executed, al
 
 - Parameter constraints  
     Informative numeric constraints can be added to int and double parameters, returning this values on describe parameters requests:
-    - from_value: Start value for valid values, inclusive.
-    - to_value: End value for valid values, inclusive.
-    - step: Size of valid steps between the from and to bound.
+    - `from_value`: Start value for valid values, inclusive.
+    - `to_value`: End value for valid values, inclusive.
+    - `step`: Size of valid steps between the from and to bound.
 
         ```c
         int64_t int_from = 0;
         int64_t int_to = 20;
         uint64_t int_step = 2;
-        rclc_add_parameter_constraints_integer(&param_server, "param2", int_from, int_to, int_step);
+        rclc_add_parameter_constraint_integer(&param_server, "param2", int_from, int_to, int_step);
 
         double double_from = -0.5;
         double double_to = 0.5;
         double double_step = 0.01;
-        rclc_add_parameter_constraints_double(&param_server, "param3", double_from, double_to, double_step);
+        rclc_add_parameter_constraint_double(&param_server, "param3", double_from, double_to, double_step);
         ```
 
     *This constrains will not be applied by the parameter server, leaving values filtering to the user callback.*

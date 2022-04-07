@@ -525,7 +525,7 @@ rclc_set_parameter_read_only(
  */
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
-rclc_add_parameter_constraints_integer(
+rclc_add_parameter_constraint_integer(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name, int64_t from_value, int64_t to_value, uint64_t step);
 
@@ -551,7 +551,7 @@ rclc_add_parameter_constraints_integer(
  */
 RCLC_PARAMETER_PUBLIC
 rcl_ret_t
-rclc_add_parameter_constraints_double(
+rclc_add_parameter_constraint_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name, double from_value, double to_value, double step);
 

@@ -112,7 +112,7 @@ rclc_parameter_search(
   RCL_CHECK_ARGUMENT_FOR_NULL(parameter_list, NULL);
   RCL_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
 
-  for (size_t i = 0; i < parameter_list->size; i++) {
+  for (size_t i = 0; i < parameter_list->size; ++i) {
     if (!strcmp(param_name, parameter_list->data[i].name.data)) {
       return &parameter_list->data[i];
     }
@@ -130,7 +130,7 @@ rclc_parameter_search_index(
   RCL_CHECK_ARGUMENT_FOR_NULL(param_name, SIZE_MAX);
 
   size_t index = SIZE_MAX;
-  for (size_t i = 0; i < parameter_list->size; i++) {
+  for (size_t i = 0; i < parameter_list->size; ++i) {
     if (!strcmp(param_name, parameter_list->data[i].name.data)) {
       index = i;
       break;

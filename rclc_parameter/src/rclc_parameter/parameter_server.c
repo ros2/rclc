@@ -63,7 +63,7 @@ rclc_parameter_server_describe_service_callback(
 
   response->descriptors.size = request->names.size;
 
-  for (size_t i = 0; i < request->names.size; i++) {
+  for (size_t i = 0; i < request->names.size; ++i) {
     size_t index = rclc_parameter_search_index(
       &param_server->parameter_list,
       request->names.data[i].data);
@@ -109,7 +109,7 @@ rclc_parameter_server_list_service_callback(
 
   response->result.names.size = param_server->parameter_list.size;
 
-  for (size_t i = 0; i < response->result.names.size; i++) {
+  for (size_t i = 0; i < response->result.names.size; ++i) {
     if (!param_server->low_mem_mode) {
       rclc_parameter_set_string(
         &response->result.names.data[i],
@@ -141,7 +141,7 @@ rclc_parameter_server_get_service_callback(
 
   response->values.size = size;
 
-  for (size_t i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; ++i) {
     Parameter * parameter = rclc_parameter_search(
       &param_server->parameter_list,
       request->names.data[i].data);
@@ -171,7 +171,7 @@ rclc_parameter_server_get_types_service_callback(
 
   response->types.size = request->names.size;
 
-  for (size_t i = 0; i < response->types.size; i++) {
+  for (size_t i = 0; i < response->types.size; ++i) {
     Parameter * parameter = rclc_parameter_search(
       &param_server->parameter_list,
       request->names.data[i].data);
@@ -201,7 +201,7 @@ rclc_parameter_server_set_service_callback(
 
   response->results.size = request->parameters.size;
 
-  for (size_t i = 0; i < response->results.size; i++) {
+  for (size_t i = 0; i < response->results.size; ++i) {
     rosidl_runtime_c__String * message =
       (rosidl_runtime_c__String *) &response->results.data[i].reason;
     size_t index = rclc_parameter_search_index(
@@ -338,7 +338,7 @@ init_parameter_server_memory(
   parameter_server->parameter_list.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->parameter_list.data[i].name,
       (const char *) empty_string,
@@ -357,7 +357,7 @@ init_parameter_server_memory(
   parameter_server->list_response.result.names.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->list_response.result.names.data[i],
       (const char *) empty_string,
@@ -379,7 +379,7 @@ init_parameter_server_memory(
   parameter_server->get_response.values.size = 0;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->get_request.names.data[i],
       (const char *) empty_string,
@@ -404,7 +404,7 @@ init_parameter_server_memory(
   size_t string_reason_capacity = RCLC_SET_ERROR_MAX_STRING_LENGTH - 1;
 
   // Pre-init strings
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->set_request.parameters.data[i].name,
       (const char *) empty_string,
@@ -432,7 +432,7 @@ init_parameter_server_memory(
     options->max_params);
   parameter_server->get_types_response.types.size = 0;
 
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->get_types_request.names.data[i],
       (const char *) empty_string,
@@ -460,7 +460,7 @@ init_parameter_server_memory(
     options->max_params);
   parameter_server->parameter_descriptors.size = 0;
 
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     // Init describe_request members
     mem_allocs_ok &= rosidl_runtime_c__String__assignn(
       &parameter_server->describe_request.names.data[i],
@@ -557,7 +557,7 @@ bool init_parameter_server_memory_low_memory(
   parameter_server->parameter_descriptors.size = 0;
   parameter_server->parameter_descriptors.capacity = options->max_params;
 
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     parameter_server->parameter_list.data[i].name.data = allocator.allocate(
       sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
     parameter_server->parameter_list.data[i].name.data[0] = '\0';
@@ -612,7 +612,7 @@ bool init_parameter_server_memory_low_memory(
     allocator.allocate(sizeof(rosidl_runtime_c__String) * options->max_params, allocator.state);
   parameter_server->list_response.result.names.size = 0;
   parameter_server->list_response.result.names.capacity = options->max_params;
-  for (size_t i = 0; i < options->max_params; i++) {
+  for (size_t i = 0; i < options->max_params; ++i) {
     parameter_server->list_response.result.names.data[i].data =
       parameter_server->parameter_list.data[i].name.data;
     parameter_server->list_response.result.names.data[i].capacity =
@@ -865,7 +865,7 @@ rclc_parameter_server_fini_memory_low_memory(
   parameter_server->set_response.results.size = 0;
 
   // List response
-  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; ++i) {
     parameter_server->list_response.result.names.data[i].data = NULL;
     parameter_server->list_response.result.names.data[i].capacity = 0;
     parameter_server->list_response.result.names.data[i].size = 0;
@@ -907,7 +907,7 @@ rclc_parameter_server_fini_memory_low_memory(
   parameter_server->describe_response.descriptors.capacity = 0;
 
   // Parameter list and parameter descriptors
-  for (size_t i = 0; i < parameter_server->parameter_list.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->parameter_list.capacity; ++i) {
     allocator.deallocate(parameter_server->parameter_list.data[i].name.data, allocator.state);
     allocator.deallocate(
       parameter_server->parameter_list.data[i].value.string_value.data,
@@ -946,7 +946,7 @@ rclc_parameter_server_fini_memory(
   rclc_parameter_server_t * parameter_server)
 {
   // Fini describe msgs
-  for (size_t i = 0; i < parameter_server->describe_request.names.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->describe_request.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->describe_request.names.data[i]);
     rosidl_runtime_c__String__fini(&parameter_server->describe_response.descriptors.data[i].name);
     rosidl_runtime_c__String__fini(
@@ -966,7 +966,7 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__DescribeParameters_Request__fini(&parameter_server->describe_request);
 
   // Fini get types msgs
-  for (size_t i = 0; i < parameter_server->get_types_request.names.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->get_types_request.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->get_types_request.names.data[i]);
   }
 
@@ -976,7 +976,7 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__GetParameterTypes_Request__fini(&parameter_server->get_types_request);
 
   // Finish set msgs
-  for (size_t i = 0; i < parameter_server->set_request.parameters.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->set_request.parameters.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->set_request.parameters.data[i].name);
     rosidl_runtime_c__String__fini(&parameter_server->set_response.results.data[i].reason);
   }
@@ -987,7 +987,7 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
 
   // Finish get msgs
-  for (size_t i = 0; i < parameter_server->get_request.names.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->get_request.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->get_request.names.data[i]);
   }
 
@@ -997,7 +997,7 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__GetParameters_Request__fini(&parameter_server->get_request);
 
   // Finish list msgs
-  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->list_response.result.names.data[i]);
   }
 
@@ -1006,14 +1006,14 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__ListParameters_Request__fini(&parameter_server->list_request);
 
   // Free parameter list
-  for (size_t i = 0; i < parameter_server->parameter_list.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->parameter_list.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->parameter_list.data[i].name);
   }
 
   rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->parameter_list);
 
   // Free parameter descriptor list
-  for (size_t i = 0; i < parameter_server->parameter_descriptors.capacity; i++) {
+  for (size_t i = 0; i < parameter_server->parameter_descriptors.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].name);
     rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].description);
     rosidl_runtime_c__String__fini(
@@ -1153,7 +1153,7 @@ rclc_add_parameter(
   }
 
   parameter_server->parameter_list.data[index].value.type = type;
-  parameter_server->parameter_list.size++;
+  ++parameter_server->parameter_list.size;
 
   // Add to parameter descriptors
   if (!parameter_server->low_mem_mode && !rclc_parameter_set_string(
@@ -1164,7 +1164,7 @@ rclc_add_parameter(
   }
 
   parameter_server->parameter_descriptors.data[index].type = type;
-  parameter_server->parameter_descriptors.size++;
+  ++parameter_server->parameter_descriptors.size;
 
   if (parameter_server->notify_changed_over_dds) {
     rclc_parameter_prepare_new_event(
@@ -1201,7 +1201,7 @@ rclc_add_parameter_undeclared(
     return RCL_RET_ERROR;
   }
 
-  parameter_server->parameter_list.size++;
+  ++parameter_server->parameter_list.size;
 
   // Add to parameter descriptors
   if (!parameter_server->low_mem_mode && !rclc_parameter_set_string(
@@ -1213,7 +1213,7 @@ rclc_add_parameter_undeclared(
 
   parameter_server->parameter_descriptors.data[index].type =
     parameter->value.type;
-  parameter_server->parameter_descriptors.size++;
+  ++parameter_server->parameter_descriptors.size;
 
   if (parameter_server->notify_changed_over_dds) {
     rclc_parameter_prepare_new_event(
@@ -1268,7 +1268,7 @@ rclc_delete_parameter(
     rclc_parameter_set_string(&param_description->additional_constraints, "");
   }
 
-  for (size_t i = index; i < (parameter_server->parameter_list.size - 1); i++) {
+  for (size_t i = index; i < (parameter_server->parameter_list.size - 1); ++i) {
     // Move parameter list
     rclc_parameter_copy(
       &parameter_server->parameter_list.data[i],
@@ -1600,7 +1600,7 @@ rcl_ret_t rclc_set_parameter_read_only(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_add_parameter_constraints_double(
+rcl_ret_t rclc_add_parameter_constraint_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name, double from_value,
   double to_value, double step)
@@ -1629,7 +1629,7 @@ rcl_ret_t rclc_add_parameter_constraints_double(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rclc_add_parameter_constraints_integer(
+rcl_ret_t rclc_add_parameter_constraint_integer(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name, int64_t from_value,
   int64_t to_value, uint64_t step)
