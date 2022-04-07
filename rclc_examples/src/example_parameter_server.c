@@ -114,7 +114,7 @@ int main()
 
   // Add parameters constraints
   rclc_add_parameter_description(&param_server, "param2", "Second parameter", "Only even numbers");
-  rclc_add_parameter_constraints_integer(&param_server, "param2", -10, 120, 2);
+  rclc_add_parameter_constraint_integer(&param_server, "param2", -10, 120, 2);
 
   rclc_add_parameter_description(&param_server, "param3", "Third parameter", "");
   rclc_set_parameter_read_only(&param_server, "param3", true);
