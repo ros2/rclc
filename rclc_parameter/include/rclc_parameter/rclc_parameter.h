@@ -454,7 +454,7 @@ rclc_parameter_get_double(
 
 
 /**
- * Add a description to a parameter (Unsuported on low memory mode).
+ * Add a description to a parameter. (This feature is disabled in low memory mode.)
  * This description will be returned on describe parameters requests.
  *
  * <hr>
@@ -504,8 +504,8 @@ rclc_set_parameter_read_only(
   const char * parameter_name, bool read_only);
 
 /**
- * Add constraint description for an integer parameter.
- * This constraint description will be returned on describe parameters requests.
+ * Sets a constraint on an integer parameter.
+ * This constraint specification will be returned on describe parameters requests.
  * This method is disabled on user callback execution.
  *
  * <hr>
@@ -530,8 +530,8 @@ rclc_add_parameter_constraints_integer(
   const char * parameter_name, int64_t from_value, int64_t to_value, uint64_t step);
 
 /**
- * Add constraint description for an double parameter.
- * This constraint description will be returned on describe parameters requests.
+ * Sets a constraint on an double parameter.
+ * This constraint specification will be returned on describe parameters requests.
  * This method is disabled on user callback execution.
  *
  * <hr>

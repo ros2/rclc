@@ -1,8 +1,8 @@
 # The rclc parameter package
 
-ROS 2 parameters allow the user to create variables on a node and manipulate/read them with different ROS2 commands. Further information about ROS 2 parameters can be found [here](https://docs.ros.org/en/galactic/Tutorials/Parameters/Understanding-ROS2-Parameters.html)
+ROS 2 parameters allow the user to create variables on a node and manipulate/read them with different ROS 2 commands. Further information about ROS 2 parameters can be found [here](https://docs.ros.org/en/galactic/Tutorials/Parameters/Understanding-ROS2-Parameters.html)
 
-This package provides the rclc with parameter server instances with full ROS2 parameters client compatibility, parameters clients are not implemented.  
+This package provides the rclc with parameter server instances with full ROS 2 parameters client compatibility. A parameters client for rclc has not been implemented (yet).
 Ready to use code related to this tutorial can be found in [`rclc/rclc_examples/src/example_parameter_server.c`](../rclc_examples/src/example_parameter_server.c).
 
 ## Table of contents
@@ -20,13 +20,12 @@ Ready to use code related to this tutorial can be found in [`rclc/rclc_examples/
     ```c
     // Parameter server object
     rclc_parameter_server_t param_server;
-
     // Initialize parameter server with default configuration
     rcl_ret_t rc = rclc_parameter_server_init_default(&param_server, &node);
 
     if (RCL_RET_OK != rc) {
-    ... // Handle error
-    return -1;
+      ... // Handle error
+      return -1;
     }
     ```
 
@@ -51,10 +50,9 @@ Ready to use code related to this tutorial can be found in [`rclc/rclc_examples/
 
     // Initialize parameter server with configured options
     rcl_ret_t rc = rclc_parameter_server_init_with_option(&param_server, &node, &options);
-
     if (RCL_RET_OK != rc) {
-    ... // Handle error
-    return -1;
+      ... // Handle error
+      return -1;
     }
     ```
 
@@ -71,7 +69,7 @@ Ready to use code related to this tutorial can be found in [`rclc/rclc_examples/
 
 ## Memory requirements
 
-The parameter server uses 5 services and an optional publisher, this needs to be taken into account on the `rmw-microxredds` package memory configuration:
+The parameter server uses five services and an optional publisher. These need to be taken into account on the `rmw-microxredds` package memory configuration:
 
 ```yaml
 # colcon.meta example with memory requirements to use a parameter server
@@ -90,7 +88,7 @@ The parameter server uses 5 services and an optional publisher, this needs to be
 }
 ```
 
-On runtime, the variable `RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER` defines the RCLC executor handles required for a parameter server:
+At runtime, the variable `RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER` defines the rclc Executor handles required for a parameter server:
 
 ```c
 // Executor init example with the minimum RCLC executor handles required
@@ -109,9 +107,9 @@ When adding the parameter server to the executor, a callback can be configured. 
 - The user can allow or reject this operations using the `bool` return value.
 
 Callback parameters:
-- old_param: Parameter actual value, `NULL` for new parameter request.
-- new_param: Parameter new value, `NULL` for parameter removal request.
-- context: User context, configured on `rclc_executor_add_parameter_server_with_context`.
+- `old_param`: Parameter actual value, `NULL` for new parameter request.
+- `new_param`: Parameter new value, `NULL` for parameter removal request.
+- `context`: User context, configured on `rclc_executor_add_parameter_server_with_context`.
 
 ```c
 bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param, void * context)
@@ -157,7 +155,7 @@ bool on_parameter_changed(const Parameter * old_param, const Parameter * new_par
 }
 ```
 
-Parameters modifications are disabled while this callback is executed, causing this methods to return `RCLC_PARAMETER_DISABLED_ON_CALLBACK`:
+Parameters modifications are disabled while this callback is executed, causing the following methods to return `RCLC_PARAMETER_DISABLED_ON_CALLBACK` if they are invoked:
 - rclc_add_parameter
 - rclc_delete_parameter
 - rclc_parameter_set_bool
@@ -167,7 +165,7 @@ Parameters modifications are disabled while this callback is executed, causing t
 - rclc_add_parameter_constraints_double
 - rclc_add_parameter_constraints_integer
 
-Once the parameter server and the executor are initialized, the parameter server must be added to the executor in order to accept parameters commands from ROS2:
+Once the parameter server and the executor are initialized, the parameter server must be added to the executor in order to accept parameters commands from ROS 2:
 ```c
 // Add parameter server to executor including defined callback
 rc = rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed);
@@ -242,15 +240,15 @@ micro-ROS parameter server supports the following parameter types:
 Parameters can also be created by external clients if `allow_undeclared_parameters` flag is set.
 They client just needs to set a value on a unexisting parameter, the parameter will be created if the server is not full and the callback allows the operation.
 
-*Max name size is controlled by the compilation time option `RCLC_PARAMETER_MAX_STRING_LENGTH`, default value is 50.*
+*Max name size is controlled by the compile-time option `RCLC_PARAMETER_MAX_STRING_LENGTH`, default value is 50.*
 
 ## Delete a parameter
-Parameters can be deleted both by the parameter server and external clients:
+Parameters can be deleted by both, the parameter server and external clients:
 ```c
 rclc_delete_parameter(&param_server, "param2");
 ```
 
-Note that for external delete requests the server callback will be executed, allowing the user to reject the operation.
+Note that for external delete requests, the server callback will be executed, allowing the node to reject the operation.
 
 ## Parameters description
 
@@ -262,8 +260,8 @@ Note that for external delete requests the server callback will be executed, all
 
     *The maximum string size is controlled by the compilation time option `RCLC_PARAMETER_MAX_STRING_LENGTH`, default value is 50.*
 
-- Parameter constrains  
-    Informative numeric constrains can be added to int and double parameters, returning this values on describe parameters requests:
+- Parameter constraints  
+    Informative numeric constraints can be added to int and double parameters, returning this values on describe parameters requests:
     - from_value: Start value for valid values, inclusive.
     - to_value: End value for valid values, inclusive.
     - step: Size of valid steps between the from and to bound.
@@ -282,8 +280,8 @@ Note that for external delete requests the server callback will be executed, all
 
     *This constrains will not be applied by the parameter server, leaving values filtering to the user callback.*
 
-- Read only parameters:  
-    The new API offers a read only flag. This flag blocks parameter changes from external clients, but allows changes on the server side:
+- Read-only parameters:  
+    The new API offers a read-only flag. This flag blocks parameter changes from external clients, but allows changes on the server side:
     ```c
     bool read_only = true;
     rclc_set_parameter_read_only(&param_server, "param3", read_only);
