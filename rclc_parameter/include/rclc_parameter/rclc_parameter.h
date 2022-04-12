@@ -90,8 +90,8 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
  * Uses Atomics       | No
  * Lock-Free          | No
  *
- * \param[in] param Parameter actual value, `NULL` for new parameter request.
- * \param[in] new_value Parameter new value, `NULL` for parameter removal request.
+ * \param[in] old_param Parameter actual value, `NULL` for new parameter request.
+ * \param[in] new_param Parameter new value, `NULL` for parameter removal request.
  * \param[in] context Context of the callback.
  * \return `true` to accept the parameter event. The operation will be rejected on `false` return.
  */
@@ -501,7 +501,8 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_set_parameter_read_only(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, bool read_only);
+  const char * parameter_name,
+  bool read_only);
 
 /**
  * Sets a constraint on an integer parameter.
@@ -527,7 +528,10 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_constraint_integer(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, int64_t from_value, int64_t to_value, uint64_t step);
+  const char * parameter_name,
+  int64_t from_value,
+  int64_t to_value,
+  uint64_t step);
 
 /**
  * Sets a constraint on an double parameter.
@@ -553,7 +557,10 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_constraint_double(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, double from_value, double to_value, double step);
+  const char * parameter_name,
+  double from_value,
+  double to_value,
+  double step);
 
 #if __cplusplus
 }

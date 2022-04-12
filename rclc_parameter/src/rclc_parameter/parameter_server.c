@@ -44,7 +44,8 @@ rcl_ret_t rclc_add_parameter_undeclared(
 
 rcl_ret_t rclc_parameter_execute_callback(
   rclc_parameter_server_t * parameter_server,
-  const Parameter * old_param, const Parameter * new_param);
+  const Parameter * old_param,
+  const Parameter * new_param);
 
 void
 rclc_parameter_server_describe_service_callback(
@@ -724,7 +725,8 @@ bool init_parameter_server_memory_low_memory(
 
   parameter_server->describe_response.descriptors.data[0].floating_point_range.data =
     allocator.zero_allocate(
-    1, sizeof(rcl_interfaces__msg__FloatingPointRange__Sequence),
+    1,
+    sizeof(rcl_interfaces__msg__FloatingPointRange__Sequence),
     allocator.state);
   parameter_server->describe_response.descriptors.data[0].floating_point_range.capacity = 1;
   parameter_server->describe_response.descriptors.data[0].floating_point_range.size = 0;
@@ -772,7 +774,8 @@ rclc_parameter_server_init_with_option(
   rcl_ret_t ret = RCL_RET_OK;
 
   const rosidl_service_type_support_t * get_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
+    rcl_interfaces,
+    srv,
     GetParameters);
   ret &= rclc_parameter_server_init_service(
     &parameter_server->get_service, node, "/get_parameters",
@@ -787,21 +790,24 @@ rclc_parameter_server_init_with_option(
     "/get_parameter_types", get_types_ts);
 
   const rosidl_service_type_support_t * set_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
+    rcl_interfaces,
+    srv,
     SetParameters);
   ret &= rclc_parameter_server_init_service(
     &parameter_server->set_service, node, "/set_parameters",
     set_ts);
 
   const rosidl_service_type_support_t * list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
+    rcl_interfaces,
+    srv,
     ListParameters);
   ret &= rclc_parameter_server_init_service(
     &parameter_server->list_service, node,
     "/list_parameters", list_ts);
 
   const rosidl_service_type_support_t * describe_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    rcl_interfaces, srv,
+    rcl_interfaces,
+    srv,
     DescribeParameters);
   ret &= rclc_parameter_server_init_service(
     &parameter_server->describe_service, node,
@@ -1039,7 +1045,7 @@ rclc_parameter_server_fini(
   rcl_node_t * node)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    parameter_server, "parameter server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
@@ -1547,7 +1553,8 @@ rclc_parameter_server_init_service(
 
 rcl_ret_t rclc_add_parameter_description(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, const char * parameter_description,
+  const char * parameter_name,
+  const char * parameter_description,
   const char * additional_constraints)
 {
   if (parameter_server->low_mem_mode) {
@@ -1567,7 +1574,7 @@ rcl_ret_t rclc_add_parameter_description(
     return RCL_RET_ERROR;
   }
 
-  // Set constrain description
+  // Set constraint description
   if (!rclc_parameter_set_string(
       &parameter_descriptor->additional_constraints,
       additional_constraints))
@@ -1580,7 +1587,8 @@ rcl_ret_t rclc_add_parameter_description(
 
 rcl_ret_t rclc_set_parameter_read_only(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, bool read_only)
+  const char * parameter_name,
+  bool read_only)
 {
   if (parameter_server->on_callback) {
     return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
@@ -1602,8 +1610,10 @@ rcl_ret_t rclc_set_parameter_read_only(
 
 rcl_ret_t rclc_add_parameter_constraint_double(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, double from_value,
-  double to_value, double step)
+  const char * parameter_name,
+  double from_value,
+  double to_value,
+  double step)
 {
   if (parameter_server->on_callback) {
     return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
@@ -1660,7 +1670,8 @@ rcl_ret_t rclc_add_parameter_constraint_integer(
 
 rcl_ret_t rclc_parameter_execute_callback(
   rclc_parameter_server_t * parameter_server,
-  const Parameter * old_param, const Parameter * new_param)
+  const Parameter * old_param,
+  const Parameter * new_param)
 {
   bool ret = true;
 
