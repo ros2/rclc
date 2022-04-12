@@ -93,7 +93,7 @@ typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
  * \param[in] old_param Parameter actual value, `NULL` for new parameter request.
  * \param[in] new_param Parameter new value, `NULL` for parameter removal request.
  * \param[in] context Context of the callback.
- * \return `true` to accept the parameter event. The operation will be rejected on `false` return.
+ * \return `true` to accept the parameter event. If the operation was rejected, `false` is returned.
  */
 typedef bool (* rclc_parameter_callback_t)(
   const Parameter * old_param,
@@ -476,7 +476,8 @@ RCLC_PARAMETER_PUBLIC
 rcl_ret_t
 rclc_add_parameter_description(
   rclc_parameter_server_t * parameter_server,
-  const char * parameter_name, const char * parameter_description,
+  const char * parameter_name,
+  const char * parameter_description,
   const char * additional_constraints);
 
 /**

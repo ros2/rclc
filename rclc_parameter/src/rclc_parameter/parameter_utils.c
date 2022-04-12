@@ -216,6 +216,47 @@ rcl_ret_t rclc_parameter_reset_parameter_event(
   return RCL_RET_OK;
 }
 
+rcl_ret_t rclc_parameter_initialize_empty_string(
+  rosidl_runtime_c__String * str,
+  size_t capacity)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(str, RCL_RET_INVALID_ARGUMENT);
+
+  if (capacity < 1) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  str->data = allocator.allocate(sizeof(char) * capacity, allocator.state);
+
+  if (str->data == NULL) {
+    return RCL_RET_ERROR;
+  }
+
+  str->data[0] = '\0';
+  str->capacity = capacity;
+  str->size = 0;
+
+  return RCL_RET_OK;
+}
+
+bool rclc_parameter_descriptor_initialize_string(rosidl_runtime_c__String * str)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(str, false);
+
+  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH] = "";
+  size_t string_capacity = RCLC_PARAMETER_MAX_STRING_LENGTH - 1;
+
+  bool ret = rosidl_runtime_c__String__assignn(
+    str,
+    (const char *) empty_string,
+    string_capacity);
+
+  str->size = 0;
+  return ret;
+}
+
 #if __cplusplus
 }
 #endif /* if __cplusplus */

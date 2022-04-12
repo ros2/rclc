@@ -71,6 +71,13 @@ rcl_ret_t rclc_parameter_prepare_deleted_event(
 rcl_ret_t rclc_parameter_reset_parameter_event(
   ParameterEvent * event);
 
+rcl_ret_t rclc_parameter_initialize_empty_string(
+  rosidl_runtime_c__String * str,
+  size_t capacity);
+
+bool rclc_parameter_descriptor_initialize_string(
+  rosidl_runtime_c__String * str);
+
 #if __cplusplus
 }
 #endif  // if __cplusplus

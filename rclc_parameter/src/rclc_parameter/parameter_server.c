@@ -54,11 +54,11 @@ rclc_parameter_server_describe_service_callback(
   void * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    req, "req is a null pointer", return);
+    req, "req is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    res, "res is a null pointer", return);
+    res, "res is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return);
+    parameter_server, "parameter_server is a null pointer", return );
 
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
   DescribeParameters_Request * request = (DescribeParameters_Request *) req;
@@ -111,9 +111,9 @@ rclc_parameter_server_list_service_callback(
   void * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    res, "res is a null pointer", return);
+    res, "res is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return);
+    parameter_server, "parameter_server is a null pointer", return );
 
   (void) req;
 
@@ -140,11 +140,11 @@ rclc_parameter_server_get_service_callback(
   void * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    req, "req is a null pointer", return);
+    req, "req is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    res, "res is a null pointer", return);
+    res, "res is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return);
+    parameter_server, "parameter_server is a null pointer", return );
 
   const GetParameters_Request * request = (const GetParameters_Request *) req;
   GetParameters_Response * response = (GetParameters_Response *) res;
@@ -181,11 +181,11 @@ rclc_parameter_server_get_types_service_callback(
   void * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    req, "req is a null pointer", return);
+    req, "req is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    res, "res is a null pointer", return);
+    res, "res is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return);
+    parameter_server, "parameter_server is a null pointer", return );
 
   const GetParameterTypes_Request * request = (const GetParameterTypes_Request *)  req;
   GetParameterTypes_Response * response = (GetParameterTypes_Response *) res;
@@ -218,11 +218,11 @@ rclc_parameter_server_set_service_callback(
   void * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    req, "req is a null pointer", return);
+    req, "req is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    res, "res is a null pointer", return);
+    res, "res is a null pointer", return );
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return);
+    parameter_server, "parameter_server is a null pointer", return );
 
   const SetParameters_Request * request = (const SetParameters_Request *) req;
   SetParameters_Response * response = (SetParameters_Response *) res;
@@ -362,9 +362,6 @@ init_parameter_server_memory(
 
   rcl_ret_t ret = RCL_RET_OK;
 
-  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH] = "";
-  size_t empty_string_capacity = RCLC_PARAMETER_MAX_STRING_LENGTH - 1;
-
   bool mem_allocs_ok = true;
   mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
     &parameter_server->parameter_list,
@@ -373,11 +370,8 @@ init_parameter_server_memory(
 
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; ++i) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->parameter_list.data[i].name,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->parameter_list.data[i].name.size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->parameter_list.data[i].name);
   }
 
   // Init list service msgs
@@ -392,11 +386,8 @@ init_parameter_server_memory(
 
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; ++i) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->list_response.result.names.data[i],
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->list_response.result.names.data[i].size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->list_response.result.names.data[i]);
   }
 
   // Init Get service msgs
@@ -414,11 +405,8 @@ init_parameter_server_memory(
 
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; ++i) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->get_request.names.data[i],
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->get_request.names.data[i].size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->get_request.names.data[i]);
   }
 
   // Init Set service msgs
@@ -434,22 +422,12 @@ init_parameter_server_memory(
     options->max_params);
   parameter_server->set_response.results.size = 0;
 
-  static char empty_string_reason[RCLC_SET_ERROR_MAX_STRING_LENGTH] = "";
-  size_t string_reason_capacity = RCLC_SET_ERROR_MAX_STRING_LENGTH - 1;
-
   // Pre-init strings
   for (size_t i = 0; i < options->max_params; ++i) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->set_request.parameters.data[i].name,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->set_request.parameters.data[i].name.size = 0;
-
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->set_response.results.data[i].reason,
-      (const char *) empty_string_reason,
-      string_reason_capacity);
-    parameter_server->set_response.results.data[i].reason.size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->set_request.parameters.data[i].name);
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->set_response.results.data[i].reason);
   }
 
   // Init Get types service msgs
@@ -467,11 +445,8 @@ init_parameter_server_memory(
   parameter_server->get_types_response.types.size = 0;
 
   for (size_t i = 0; i < options->max_params; ++i) {
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->get_types_request.names.data[i],
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->get_types_request.names.data[i].size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->get_types_request.names.data[i]);
   }
 
   // Init Describe service msgs
@@ -496,28 +471,16 @@ init_parameter_server_memory(
 
   for (size_t i = 0; i < options->max_params; ++i) {
     // Init describe_request members
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->describe_request.names.data[i],
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->describe_request.names.data[i].size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->describe_request.names.data[i]);
 
     // Init describe_response members
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->describe_response.descriptors.data[i].name,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->describe_response.descriptors.data[i].name.size = 0;
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->describe_response.descriptors.data[i].description,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->describe_response.descriptors.data[i].description.size = 0;
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->describe_response.descriptors.data[i].additional_constraints,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->describe_response.descriptors.data[i].additional_constraints.size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->describe_response.descriptors.data[i].name);
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->describe_response.descriptors.data[i].description);
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->describe_response.descriptors.data[i].additional_constraints);
     mem_allocs_ok &= rcl_interfaces__msg__FloatingPointRange__Sequence__init(
       &parameter_server->describe_response.descriptors.data[i].floating_point_range,
       rcl_interfaces__msg__ParameterDescriptor__floating_point_range__MAX_SIZE);
@@ -528,21 +491,12 @@ init_parameter_server_memory(
     parameter_server->describe_response.descriptors.data[i].integer_range.size = 0;
 
     // Init parameter_descriptors members
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->parameter_descriptors.data[i].name,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->parameter_descriptors.data[i].name.size = 0;
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->parameter_descriptors.data[i].description,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->parameter_descriptors.data[i].description.size = 0;
-    mem_allocs_ok &= rosidl_runtime_c__String__assignn(
-      &parameter_server->parameter_descriptors.data[i].additional_constraints,
-      (const char *) empty_string,
-      empty_string_capacity);
-    parameter_server->parameter_descriptors.data[i].additional_constraints.size = 0;
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->parameter_descriptors.data[i].name);
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->parameter_descriptors.data[i].description);
+    mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+      &parameter_server->parameter_descriptors.data[i].additional_constraints);
     mem_allocs_ok &= rcl_interfaces__msg__FloatingPointRange__Sequence__init(
       &parameter_server->parameter_descriptors.data[i].floating_point_range,
       rcl_interfaces__msg__ParameterDescriptor__floating_point_range__MAX_SIZE);
@@ -599,29 +553,17 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->parameter_descriptors.capacity = options->max_params;
 
   for (size_t i = 0; i < options->max_params; ++i) {
-    parameter_server->parameter_list.data[i].name.data = allocator.allocate(
-      sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-    parameter_server->parameter_list.data[i].name.data[0] = '\0';
-    parameter_server->parameter_list.data[i].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-    parameter_server->parameter_list.data[i].name.size = 0;
-
-    parameter_server->parameter_list.data[i].value.string_value.data =
-      allocator.allocate(sizeof(char), allocator.state);
-    parameter_server->parameter_list.data[i].value.string_value.data[0] = '\0';
-    parameter_server->parameter_list.data[i].value.string_value.capacity = 1;
-    parameter_server->parameter_list.data[i].value.string_value.size = 0;
-
-    parameter_server->parameter_descriptors.data[i].description.data =
-      allocator.allocate(sizeof(char), allocator.state);
-    parameter_server->parameter_descriptors.data[i].description.data[0] = '\0';
-    parameter_server->parameter_descriptors.data[i].description.capacity = 1;
-    parameter_server->parameter_descriptors.data[i].description.size = 0;
-
-    parameter_server->parameter_descriptors.data[i].additional_constraints.data =
-      allocator.allocate(sizeof(char), allocator.state);
-    parameter_server->parameter_descriptors.data[i].additional_constraints.data[0] = '\0';
-    parameter_server->parameter_descriptors.data[i].additional_constraints.capacity = 1;
-    parameter_server->parameter_descriptors.data[i].additional_constraints.size = 0;
+    ret |= rclc_parameter_initialize_empty_string(
+      &parameter_server->parameter_list.data[i].name,
+      RCLC_PARAMETER_MAX_STRING_LENGTH);
+    ret |=
+      rclc_parameter_initialize_empty_string(
+      &parameter_server->parameter_list.data[i].value.string_value, 1);
+    ret |=
+      rclc_parameter_initialize_empty_string(
+      &parameter_server->parameter_descriptors.data[i].description, 1);
+    ret |= rclc_parameter_initialize_empty_string(
+      &parameter_server->parameter_descriptors.data[i].additional_constraints, 1);
 
     parameter_server->parameter_descriptors.data[i].floating_point_range.data =
       allocator.zero_allocate(
@@ -674,10 +616,9 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->get_request.names.size = 0;
   parameter_server->get_request.names.capacity = 1;
 
-  parameter_server->get_request.names.data[0].data = allocator.allocate(
-    sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->get_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-  parameter_server->get_request.names.data[0].size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->get_request.names.data[0],
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
 
   parameter_server->get_response.values.data = allocator.zero_allocate(
     1, sizeof(ParameterValue),
@@ -685,12 +626,8 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->get_response.values.size = 0;
   parameter_server->get_response.values.capacity = 1;
 
-  parameter_server->get_response.values.data[0].string_value.data = allocator.allocate(
-    sizeof(char),
-    allocator.state);
-  parameter_server->get_response.values.data[0].string_value.data[0] = '\0';
-  parameter_server->get_response.values.data[0].string_value.size = 0;
-  parameter_server->get_response.values.data[0].string_value.capacity = 1;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->get_response.values.data[0].string_value, 1);
 
   // Set parameters:
   //    - Only one parameter can be set, created or deleted per request
@@ -701,20 +638,18 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->set_request.parameters.size = 0;
   parameter_server->set_request.parameters.capacity = 1;
 
-  parameter_server->set_request.parameters.data[0].name.data = allocator.allocate(
-    sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->set_request.parameters.data[0].name.capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-  parameter_server->set_request.parameters.data[0].name.size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->set_request.parameters.data[0].name,
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
 
   parameter_server->set_response.results.data =
     allocator.zero_allocate(1, sizeof(SetParameters_Result), allocator.state);
   parameter_server->set_response.results.size = 0;
   parameter_server->set_response.results.capacity = 1;
 
-  parameter_server->set_response.results.data[0].reason.data = allocator.allocate(
-    sizeof(char) * RCLC_SET_ERROR_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->set_response.results.data[0].reason.capacity = RCLC_SET_ERROR_MAX_STRING_LENGTH;
-  parameter_server->set_response.results.data[0].reason.size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->set_response.results.data[0].reason,
+    RCLC_SET_ERROR_MAX_STRING_LENGTH);
 
   // Get parameter types:
   //    - Only one parameter type can be retrieved per request
@@ -723,10 +658,9 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->get_types_request.names.size = 0;
   parameter_server->get_types_request.names.capacity = 1;
 
-  parameter_server->get_types_request.names.data[0].data = allocator.allocate(
-    sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->get_types_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-  parameter_server->get_types_request.names.data[0].size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->get_types_request.names.data[0],
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
 
   parameter_server->get_types_response.types.data = allocator.zero_allocate(
     1, sizeof(uint8_t),
@@ -741,27 +675,20 @@ rcl_ret_t init_parameter_server_memory_low(
   parameter_server->describe_request.names.size = 0;
   parameter_server->describe_request.names.capacity = 1;
 
-  parameter_server->describe_request.names.data[0].data = allocator.allocate(
-    sizeof(char) * RCLC_PARAMETER_MAX_STRING_LENGTH, allocator.state);
-  parameter_server->describe_request.names.data[0].capacity = RCLC_PARAMETER_MAX_STRING_LENGTH;
-  parameter_server->describe_request.names.data[0].size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->describe_request.names.data[0],
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
 
   parameter_server->describe_response.descriptors.data =
     allocator.zero_allocate(1, sizeof(ParameterDescriptor), allocator.state);
   parameter_server->describe_response.descriptors.size = 0;
   parameter_server->describe_response.descriptors.capacity = 1;
 
-  parameter_server->describe_response.descriptors.data[0].description.data =
-    allocator.allocate(sizeof(char), allocator.state);
-  parameter_server->describe_response.descriptors.data[0].description.data[0] = '\0';
-  parameter_server->describe_response.descriptors.data[0].description.capacity = 1;
-  parameter_server->describe_response.descriptors.data[0].description.size = 0;
-
-  parameter_server->describe_response.descriptors.data[0].additional_constraints.data =
-    allocator.allocate(sizeof(char), allocator.state);
-  parameter_server->describe_response.descriptors.data[0].additional_constraints.data[0] = '\0';
-  parameter_server->describe_response.descriptors.data[0].additional_constraints.capacity = 1;
-  parameter_server->describe_response.descriptors.data[0].additional_constraints.size = 0;
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->describe_response.descriptors.data[0].description,
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->describe_response.descriptors.data[0].additional_constraints, 1);
 
   parameter_server->describe_response.descriptors.data[0].floating_point_range.data =
     allocator.zero_allocate(
@@ -817,7 +744,7 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     GetParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->get_service, node, "/get_parameters",
     get_ts);
 
@@ -825,7 +752,7 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     GetParameterTypes);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->get_types_service, node,
     "/get_parameter_types", get_types_ts);
 
@@ -833,7 +760,7 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     SetParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->set_service, node, "/set_parameters",
     set_ts);
 
@@ -841,7 +768,7 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     ListParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->list_service, node,
     "/list_parameters", list_ts);
 
@@ -849,7 +776,7 @@ rclc_parameter_server_init_with_option(
     rcl_interfaces,
     srv,
     DescribeParameters);
-  ret &= rclc_parameter_server_init_service(
+  ret |= rclc_parameter_server_init_service(
     &parameter_server->describe_service, node,
     "/describe_parameters", describe_ts);
 
@@ -863,7 +790,7 @@ rclc_parameter_server_init_with_option(
       rcl_interfaces,
       msg,
       ParameterEvent);
-    ret &= rclc_publisher_init(
+    ret |= rclc_publisher_init(
       &parameter_server->event_publisher, node, event_ts,
       "/parameter_events",
       &rmw_qos_profile_parameter_events);
@@ -879,11 +806,11 @@ rclc_parameter_server_init_with_option(
 }
 
 void
-rclc_parameter_server_fini_memory_low_memory(
+rclc_parameter_server_fini_memory_low(
   rclc_parameter_server_t * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    parameter_server, "parameter_server is a null pointer", return );
 
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
@@ -995,7 +922,7 @@ rclc_parameter_server_fini_memory(
   rclc_parameter_server_t * parameter_server)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    parameter_server, "parameter_server is a null pointer", return );
 
   // Fini describe msgs
   for (size_t i = 0; i < parameter_server->describe_request.names.capacity; ++i) {
@@ -1097,18 +1024,18 @@ rclc_parameter_server_fini(
 
   rcl_ret_t ret = RCL_RET_OK;
 
-  ret &= rcl_service_fini(&parameter_server->list_service, node);
-  ret &= rcl_service_fini(&parameter_server->set_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_service, node);
-  ret &= rcl_service_fini(&parameter_server->get_types_service, node);
-  ret &= rcl_service_fini(&parameter_server->describe_service, node);
+  ret |= rcl_service_fini(&parameter_server->list_service, node);
+  ret |= rcl_service_fini(&parameter_server->set_service, node);
+  ret |= rcl_service_fini(&parameter_server->get_service, node);
+  ret |= rcl_service_fini(&parameter_server->get_types_service, node);
+  ret |= rcl_service_fini(&parameter_server->describe_service, node);
 
   if (parameter_server->notify_changed_over_dds) {
-    ret &= rcl_publisher_fini(&parameter_server->event_publisher, node);
+    ret |= rcl_publisher_fini(&parameter_server->event_publisher, node);
   }
 
   if (parameter_server->low_mem_mode) {
-    rclc_parameter_server_fini_memory_low_memory(parameter_server);
+    rclc_parameter_server_fini_memory_low(parameter_server);
   } else {
     rclc_parameter_server_fini_memory(parameter_server);
   }
@@ -1620,9 +1547,11 @@ rcl_ret_t rclc_add_parameter_description(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    parameter_description, "parameter_description is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    parameter_description, "parameter_description is a null pointer",
+    return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    additional_constraints, "additional_constraints is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+    additional_constraints, "additional_constraints is a null pointer",
+    return RCL_RET_INVALID_ARGUMENT);
 
   if (parameter_server->low_mem_mode) {
     return RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM;
@@ -1757,10 +1686,6 @@ rcl_ret_t rclc_parameter_execute_callback(
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    old_param, "old_param is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    new_param, "new_param is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   bool ret = true;
 
