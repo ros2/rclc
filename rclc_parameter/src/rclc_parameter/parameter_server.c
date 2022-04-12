@@ -53,6 +53,13 @@ rclc_parameter_server_describe_service_callback(
   void * res,
   void * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    req, "req is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    res, "res is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return);
+
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
   DescribeParameters_Request * request = (DescribeParameters_Request *) req;
   DescribeParameters_Response * response = (DescribeParameters_Response *) res;
@@ -103,6 +110,11 @@ rclc_parameter_server_list_service_callback(
   void * res,
   void * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    res, "res is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return);
+
   (void) req;
 
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
@@ -127,6 +139,13 @@ rclc_parameter_server_get_service_callback(
   void * res,
   void * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    req, "req is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    res, "res is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return);
+
   const GetParameters_Request * request = (const GetParameters_Request *) req;
   GetParameters_Response * response = (GetParameters_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
@@ -161,6 +180,13 @@ rclc_parameter_server_get_types_service_callback(
   void * res,
   void * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    req, "req is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    res, "res is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return);
+
   const GetParameterTypes_Request * request = (const GetParameterTypes_Request *)  req;
   GetParameterTypes_Response * response = (GetParameterTypes_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
@@ -191,6 +217,13 @@ rclc_parameter_server_set_service_callback(
   void * res,
   void * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    req, "req is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    res, "res is a null pointer", return);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return);
+
   const SetParameters_Request * request = (const SetParameters_Request *) req;
   SetParameters_Response * response = (SetParameters_Response *) res;
   rclc_parameter_server_t * param_server = (rclc_parameter_server_t *) parameter_server;
@@ -535,11 +568,18 @@ init_parameter_server_memory(
   return ret;
 }
 
-bool init_parameter_server_memory_low_memory(
+rcl_ret_t init_parameter_server_memory_low(
   rclc_parameter_server_t * parameter_server,
   rcl_node_t * node,
   const rclc_parameter_options_t * options)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   rcl_ret_t ret = RCL_RET_OK;
 
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -830,9 +870,9 @@ rclc_parameter_server_init_with_option(
   }
 
   if (parameter_server->low_mem_mode) {
-    ret = init_parameter_server_memory_low_memory(parameter_server, node, options);
+    ret |= init_parameter_server_memory_low(parameter_server, node, options);
   } else {
-    ret = init_parameter_server_memory(parameter_server, node, options);
+    ret |= init_parameter_server_memory(parameter_server, node, options);
   }
 
   return ret;
@@ -842,6 +882,9 @@ void
 rclc_parameter_server_fini_memory_low_memory(
   rclc_parameter_server_t * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   // Get request
@@ -951,6 +994,9 @@ void
 rclc_parameter_server_fini_memory(
   rclc_parameter_server_t * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   // Fini describe msgs
   for (size_t i = 0; i < parameter_server->describe_request.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->describe_request.names.data[i]);
@@ -1519,6 +1565,9 @@ rcl_ret_t
 rclc_parameter_service_publish_event(
   rclc_parameter_server_t * parameter_server)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   rcl_ret_t ret = RCL_RET_OK;
 
   rcutils_time_point_value_t now;
@@ -1542,6 +1591,15 @@ rclc_parameter_server_init_service(
   char * service_name,
   const rosidl_service_type_support_t * srv_type)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service, "service is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service_name, "service_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    srv_type, "srv_type is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   const char * node_name = rcl_node_get_name(node);
 
   static char get_service_name[RCLC_PARAMETER_MAX_STRING_LENGTH];
@@ -1557,6 +1615,15 @@ rcl_ret_t rclc_add_parameter_description(
   const char * parameter_description,
   const char * additional_constraints)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_description, "parameter_description is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    additional_constraints, "additional_constraints is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (parameter_server->low_mem_mode) {
     return RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM;
   }
@@ -1590,6 +1657,11 @@ rcl_ret_t rclc_set_parameter_read_only(
   const char * parameter_name,
   bool read_only)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (parameter_server->on_callback) {
     return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
@@ -1615,6 +1687,11 @@ rcl_ret_t rclc_add_parameter_constraint_double(
   double to_value,
   double step)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (parameter_server->on_callback) {
     return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
@@ -1644,6 +1721,11 @@ rcl_ret_t rclc_add_parameter_constraint_integer(
   const char * parameter_name, int64_t from_value,
   int64_t to_value, uint64_t step)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   if (parameter_server->on_callback) {
     return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
   }
@@ -1673,6 +1755,13 @@ rcl_ret_t rclc_parameter_execute_callback(
   const Parameter * old_param,
   const Parameter * new_param)
 {
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    old_param, "old_param is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    new_param, "new_param is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
   bool ret = true;
 
   if (parameter_server->on_modification) {
