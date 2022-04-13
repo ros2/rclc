@@ -998,8 +998,7 @@ rclc_parameter_server_fini_memory(
     rosidl_runtime_c__String__fini(
       &parameter_server->parameter_descriptors.data[i].additional_constraints);
     rcl_interfaces__msg__IntegerRange__Sequence__fini(
-      &parameter_server->parameter_descriptors.data[
-        i].integer_range);
+      &parameter_server->parameter_descriptors.data[i].integer_range);
     rcl_interfaces__msg__FloatingPointRange__Sequence__fini(
       &parameter_server->parameter_descriptors.data[i].floating_point_range);
   }
