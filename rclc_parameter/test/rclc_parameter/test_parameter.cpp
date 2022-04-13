@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 // #include "parameter_client.hpp"
 
 static int callcack_calls = 0;
-static rclc_parameter_type_t expected_type;
+static rclc_parameter_type_t expected_type = RCLC_PARAMETER_NOT_SET;
 static union {
   bool bool_value;
   int64_t integer_value;
@@ -60,6 +60,11 @@ void on_parameter_changed(Parameter * param)
 TEST(Test, rclc_node_init_default) {
   auto default_spin_timeout = std::chrono::duration<int64_t, std::milli>(5000);
   std::string node_name("test_node");
+
+  // Reset global tests values
+  expected_type = RCLC_PARAMETER_NOT_SET;
+  expected_value.bool_value = false;
+  callcack_calls = 0;
 
   // Create auxiliar RCLCPP node
   rclcpp::init(0, NULL);
