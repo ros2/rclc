@@ -284,8 +284,7 @@ TEST_F(ActionServerTest, goal_accept) {
   auto future = promise->get_future().share();
 
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       promise->set_value(goal_handle->get_status());
     };
@@ -313,8 +312,7 @@ TEST_F(ActionServerTest, goal_reject) {
   goal_msg.order = 10;
 
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_EQ(nullptr, goal_handle);
       promise->set_value();
     };
@@ -367,8 +365,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
   bool accepted = false;
 
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       accepted = true;
     };
@@ -439,8 +436,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
   bool accepted = false;
 
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       accepted = true;
     };
@@ -514,8 +510,7 @@ TEST_F(ActionServerTest, goal_accept_cancel_success) {
 
   bool accepted = false;
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       accepted = true;
     };
@@ -572,8 +567,7 @@ TEST_F(ActionServerTest, goal_accept_cancel_reject) {
 
   bool accepted = false;
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       accepted = true;
     };
@@ -646,8 +640,7 @@ TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
   std::map<rclcpp_action::GoalUUID, bool> goals_accepted;
 
   send_goal_options.goal_response_callback =
-    [&](std::shared_future<GoalHandleFibonacci::SharedPtr> future) -> void {
-      auto goal_handle = future.get();
+    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
       ASSERT_NE(nullptr, goal_handle);
       goals_accepted[goal_handle->get_goal_id()] = true;
     };
