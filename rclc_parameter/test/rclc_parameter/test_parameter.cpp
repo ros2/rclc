@@ -183,7 +183,7 @@ TEST(Test, rclc_node_init_default) {
   ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
 
   // Use auxiliar RCLCPP node for check
-  auto list_params = parameters_client->list_parameters({}, 10, default_spin_timeout);
+  auto list_params = parameters_client->list_parameters({}, 10);
   ASSERT_EQ(list_params.names.size(), 4u);
   for (auto & name : list_params.names) {
     std::vector<std::string>::iterator it;
