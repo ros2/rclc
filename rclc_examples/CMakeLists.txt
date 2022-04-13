@@ -28,6 +28,9 @@ find_package(example_interfaces REQUIRED)
 find_package(rclc_parameter REQUIRED)
 find_package(Threads REQUIRED)
 
+# for pingpong example with c++
+find_package(rclcpp REQUIRED)
+
 include_directories(include)
 
 add_executable(example_executor src/example_executor.c)
@@ -55,7 +58,7 @@ add_executable(example_sub_context src/example_sub_context.c)
 ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 
 add_executable(example_pingpong src/example_pingpong.cpp)
-ament_target_dependencies(example_pingpong rcl rclc std_msgs)
+ament_target_dependencies(example_pingpong rcl rclc rclcpp std_msgs)
 
 add_executable(example_action_server src/example_action_server.c)
 target_link_libraries(example_action_server Threads::Threads)
