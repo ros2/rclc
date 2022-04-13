@@ -212,6 +212,100 @@ protected:
   bool spin;
 };
 
+TEST_P(ParameterTestBase, rclc_add_parameter_constraint) {
+  // Test with NULL arguments
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_integer(NULL, "param2", 0, 0, 0),
+    RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_integer(
+      &param_server, NULL, 0, 0,
+      0), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_double(
+      NULL, "param3", 0.0, 0.0,
+      0.0), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_double(
+      &param_server, NULL, 0.0, 0.0,
+      0.0), RCL_RET_INVALID_ARGUMENT);
+
+  // Test with invalid parameter name
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_integer(
+      &param_server, "invalid_param", 0, 0,
+      0), RCL_RET_ERROR);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_double(
+      &param_server, "invalid_param", 0.0, 0.0,
+      0.0), RCL_RET_ERROR);
+
+  // Test with invalid parameter type
+  ASSERT_EQ(rclc_add_parameter_constraint_integer(&param_server, "param3", 0, 0, 0), RCL_RET_ERROR);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_double(
+      &param_server, "param2", 0.0, 0.0,
+      0.0), RCL_RET_ERROR);
+
+  // Test valid values
+  ASSERT_EQ(rclc_add_parameter_constraint_integer(&param_server, "param2", 0, 10, 1), RCL_RET_OK);
+  ASSERT_EQ(
+    rclc_add_parameter_constraint_double(
+      &param_server, "param3", 0.0, 0.1,
+      0.01), RCL_RET_OK);
+}
+
+TEST_P(ParameterTestBase, rclc_add_parameter_description) {
+  if (options.low_mem_mode) {
+    ASSERT_EQ(
+      rclc_add_parameter_description(
+        &param_server, "param1", "parameter_description",
+        "additional_constraints"), RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM);
+    return;
+  }
+
+  // Test with NULL arguments
+  ASSERT_EQ(rclc_add_parameter_description(NULL, "", "", ""), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(rclc_add_parameter_description(&param_server, NULL, "", ""), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(rclc_add_parameter_description(&param_server, "", NULL, ""), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(rclc_add_parameter_description(&param_server, "", "", NULL), RCL_RET_INVALID_ARGUMENT);
+
+  // Test with invalid parameter name
+  ASSERT_EQ(rclc_add_parameter_description(&param_server, "invalid_param", "", ""), RCL_RET_ERROR);
+
+  // Fail on string length
+  char overflow_string[RCLC_PARAMETER_MAX_STRING_LENGTH + 1];
+  memset(overflow_string, ' ', RCLC_PARAMETER_MAX_STRING_LENGTH + 1);
+  overflow_string[RCLC_PARAMETER_MAX_STRING_LENGTH] = '\0';
+
+  ASSERT_EQ(
+    rclc_add_parameter_description(
+      &param_server, "param1", overflow_string,
+      ""), RCL_RET_ERROR);
+  ASSERT_EQ(
+    rclc_add_parameter_description(
+      &param_server, "param1", "",
+      overflow_string), RCL_RET_ERROR);
+
+  // Test valid values
+  ASSERT_EQ(
+    rclc_add_parameter_description(
+      &param_server, "param1", "parameter_description",
+      "additional_constraints"), RCL_RET_OK);
+}
+
+TEST_P(ParameterTestBase, rclc_set_parameter_read_only) {
+  // Test with NULL arguments
+  ASSERT_EQ(rclc_set_parameter_read_only(NULL, "param1", true), RCL_RET_INVALID_ARGUMENT);
+  ASSERT_EQ(rclc_set_parameter_read_only(&param_server, NULL, true), RCL_RET_INVALID_ARGUMENT);
+
+  // Test with invalid parameter name
+  ASSERT_EQ(rclc_set_parameter_read_only(&param_server, "invalid_param", true), RCL_RET_ERROR);
+
+  // Test valid values
+  ASSERT_EQ(rclc_set_parameter_read_only(&param_server, "param1", true), RCL_RET_OK);
+}
+
 TEST_P(ParameterTestBase, rclc_set_get_parameter) {
   size_t expected_callback_calls = 1;
 
@@ -874,6 +968,48 @@ TEST_P(ParameterTestBase, rclcpp_get_parameter_types) {
     ASSERT_EQ(types[1], param[1].get_type());
     ASSERT_EQ(types[2], param[2].get_type());
   }
+}
+
+TEST_P(ParameterTestBase, rclc_disabled_on_callback) {
+  // Test disabled methods on callback
+  on_parameter_changed = [&](const Parameter *, const Parameter *) -> bool {
+      EXPECT_EQ(
+        rclc_add_parameter(
+          &param_server, "param_new",
+          RCLC_PARAMETER_BOOL), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_delete_parameter(&param_server, "param1"),
+        RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_parameter_set_bool(
+          &param_server, "param1",
+          true), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_parameter_set_int(
+          &param_server, "param2",
+          10), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_parameter_set_double(
+          &param_server, "param3",
+          0.1), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_set_parameter_read_only(
+          &param_server, "param1",
+          true), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_add_parameter_constraint_integer(
+          &param_server, "param2", 0, 0,
+          0), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      EXPECT_EQ(
+        rclc_add_parameter_constraint_double(
+          &param_server, "param3", 0.0, 0.0,
+          0.0), RCLC_PARAMETER_DISABLED_ON_CALLBACK);
+      return true;
+    };
+
+  // Trigger callback
+  ASSERT_EQ(rclc_parameter_set_bool(&param_server, "param1", true), RCL_RET_OK);
+  ASSERT_EQ(callback_calls, 1U);
 }
 
 // Init parameter server with allow_undeclared_parameters flag
