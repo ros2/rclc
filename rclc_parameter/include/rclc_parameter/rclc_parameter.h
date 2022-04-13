@@ -67,7 +67,7 @@ typedef struct rcl_interfaces__msg__ParameterDescriptor__Sequence ParameterDescr
 typedef struct rcl_interfaces__msg__ParameterEvent ParameterEvent;
 
 // Number of RCLC executor handles required for a parameter server
-#define RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER 5
+#define RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES 5
 #define RCLC_PARAMETER_MODIFICATION_REJECTED 4001
 #define RCLC_PARAMETER_TYPE_MISMATCH 4002
 #define RCLC_PARAMETER_UNSUPORTED_ON_LOW_MEM 4003

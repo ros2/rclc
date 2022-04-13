@@ -40,6 +40,11 @@ bool on_parameter_changed(const Parameter * old_param, const Parameter * new_par
 {
   (void) context;
 
+  if (old_param == NULL && new_param == NULL) {
+    printf("Callback error, both parameters are NULL\n");
+    return false;
+  }
+
   if (old_param == NULL) {
     printf("Creating new parameter %s\n", new_param->name.data);
   } else if (new_param == NULL) {
@@ -98,7 +103,7 @@ int main()
   // Create executor
   rclc_executor_t executor;
   rclc_executor_init(
-    &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER + 1,
+    &executor, &support.context, RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1,
     &allocator);
   rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed);
   rclc_executor_add_timer(&executor, &timer);

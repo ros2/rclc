@@ -56,7 +56,7 @@ TEST(ParameterTestUnitary, rclc_parameter_server_init_default) {
   // Add parameter to executor
   rclc_executor_t executor;
   rclc_executor_init(
-    &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
+    &executor, &support.context, RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES,
     &allocator);
   ASSERT_EQ(rclc_executor_add_parameter_server(&executor, &param_server, nullptr), RCL_RET_OK);
 
@@ -133,7 +133,7 @@ public:
 
     // Add parameter to executor
     rclc_executor_init(
-      &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
+      &executor, &support.context, RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES,
       &allocator);
     EXPECT_EQ(
       rclc_executor_add_parameter_server_with_context(
