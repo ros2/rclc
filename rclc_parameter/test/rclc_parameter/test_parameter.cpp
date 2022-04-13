@@ -30,8 +30,8 @@ using namespace std::chrono_literals;
 
 // #include "parameter_client.hpp"
 
-static int callcack_calls = 0;
-static rclc_parameter_type_t expected_type;
+static int callbacks_calls = 0;
+static rclc_parameter_type_t expected_type = RCLC_PARAMETER_NOT_SET;
 static union {
   bool bool_value;
   int64_t integer_value;
@@ -40,7 +40,7 @@ static union {
 
 void on_parameter_changed(Parameter * param)
 {
-  callcack_calls++;
+  callbacks_calls++;
   ASSERT_EQ(expected_type, param->value.type);
   switch (param->value.type) {
     case RCLC_PARAMETER_BOOL:
@@ -58,7 +58,13 @@ void on_parameter_changed(Parameter * param)
 }
 
 TEST(Test, rclc_node_init_default) {
+  auto default_spin_timeout = std::chrono::duration<int64_t, std::milli>(5000);
   std::string node_name("test_node");
+
+  // Reset global tests values
+  expected_type = RCLC_PARAMETER_NOT_SET;
+  expected_value.bool_value = false;
+  callbacks_calls = 0;
 
   // Create auxiliar RCLCPP node
   rclcpp::init(0, NULL);
@@ -161,7 +167,7 @@ TEST(Test, rclc_node_init_default) {
   rclc_parameter_get_double(&param_server, "param3", &param3);
   ASSERT_EQ(param3, 0.01);
 
-  ASSERT_EQ(callcack_calls, 3);
+  ASSERT_EQ(callbacks_calls, 3);
 
   // Spin RCLC parameter server in a thread
   bool spin = true;
@@ -173,8 +179,11 @@ TEST(Test, rclc_node_init_default) {
     }
   );
 
+  // Wait for parameter server
+  ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
+
   // Use auxiliar RCLCPP node for check
-  auto list_params = parameters_client->list_parameters({}, 10);
+  auto list_params = parameters_client->list_parameters({}, 10, default_spin_timeout);
   ASSERT_EQ(list_params.names.size(), 4u);
   for (auto & name : list_params.names) {
     std::vector<std::string>::iterator it;
@@ -241,11 +250,18 @@ TEST(Test, rclc_node_init_default) {
       promise->set_value();
     });
 
+  // Sleep for pub/sub match
+  std::this_thread::sleep_for(500ms);
+
   expected_type = RCLC_PARAMETER_BOOL;
   expected_value.double_value = false;
   rclc_parameter_set_bool(&param_server, "param1", false);
 
-  rclcpp::spin_until_future_complete(param_client_node, future.share());
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      param_client_node, future.share(),
+      default_spin_timeout),
+    rclcpp::FutureReturnCode::SUCCESS);
 
   ASSERT_EQ(on_parameter_calls, 1u);
 
