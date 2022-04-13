@@ -58,6 +58,7 @@ void on_parameter_changed(Parameter * param)
 }
 
 TEST(Test, rclc_node_init_default) {
+  auto default_spin_timeout = std::chrono::duration<int64_t, std::milli>(5000);
   std::string node_name("test_node");
 
   // Create auxiliar RCLCPP node
@@ -173,8 +174,11 @@ TEST(Test, rclc_node_init_default) {
     }
   );
 
+  // Wait for parameter server
+  ASSERT_TRUE(parameters_client->wait_for_service(default_spin_timeout));
+
   // Use auxiliar RCLCPP node for check
-  auto list_params = parameters_client->list_parameters({}, 10);
+  auto list_params = parameters_client->list_parameters({}, 10, default_spin_timeout);
   ASSERT_EQ(list_params.names.size(), 4u);
   for (auto & name : list_params.names) {
     std::vector<std::string>::iterator it;
@@ -241,11 +245,18 @@ TEST(Test, rclc_node_init_default) {
       promise->set_value();
     });
 
+  // Sleep for pub/sub match
+  std::this_thread::sleep_for(500ms);
+
   expected_type = RCLC_PARAMETER_BOOL;
   expected_value.double_value = false;
   rclc_parameter_set_bool(&param_server, "param1", false);
 
-  rclcpp::spin_until_future_complete(param_client_node, future.share());
+  ASSERT_EQ(
+    rclcpp::spin_until_future_complete(
+      param_client_node, future.share(),
+      default_spin_timeout),
+    rclcpp::FutureReturnCode::SUCCESS);
 
   ASSERT_EQ(on_parameter_calls, 1u);
 
