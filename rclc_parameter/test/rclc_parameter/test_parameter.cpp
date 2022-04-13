@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 
 // #include "parameter_client.hpp"
 
-static int callcack_calls = 0;
+static int callbacks_calls = 0;
 static rclc_parameter_type_t expected_type = RCLC_PARAMETER_NOT_SET;
 static union {
   bool bool_value;
@@ -40,7 +40,7 @@ static union {
 
 void on_parameter_changed(Parameter * param)
 {
-  callcack_calls++;
+  callbacks_calls++;
   ASSERT_EQ(expected_type, param->value.type);
   switch (param->value.type) {
     case RCLC_PARAMETER_BOOL:
@@ -64,7 +64,7 @@ TEST(Test, rclc_node_init_default) {
   // Reset global tests values
   expected_type = RCLC_PARAMETER_NOT_SET;
   expected_value.bool_value = false;
-  callcack_calls = 0;
+  callbacks_calls = 0;
 
   // Create auxiliar RCLCPP node
   rclcpp::init(0, NULL);
@@ -167,7 +167,7 @@ TEST(Test, rclc_node_init_default) {
   rclc_parameter_get_double(&param_server, "param3", &param3);
   ASSERT_EQ(param3, 0.01);
 
-  ASSERT_EQ(callcack_calls, 3);
+  ASSERT_EQ(callbacks_calls, 3);
 
   // Spin RCLC parameter server in a thread
   bool spin = true;
