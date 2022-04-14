@@ -23,7 +23,7 @@ extern "C"
 #include <rclc_parameter/rclc_parameter.h>
 
 #include "./parameter_utils.h"
-// test
+
 rcl_ret_t
 rclc_parameter_server_init_service(
   rcl_service_t * service,
