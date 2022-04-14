@@ -1,11 +1,12 @@
 # The rclc repository
-This repository provides the rclc package, which complements the [ROS Client Support Library (rcl)](https://github.com/ros2/rcl/) to make up a complete ROS 2 client library for the C programming language. That is, rclc does not add a new layer of types on top of rcl (like rclcpp and rclpy do) but only provides convenience functions that ease the programming with the rcl types. New types are introduced only for concepts that are missing in rcl, most important an Executor and a Lifecycle Node.
+This repository provides the rclc package, which complements the [ROS Client Support Library (rcl)](https://github.com/ros2/rcl/) to make up a complete ROS 2 client library for the C programming language. That is, rclc does not add a new layer of types on top of rcl (like rclcpp and rclpy do) but only provides convenience functions that ease the programming with the rcl types. New types are introduced only for concepts that are missing in rcl, most important an Executor, Lifecycle Node and the Parameter server.
 
-In detail, this repository contains three packages:
+In detail, this repository contains four packages:
 
 - [rclc](rclc/) provides the mentioned convenience functions for creating instances of publishers, subscriptions, nodes, etc. with the corresponding [rcl types](https://github.com/ros2/rcl/tree/master/rcl/include/rcl). Furthermore, it provides the rclc Executor for C, analogously to rclcpp's [Executor class](https://github.com/ros2/rclcpp/blob/master/rclcpp/include/rclcpp/executor.hpp) for C++. A key feature compared to the rclcpp Executor is that it includes features for implementing deterministic timing behavior.
 - [rclc_lifecycle](rclc_lifecycle/) introduces an rclc Lifecycle Node, bundling an rcl Node and the [lifecycle state machine](http://design.ros2.org/articles/node_lifecycle.html) from the [rcl_lifecycle package](https://github.com/ros2/rcl/tree/master/rcl_lifecycle).
 - [rclc_examples](rclc_examples/) provides small examples for the use of the convenience functions and the rclc Executor, as well as a small example for the use of the rclc Lifecycle Node.
+- [rclc_parameter](rclc_parameter/) provides convenience functions for creating parameter server instances with full ROS2 parameters client compatibility.
 
 Technical information on the interfaces and the usage of these packages is given in the README.md files in the corresponding subfolders.
 

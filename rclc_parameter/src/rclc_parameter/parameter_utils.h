@@ -36,8 +36,19 @@ rclc_parameter_copy(
   Parameter * dst,
   const Parameter * src);
 
+rcl_ret_t
+rclc_parameter_descriptor_copy(
+  ParameterDescriptor * dst,
+  const ParameterDescriptor * src,
+  bool low_mem);
+
 Parameter *
 rclc_parameter_search(
+  Parameter__Sequence * parameter_list,
+  const char * param_name);
+
+size_t
+rclc_parameter_search_index(
   Parameter__Sequence * parameter_list,
   const char * param_name);
 
@@ -45,10 +56,27 @@ bool rclc_parameter_set_string(
   rosidl_runtime_c__String * str,
   const char * value);
 
-void rclc_parameter_prepare_parameter_event(
+rcl_ret_t rclc_parameter_prepare_new_event(
   ParameterEvent * event,
-  Parameter * parameter,
-  bool new);
+  Parameter * parameter);
+
+rcl_ret_t rclc_parameter_prepare_changed_event(
+  ParameterEvent * event,
+  Parameter * parameter);
+
+rcl_ret_t rclc_parameter_prepare_deleted_event(
+  ParameterEvent * event,
+  Parameter * parameter);
+
+rcl_ret_t rclc_parameter_reset_parameter_event(
+  ParameterEvent * event);
+
+rcl_ret_t rclc_parameter_initialize_empty_string(
+  rosidl_runtime_c__String * str,
+  size_t capacity);
+
+bool rclc_parameter_descriptor_initialize_string(
+  rosidl_runtime_c__String * str);
 
 #if __cplusplus
 }
