@@ -1,6 +1,16 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.8 (2022-04-14)
+------------------
+* Remove duplicate typedefs. (#249)
+* Add rmw dependencies due to EventsExecutor PR in rcl (#255)
+* Fix action client & server deallocation (#257)
+* updated documentation: build status for Rolling (#266)
+* Update action client goal callback signature (#282)
+* Upgrade parameters (#274)
+
 3.0.7 (2022-02-17)
 ------------------
 * Fix enum naming for avoid collision (#242)

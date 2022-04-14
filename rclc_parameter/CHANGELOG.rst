@@ -2,6 +2,13 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2022-04-14)
+------------------
+* Parameters fini memory (#253)
+* Fix RCLC int parameter get (cherry-pick) (#272)
+* rclc_parameter: Fix rcl return values (#270)
+* Upgrade parameters (#274)
+
 3.0.7 (2022-02-17)
 ------------------
 * no changes
