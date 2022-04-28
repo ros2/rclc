@@ -2,6 +2,10 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.0 (2022-04-28)
+------------------
+* updated version for Humble release
+
 3.0.8 (2022-04-14)
 ------------------
 * Remove duplicate typedefs. (#249)
