@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-21.04 ]
+        os: [ ubuntu-20.04 ]
         ros_distribution: [ humble ]
         include:
           - docker_image: ubuntu:jammy
