@@ -16,10 +16,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04 ]
-        ros_distribution: [ rolling ]
+        ros_distribution: [ humble ]
         include:
           - docker_image: ubuntu:jammy
-            ros_distribution: rolling
+            ros_distribution: humble
     container:
       image: ${{ matrix.docker_image }}
     steps:
