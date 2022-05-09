@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.0 (2022-04-28)
+------------------
+* updated version for Humble release
+
 3.0.8 (2022-04-14)
 ------------------
 * Fix RCLC int parameter get (cherry-pick) (#272)
