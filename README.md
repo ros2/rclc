@@ -52,15 +52,6 @@ Please notice the following issues/limitations:
 
 ## Bloom Release Status of Code Repository ros2/rclc
 
-<<<<<<< HEAD
-Bloom release status of all packages in repository [github.com/ros2/rclc/](https://github.com/ros2/rclc) for different architectures and releases.
-
-|Package | Release | amd64 | arm64 | 
-|:--     |  :--    |  :--  |  :--  | 
-| [rclc](https://github.com/ros2/rclc/tree/master/rclc) | Foxy | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fpr__rclc__ubuntu_focal_amd64)](https://build.ros2.org/job/Fpr__rclc__ubuntu_focal_amd64/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_ubv8_uFv8__rclc__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Fbin_ubv8_uFv8__rclc__ubuntu_focal_arm64__binary/) | 
-| | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gpr__rclc__ubuntu_focal_amd64)](https://build.ros2.org/job/Gpr__rclc__ubuntu_focal_amd64/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary/) | 
-| | Rolling| [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rpr__rclc__ubuntu_focal_amd64)](https://build.ros2.org/job/Rpr__rclc__ubuntu_focal_amd64/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary/) |
-=======
 Bloom release status of the packages in [github.com/ros2/rclc/](https://github.com/ros2/rclc) for amd64 and arm64 architectures and ROS 2 distributions Foxy, Galactic, Humble and Rolling.
 
 |Package | Release | amd64 | arm64 | 
@@ -69,28 +60,16 @@ Bloom release status of the packages in [github.com/ros2/rclc/](https://github.c
 | | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc__ubuntu_focal_arm64__binary/) |
 | | Humble | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__rclc__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Hbin_uJ64__rclc__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_ujv8_uJv8__rclc__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Hbin_ujv8_uJv8__rclc__ubuntu_jammy_arm64__binary/) |
 | | Rolling| [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uJ64__rclc__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Rbin_uJ64__rclc__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ujv8_uJv8__rclc__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Rbin_ujv8_uJv8__rclc__ubuntu_jammy_arm64__binary/) |
->>>>>>> 5099473 (Added build status of bloom-releases for Humble distribution (#291))
 |     |     |   |   |    
 | [rclc_examples](https://github.com/ros2/rclc/tree/master/rclc_examples)  
 | | Foxy | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_uF64__rclc_examples__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Fbin_uF64__rclc_examples__ubuntu_focal_amd64__binary/)  | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_ubv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Fbin_ubv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary/) | 
 | | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc_examples__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc_examples__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary/) | 
-<<<<<<< HEAD
-| | Rolling| [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_examples__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_examples__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_examples__ubuntu_focal_arm64__binary/) | 
-=======
 | | Humble | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__rclc_examples__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Hbin_uJ64__rclc_examples__ubuntu_jammy_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_ujv8_uJv8__rclc_examples__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Hbin_ujv8_uJv8__rclc_examples__ubuntu_jammy_arm64__binary/) |
 | | Rolling| [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uJ64__rclc_examples__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Rbin_uJ64__rclc_examples__ubuntu_jammy_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ujv8_uJv8__rclc_examples__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Rbin_ujv8_uJv8__rclc_examples__ubuntu_jammy_arm64__binary/) | 
->>>>>>> 5099473 (Added build status of bloom-releases for Humble distribution (#291))
 |     |     |   |   |    
 | [rclc_lifecycle](https://github.com/ros2/rclc/tree/master/rclc_lifecycle) 
 | | Foxy | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Fbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fbin_ubv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Fbin_ubv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) | 
 | | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) |
-<<<<<<< HEAD
-| | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_lifecycle__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_lifecycle__ubuntu_focal_arm64__binary/) | 
-|     |     |   |   |    
-| [rclc_parameter](https://github.com/ros2/rclc/tree/master/rclc_parameter) 
-| | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary/) |
-| | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Rbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Rbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary/)
-=======
 | | Humble | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__rclc_lifecycle__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Hbin_uJ64__rclc_lifecycle__ubuntu_jammy_amd64__binary/)|  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_ujv8_uJv8__rclc_lifecycle__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Hbin_ujv8_uJv8__rclc_lifecycle__ubuntu_jammy_arm64__binary/) |
 | | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uJ64__rclc_lifecycle__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Rbin_uJ64__rclc_lifecycle__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ujv8_uJv8__rclc_lifecycle__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Rbin_ujv8_uJv8__rclc_lifecycle__ubuntu_jammy_arm64__binary/) | 
 |     |     |   |   |    
@@ -98,7 +77,6 @@ Bloom release status of the packages in [github.com/ros2/rclc/](https://github.c
 | | Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary)](https://build.ros2.org/job/Gbin_uF64__rclc_parameter__ubuntu_focal_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary)](https://build.ros2.org/job/Gbin_ufv8_uFv8__rclc_parameter__ubuntu_focal_arm64__binary/) |
 | | Humble | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__rclc_parameter__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Hbin_uJ64__rclc_parameter__ubuntu_jammy_amd64__binary/) |  [![Build Status](https://build.ros2.org/buildStatus/icon?job=Hbin_ujv8_uJv8__rclc_parameter__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Hbin_ujv8_uJv8__rclc_parameter__ubuntu_jammy_arm64__binary/) |
 | | Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_uJ64__rclc_parameter__ubuntu_jammy_amd64__binary)](https://build.ros2.org/job/Rbin_uJ64__rclc_parameter__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rbin_ujv8_uJv8__rclc_parameter__ubuntu_jammy_arm64__binary)](https://build.ros2.org/job/Rbin_ujv8_uJv8__rclc_parameter__ubuntu_jammy_arm64__binary/)
->>>>>>> 5099473 (Added build status of bloom-releases for Humble distribution (#291))
 
 ## Code coverage
 The code coverage is tested with every commit, pull request. Results are available at [codecov](https://app.codecov.io/gh/ros2/rclc/branch/master/).
