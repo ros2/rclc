@@ -15,9 +15,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         # os: [ ubuntu-20.04, windows-latest, macOS-latest ]
         os: [ ubuntu-20.04 ]
         ros_distribution: [ rolling ]
+=======
+        os: [ ubuntu-22.04 ]
+        ros_distribution: [ humble ]
+>>>>>>> b944445 (updated os-version to ubuntu-22.04 (#295))
         include:
           - docker_image: ubuntu:jammy
             ros_distribution: rolling
