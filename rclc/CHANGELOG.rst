@@ -2,6 +2,13 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.1 (2022-07-20)
+------------------
+* updated documentation bloom build status table (#291) (#292)
+* updated os-version to ubuntu-22.04 (#295)
+* [rolling] updated ros-tooling versions (backport #289) (#297)
+* improved doxygen-generated API documentation (#301) (#302)
+
 4.0.0 (2022-04-28)
 ------------------
 * updated version for Humble release
