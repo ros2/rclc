@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.1 (2022-07-20)
+------------------
+* no changes
+
 4.0.0 (2022-04-28)
 ------------------
 * updated version for Humble release
