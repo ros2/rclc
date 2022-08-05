@@ -80,6 +80,8 @@ typedef struct
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
+  /// only for timing-profiling micro-ros
+  bool micro_ros_timing_profiling;
 } rclc_executor_t;
 
 /**
@@ -890,6 +892,26 @@ rclc_executor_trigger_one(
   rclc_executor_handle_t * handles,
   unsigned int size,
   void * obj);
+
+/**
+ * switches on/off performance profiling of `rcl_wait()` function
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [in] enable enable or disable performance profiling
+ * \return true 
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_enable_profiling(
+  rclc_executor_t * executor,
+  bool enable);
 
 #if __cplusplus
 }

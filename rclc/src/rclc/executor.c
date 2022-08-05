@@ -84,7 +84,8 @@ rclc_executor_get_zero_initialized_executor()
     .timeout_ns = 0,
     .invocation_time = 0,
     .trigger_function = NULL,
-    .trigger_object = NULL
+    .trigger_object = NULL,
+    .micro_ros_timing_profiling = false
   };
   return null_executor;
 }
@@ -138,9 +139,17 @@ rclc_executor_init(
   // default semantics
   rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
 
+  executor->micro_ros_timing_profiling = false;
+
   return ret;
 }
 
+rcl_ret_t 
+rclc_executor_enable_profiling(rclc_executor_t * executor, bool enable)
+{
+  executor->micro_ros_timing_profiling = enable;
+  return RCL_RET_OK;
+}
 rcl_ret_t
 rclc_executor_set_timeout(rclc_executor_t * executor, const uint64_t timeout_ns)
 {
@@ -1291,10 +1300,29 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     }
   }
 
+
+
+  // (js) timing measurement experiment
+  rcutils_time_point_value_t t_before;
+  rcutils_time_point_value_t t_after;
+  rcutils_duration_value_t duration;
+  if ( executor->micro_ros_timing_profiling )
+  {
+    rcutils_system_time_now(&t_before);
+  }
+
+
   // wait up to 'timeout_ns' to receive notification about which handles reveived
   // new data from DDS queue.
   rc = rcl_wait(&executor->wait_set, timeout_ns);
   RCLC_UNUSED(rc);
+
+  if ( executor->micro_ros_timing_profiling )
+  {
+    rcutils_system_time_now(&t_after);
+    duration = t_after - t_before;
+    printf("test-js: rcl-wait duration %ld\n", duration/1000000);
+  }
 
   // based on semantics process input data
   switch (executor->data_comm_semantics) {
