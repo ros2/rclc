@@ -1300,12 +1300,12 @@ rclc_parameter_set_bool(
     return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
+  parameter->value.bool_value = value;
+
   if (parameter_server->notify_changed_over_dds) {
     rclc_parameter_prepare_changed_event(&parameter_server->event_list, parameter);
     rclc_parameter_service_publish_event(parameter_server);
   }
-
-  parameter->value.bool_value = value;
 
   return RCL_RET_OK;
 }
@@ -1345,12 +1345,12 @@ rclc_parameter_set_int(
     return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
+  parameter->value.integer_value = value;
+
   if (parameter_server->notify_changed_over_dds) {
     rclc_parameter_prepare_changed_event(&parameter_server->event_list, parameter);
     rclc_parameter_service_publish_event(parameter_server);
   }
-
-  parameter->value.integer_value = value;
 
   return RCL_RET_OK;
 }
@@ -1390,12 +1390,12 @@ rclc_parameter_set_double(
     return RCLC_PARAMETER_MODIFICATION_REJECTED;
   }
 
+  parameter->value.double_value = value;
+
   if (parameter_server->notify_changed_over_dds) {
     rclc_parameter_prepare_changed_event(&parameter_server->event_list, parameter);
     rclc_parameter_service_publish_event(parameter_server);
   }
-
-  parameter->value.double_value = value;
 
   return RCL_RET_OK;
 }
