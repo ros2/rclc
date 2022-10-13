@@ -17,7 +17,7 @@
 #include "rclc/multi_threaded_executor.h"
 
 /*
-Features
+Features 
 - multi-threaded scheduling for embedded ROS 2 applications with scheduling parameter assignment
   (example: thread priority, NuttX: sporadic server(budget, period))
 
