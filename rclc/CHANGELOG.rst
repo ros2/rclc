@@ -2,6 +2,43 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2022-04-14)
+------------------
+* Remove duplicate typedefs. (#249)
+* Add rmw dependencies due to EventsExecutor PR in rcl (#255)
+* Fix action client & server deallocation (#257)
+* updated documentation: build status for Rolling (#266)
+* Update action client goal callback signature (#282)
+* Upgrade parameters (#274)
+
+3.0.7 (2022-02-17)
+------------------
+* Fix enum naming for avoid collision (#242)
+* Added dependency for package performance-test-fixture (#245)
+
+3.0.6 (2022-01-25)
+------------------
+* executor ignore canceled timers (#220)
+* uddated documentation README.md (#229)
+* resolved error in unit test see issue #230 (#231)
+* Add thread dependency to examples (Rolling) (#237) (resolves in this package only cpplint errors)
+
+3.0.5 (2021-11-23)
+------------------
+* Fix data_available reset for timer (backport #215) (#217)
+
+3.0.4 (2021-11-17)
+------------------
+* Ignoring unsuccessful SERVICE_TAKE (#175)
+* Add rclc_parameter Quality Declaration (#144)
+* use-ros2-testing (#185)
+* Fix: printf in executor spin (#195)
+* Fix init options handling (#202) (#205)
+* Remove init options from support (#203)
+* RCLC Actions Implementation (#170)
+* Add rcl_action as build export dependency (#211)
+
+
 3.0.3 (2021-07-28)
 ------------------
 * Checking for valid ROS context in spin_some

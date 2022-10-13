@@ -49,6 +49,8 @@
 static unsigned int _executor_results[TC_SPIN_SOME_MAX_MSGS];
 static unsigned int _executor_results_i;
 
+// callback for timer
+static unsigned int _cbt_cnt = 0;
 // callback for topic "chatter1"
 static unsigned int _cb1_cnt = 0;
 static unsigned int _cb1_int_value = 0;
@@ -395,6 +397,7 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {
     // printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
+    _cbt_cnt++;
   }
 }
 
@@ -986,6 +989,121 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   exp_number_of_timers = 1;
   EXPECT_EQ(executor.info.number_of_timers, exp_number_of_timers) << "#timers should be 1";
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_spin_timer) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // spin_timeout must be < timer1_timeout
+  const unsigned int spin_timeout = 50;
+  const unsigned int spin_repeat = 10;
+  const unsigned int expected_callbacks = (spin_timeout * spin_repeat) / timer1_timeout;
+  _cbt_cnt = 0;
+
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  for (size_t i = 0; i < spin_repeat; i++) {
+    rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spin_timeout));
+  }
+
+  EXPECT_EQ(_cbt_cnt, expected_callbacks);
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+TEST_F(TestDefaultExecutor, executor_spin_publisher_timer_cancelled) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  unsigned int expected_msg;
+
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  _executor_results_init();
+
+  rc = rclc_executor_add_subscription(
+    &executor, &this->sub1, &this->sub1_msg,
+    &CALLBACK_1, ON_NEW_DATA);
+
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+
+  for (unsigned int i = 0; i < TC_SPIN_SOME_PUBLISHED_MSGS; i++) {
+    rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
+    EXPECT_EQ(RCL_RET_OK, rc) << " pub1 not published";
+  }
+
+  // wait until messages are received
+  bool success = false;
+  unsigned int tries;
+  unsigned int max_tries = 100;
+  uint64_t timeout_ns = 100000000;  // 100ms
+
+  rc = rcl_timer_cancel(&this->timer1);
+  // process subscriptions. Assumption: messages for sub1 available
+  for (unsigned int i = 0; i < 100; i++) {
+    // Assumption: messages for all sub1, sub2 and sub3 are available
+    _wait_for_msg(
+      &this->sub1, &this->context, max_tries, timeout_ns, &tries,
+      &success);
+    ASSERT_TRUE(success);
+
+
+    EXPECT_EQ(RCL_RET_OK, rc) << "failed to cancel timer";
+
+    rc = rclc_executor_spin_some(&executor, rclc_test_timeout_ns);
+    if ((rc == RCL_RET_OK) || (rc == RCL_RET_TIMEOUT)) {
+      // valid return values
+    } else {
+      // any other error
+      EXPECT_EQ(RCL_RET_OK, rc) << "spin_some error";
+    }
+    if (_cb1_cnt == TC_SPIN_SOME_PUBLISHED_MSGS) {
+      break;
+    }
+  }
+
+  expected_msg = TC_SPIN_SOME_PUBLISHED_MSGS;
+  EXPECT_EQ(_cb1_cnt, expected_msg) << "cb1 msg does not match";
+
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+}
+
+TEST_F(TestDefaultExecutor, executor_spin_timer_cancelled) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  rc = rclc_executor_init(&executor, &this->context, 10, this->allocator_ptr);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  // spin_timeout must be < timer1_timeout
+  const unsigned int spin_timeout = 50;
+  const unsigned int spin_repeat = 10;
+  const unsigned int expected_callbacks = (spin_timeout * spin_repeat) / timer1_timeout;
+  _cbt_cnt = 0;
+
+  rc = rclc_executor_add_timer(&executor, &this->timer1);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+
+  for (size_t i = 0; i < spin_repeat; i++) {
+    rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spin_timeout));
+    if (i > spin_repeat / 2) {
+      rc = rcl_timer_cancel(&this->timer1);
+      EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+    }
+  }
+
+  EXPECT_LT(_cbt_cnt, expected_callbacks);
 
   // tear down
   rc = rclc_executor_fini(&executor);
@@ -2485,7 +2603,8 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
   _results_initialize_service_client();
   EXPECT_EQ(srv1_cnt, (unsigned int) 0);
   EXPECT_EQ(srv1_value, (unsigned int) 0);
-  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);
+  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);  // input value for context
+  EXPECT_EQ(srv1_id, (unsigned int) 0);     // output value of context (in callback)
 
   // spin executor, which will
   // - receive request from client
@@ -2496,7 +2615,7 @@ TEST_F(TestDefaultExecutor, executor_test_service_with_context) {
 
   EXPECT_EQ(srv1_cnt, (unsigned int) 1);  // check that service callback was called
   EXPECT_EQ(srv1_value, (unsigned int) 1);  // check value of 'a' in request message
-  EXPECT_EQ(srv1_ctxt, (unsigned int) 42);  // check context value
+  EXPECT_EQ(srv1_id, (unsigned int) 42);  // check context value in callback
 
   // spin executor, which will
   // - receive response message from server

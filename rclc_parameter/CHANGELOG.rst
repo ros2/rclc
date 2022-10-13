@@ -2,6 +2,30 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2022-04-14)
+------------------
+* Parameters fini memory (#253)
+* Fix RCLC int parameter get (cherry-pick) (#272)
+* rclc_parameter: Fix rcl return values (#270)
+* Upgrade parameters (#274)
+
+3.0.7 (2022-02-17)
+------------------
+* no changes
+
+3.0.6 (2022-01-25)
+------------------
+* Add thread dependency to examples (Rolling) (#237) (resolves in this package only cpplint errors)
+
+3.0.5 (2021-11-23)
+------------------
+* no change
+
+3.0.4 (2021-11-17)
+------------------
+* Add rclc_parameter Quality Declaration (#144)
+* Check all dynamic allocations in parameter server init (#169)
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump

@@ -1,6 +1,32 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.8 (2022-04-14)
+------------------
+* Fix RCLC int parameter get (cherry-pick) (#272)
+* Upgrade parameters (#274)
+
+
+3.0.7 (2022-02-17)
+------------------
+* no changes
+
+3.0.6 (2022-01-25)
+------------------
+* Create service context in main (#224)
+* Add thread dependency to examples (Rolling) (#237)
+
+3.0.5 (2021-11-23)
+------------------
+* no change
+
+3.0.4 (2021-11-17)
+------------------
+* added pingpong example (#172)
+* Provide lifecycle services in the rclc lifecycle nodes (#51)
+* RCLC Actions Implementation (#170)
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump

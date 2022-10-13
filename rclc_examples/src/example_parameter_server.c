@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <unistd.h>
-
 // Copyright (c) 2021 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
@@ -33,29 +30,50 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   (void) timer;
   (void) last_call_time;
 
-  int value;
+  int64_t value;
   rclc_parameter_get_int(&param_server, "param2", &value);
   value++;
-  rclc_parameter_set_int(&param_server, "param2", (int64_t) value);
+  rclc_parameter_set_int(&param_server, "param2", value);
 }
 
-void on_parameter_changed(Parameter * param)
+bool on_parameter_changed(const Parameter * old_param, const Parameter * new_param, void * context)
 {
-  printf("Parameter %s modified.", param->name.data);
-  switch (param->value.type) {
-    case RCLC_PARAMETER_BOOL:
-      printf(" New value: %d (bool)", param->value.bool_value);
-      break;
-    case RCLC_PARAMETER_INT:
-      printf(" New value: %ld (int)", param->value.integer_value);
-      break;
-    case RCLC_PARAMETER_DOUBLE:
-      printf(" New value: %f (double)", param->value.double_value);
-      break;
-    default:
-      break;
+  (void) context;
+
+  if (old_param == NULL && new_param == NULL) {
+    printf("Callback error, both parameters are NULL\n");
+    return false;
   }
-  printf("\n");
+
+  if (old_param == NULL) {
+    printf("Creating new parameter %s\n", new_param->name.data);
+  } else if (new_param == NULL) {
+    printf("Deleting parameter %s\n", old_param->name.data);
+  } else {
+    printf("Parameter %s modified.", old_param->name.data);
+    switch (old_param->value.type) {
+      case RCLC_PARAMETER_BOOL:
+        printf(
+          " Old value: %d, New value: %d (bool)", old_param->value.bool_value,
+          new_param->value.bool_value);
+        break;
+      case RCLC_PARAMETER_INT:
+        printf(
+          " Old value: %ld, New value: %ld (int)", old_param->value.integer_value,
+          new_param->value.integer_value);
+        break;
+      case RCLC_PARAMETER_DOUBLE:
+        printf(
+          " Old value: %f, New value: %f (double)", old_param->value.double_value,
+          new_param->value.double_value);
+        break;
+      default:
+        break;
+    }
+    printf("\n");
+  }
+
+  return true;
 }
 
 int main()
@@ -85,7 +103,7 @@ int main()
   // Create executor
   rclc_executor_t executor;
   rclc_executor_init(
-    &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER + 1,
+    &executor, &support.context, RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1,
     &allocator);
   rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed);
   rclc_executor_add_timer(&executor, &timer);
@@ -99,8 +117,15 @@ int main()
   rclc_parameter_set_int(&param_server, "param2", 10);
   rclc_parameter_set_double(&param_server, "param3", 0.01);
 
+  // Add parameters constraints
+  rclc_add_parameter_description(&param_server, "param2", "Second parameter", "Only even numbers");
+  rclc_add_parameter_constraint_integer(&param_server, "param2", -10, 120, 2);
+
+  rclc_add_parameter_description(&param_server, "param3", "Third parameter", "");
+  rclc_set_parameter_read_only(&param_server, "param3", true);
+
   bool param1;
-  int param2;
+  int64_t param2;
   double param3;
 
   rclc_parameter_get_bool(&param_server, "param1", &param1);

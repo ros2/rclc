@@ -25,6 +25,8 @@ extern "C"
 #include <sched.h>
 #include <rclc/visibility_control.h>
 
+#include <rclc/action_client.h>
+#include <rclc/action_server.h>
 
 /// TODO (jst3si) Where is this defined? - in my build environment this variable is not set.
 // #define ROS_PACKAGE_NAME "rclc"
@@ -32,19 +34,21 @@ extern "C"
 /// Enumeration for timer, subscription, guard conditions etc to be waited on.
 typedef enum
 {
-  SUBSCRIPTION,
-  SUBSCRIPTION_WITH_CONTEXT,
-  TIMER,
-  // TIMER_WITH_CONTEXT,  // TODO
-  CLIENT,
-  CLIENT_WITH_REQUEST_ID,
-  // CLIENT_WITH_CONTEXT,  // TODO
-  SERVICE,
-  SERVICE_WITH_REQUEST_ID,
-  SERVICE_WITH_CONTEXT,
-  GUARD_CONDITION,
-  // GUARD_CONDITION_WITH_CONTEXT,  //TODO
-  NONE
+  RCLC_SUBSCRIPTION,
+  RCLC_SUBSCRIPTION_WITH_CONTEXT,
+  RCLC_TIMER,
+  // RCLC_TIMER_WITH_CONTEXT,  // TODO
+  RCLC_CLIENT,
+  RCLC_CLIENT_WITH_REQUEST_ID,
+  // RCLC_CLIENT_WITH_CONTEXT,  // TODO
+  RCLC_SERVICE,
+  RCLC_SERVICE_WITH_REQUEST_ID,
+  RCLC_SERVICE_WITH_CONTEXT,
+  RCLC_ACTION_CLIENT,
+  RCLC_ACTION_SERVER,
+  RCLC_GUARD_CONDITION,
+  // RCLC_GUARD_CONDITION_WITH_CONTEXT,  //TODO
+  RCLC_NONE
 } rclc_executor_handle_type_t;
 
 /// Enumeration for invocation type. ON_NEW_DATA calls a callback only when new data is available
@@ -127,6 +131,8 @@ typedef struct
     rcl_client_t * client;
     rcl_service_t * service;
     rcl_guard_condition_t * gc;
+    rclc_action_client_t * action_client;
+    rclc_action_server_t * action_server;
   };
   /// Storage of data, which holds the message of a subscription, service, etc.
   /// subscription: ptr to message
@@ -200,6 +206,10 @@ typedef struct
   size_t number_of_clients;
   /// Total number of services
   size_t number_of_services;
+  /// Total number of action clients
+  size_t number_of_action_clients;
+  /// Total number of action servers
+  size_t number_of_action_servers;
   /// Total number of guard conditions
   size_t number_of_guard_conditions;
   /// Total number of events

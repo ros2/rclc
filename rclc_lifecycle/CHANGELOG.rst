@@ -2,6 +2,26 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2022-04-14)
+------------------
+* Fix rclc lifecyle header (#279) (#281)
+
+3.0.7 (2022-02-17)
+------------------
+* no changes
+
+3.0.6 (2022-01-25)
+------------------
+* Create service context in main (#224)
+
+3.0.5 (2021-11-23)
+------------------
+* no change
+
+3.0.4 (2021-11-17)
+------------------
+* Provide lifecycle services in the rclc lifecycle nodes (#51) 
+
 3.0.3 (2021-07-28)
 ------------------
 * Version bump

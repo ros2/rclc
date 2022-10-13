@@ -1,4 +1,1 @@
-- git:
-    local-name: rcl
-    uri: https://github.com/ros2/rcl.git
-    version: master
+

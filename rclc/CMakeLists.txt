@@ -29,17 +29,20 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #################################################
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
+find_package(rcl_action REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
+  message(STATUS
+    "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
   # Later, with CMake 3.12+ use:
   # add_compile_definitions(USE_RCL_WAIT_SET_IS_VALID_BACKPORT)
   add_definitions(-DUSE_RCL_WAIT_SET_IS_VALID_BACKPORT)
 else()
-  message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
+  message(STATUS
+    "Found rcl version ${rcl_VERSION}, which belongs to Foxy or later")
   find_package(rosidl_runtime_c REQUIRED)
 endif()
 
@@ -54,6 +57,9 @@ add_library(${PROJECT_NAME}
   src/rclc/client.c
   src/rclc/service.c
   src/rclc/timer.c
+  src/rclc/action_client.c
+  src/rclc/action_server.c
+  src/rclc/action_goal_handle.c
   src/rclc/node.c
   src/rclc/executor_handle.c
   src/rclc/executor.c
@@ -61,7 +67,8 @@ add_library(${PROJECT_NAME}
   src/rclc/sleep.c
 )
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  target_sources(${PROJECT_NAME} PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
+  target_sources(${PROJECT_NAME}
+    PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
 endif()
 
 target_include_directories(${PROJECT_NAME}
@@ -76,6 +83,7 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   rcl
+  rcl_action
   rcutils
   rosidl_generator_c
 )
@@ -120,10 +128,14 @@ endif()
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
-  set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
   find_package(osrf_testing_tools_cpp REQUIRED)
   find_package(std_msgs REQUIRED)
   find_package(example_interfaces REQUIRED)
+  find_package(rclcpp REQUIRED)
+  find_package(rclcpp_action REQUIRED)
+
+  # No copyright header check since link to NOTICE file is not recognized properly.
+  set(ament_cmake_copyright_FOUND TRUE)
 
   ament_lint_auto_find_test_dependencies()
 
@@ -138,11 +150,15 @@ if(BUILD_TESTING)
     test/rclc/test_executor_handle.cpp
     test/rclc/test_executor.cpp
     test/rclc/test_executor_multi_threading.cpp
+    test/rclc/test_action_server.cpp
+    test/rclc/test_action_client.cpp
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   ament_target_dependencies(${PROJECT_NAME}_test
+    rclcpp
+    rclcpp_action
     rcl
     rcutils
     rosidl_generator_c
@@ -163,6 +179,7 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)
+ament_export_dependencies(rcl_action)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
 ament_package()
