@@ -97,11 +97,12 @@ int main(int argc, const char * argv[])
 
   // Executor
   rclc_executor_t executor;
-  RCCHECK(rclc_executor_init(
-    &executor,
-    &support.context,
-    4,  // 1 for the node + 1 for each lifecycle service
-    &allocator));
+  RCCHECK(
+    rclc_executor_init(
+      &executor,
+      &support.context,
+      4, // 1 for the node + 1 for each lifecycle service
+      &allocator));
 
   unsigned int rcl_wait_timeout = 1000;  // in ms
   RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
