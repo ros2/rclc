@@ -1,6 +1,5 @@
 // Copyright (c) 2021 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
-// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +24,10 @@ extern "C"
 
 
 /**
- *  Adds a subscription to an executor with scheduling policy
- * * An error is returned, if {@link rclc_executor_t.handles} array is full.
- * * The total number_of_subscriptions field of {@link rclc_executor_t.info}
- *   is incremented by one.
+ *  Adds a subscription to an executor with scheduling policy.
+ *  An error is returned, if {@link rclc_executor_t.handles} array is full.
+ *  The total number_of_subscriptions field of {@link rclc_executor_t.info}
+ *  is incremented by one.
  *
  * <hr>
  * Attribute          | Adherence
@@ -43,7 +42,7 @@ extern "C"
  * \param [in] msg pointer to an allocated message
  * \param [in] callback    function pointer to a callback
  * \param [in] invocation  invocation type for the callback (ALWAYS or only ON_NEW_DATA)
- * \param [in] sched_param scheduling parameters for the thread that is executing the callback
+ * \param [in] param scheduling parameters for the thread that is executing the callback
  * \return `RCL_RET_OK` if add-operation was successful
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
@@ -58,8 +57,7 @@ rclc_executor_add_subscription_multi_threaded(
   rclc_executor_sched_parameter_t * param);
 
 /**
- * Initialization of real-time scheduling with sporadic server for
- * NuttX operating system.
+ * Initialization of multi-threaded Executor.
  *
  * <hr>
  * Attribute          | Adherence
@@ -75,7 +73,7 @@ void
 rclc_executor_init_multi_threaded(rclc_executor_t * e);
 
 /**
- * Start multi-threading scheduling for NuttX
+ * Starts the multi-threaded Executor.
  *
  * <hr>
  * Attribute          | Adherence
@@ -90,9 +88,30 @@ rclc_executor_init_multi_threaded(rclc_executor_t * e);
 rcl_ret_t
 rclc_executor_spin_multi_threaded(rclc_executor_t * e);
 
-
+/**
+ * Publish a ROS message on a topic using a publisher.
+ * It is thread-safe, in the sense, that multiple simultaneous calls
+ * (from the worker-threads) are processed sequentially. So that only one
+ * thread accesses the RCL layer (rcl_wait, rcl_take, rcl_publish)
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] publisher pointer to pre-allocated rcl_publisher_t
+ * \param [inout] ros_message pointer to ROS message
+ * \param [inout] allocation pointer to pre-allocated rmw_publisher_allocation_t
+ * \return `RCL_RET_OK` if add-operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
+ * \return `RCL_RET_ERROR` if any other error occured
+ */
 rcl_ret_t rclc_executor_publish(
-  const rcl_publisher_t * publisher, const void * ros_message,
+  const rcl_publisher_t * publisher,
+  const void * ros_message,
   rmw_publisher_allocation_t * allocation);
 
 #if __cplusplus

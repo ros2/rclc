@@ -51,13 +51,6 @@ typedef enum
   LET
 } rclc_executor_semantics_t;
 
-/// explicitly list here all variables the worker thread needs access to
-/// handle->new_msg_cond;
-/// handle->new_msg_lock;
-/// handle->callback
-/// handle->data
-/// executor->gc;
-/// executor->thread_state_mutex;
 typedef struct
 {
   pthread_mutex_t * thread_state_mutex;
@@ -100,11 +93,11 @@ typedef struct
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
-
-  /// sporadic scheduling for NuttX
-  /// synchronization of worker threads to executor
+  /// multi-threaded executor: notification thread READY state
   // rcl_guard_condition_t gc_some_thread_is_ready;
+  /// multi-threaded executor: mutex for worker threads
   pthread_mutex_t thread_state_mutex;
+  /// multi-threaded executor: mutex for RCL layer
   pthread_mutex_t micro_ros_mutex;
 } rclc_executor_t;
 
