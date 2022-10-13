@@ -71,7 +71,7 @@ rclc_executor_add_subscription_multi_threaded(
   }
 
   // assign data fields
-  executor->handles[executor->index].type = SUBSCRIPTION;
+  executor->handles[executor->index].type = RCLC_SUBSCRIPTION;
   executor->handles[executor->index].subscription = subscription;
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].subscription_callback = callback;
@@ -217,7 +217,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "wait_set_add_* %d", executor->handles[i].type);
 
     switch (executor->handles[i].type) {
-      case SUBSCRIPTION:
+      case RCLC_SUBSCRIPTION:
         // add subscription to wait_set and save index
         rc = rcl_wait_set_add_subscription(
           &executor->wait_set, executor->handles[i].subscription,
@@ -236,7 +236,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
         }
         break;
 
-      case TIMER:
+      case RCLC_TIMER:
         // add timer to wait_set and save index
         rc = rcl_wait_set_add_timer(
           &executor->wait_set, executor->handles[i].timer,
@@ -251,7 +251,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
         }
         break;
 
-      case SERVICE:
+      case RCLC_SERVICE:
         // add service to wait_set and save index
         rc = rcl_wait_set_add_service(
           &executor->wait_set, executor->handles[i].service,
@@ -267,7 +267,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
         break;
 
 
-      case CLIENT:
+      case RCLC_CLIENT:
         // add client to wait_set and save index
         rc = rcl_wait_set_add_client(
           &executor->wait_set, executor->handles[i].client,
@@ -282,7 +282,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
         }
         break;
 
-      case GUARD_CONDITION:
+      case RCLC_GUARD_CONDITION:
         // add guard_condition to wait_set and save index
         rc = rcl_wait_set_add_guard_condition(
           &executor->wait_set, executor->handles[i].gc,
@@ -381,7 +381,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
 
   // start worker threads for subscriptions
   for (size_t i = 0;
-    (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == SUBSCRIPTION);
+    (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == RCLC_SUBSCRIPTION);
     i++)
   {
     params[i].thread_state_mutex = &e->thread_state_mutex;
@@ -452,7 +452,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
       i++)
     {
       rc = RCL_RET_ERROR;
-      if (e->handles[i].type == SUBSCRIPTION) {
+      if (e->handles[i].type == RCLC_SUBSCRIPTION) {
         if (rclc_executor_worker_thread_is_ready(e, &e->handles[i])) {
           // printf("accessing wait_set.subscriptions[%ld] size: %ld\n",
           //   e->handles[i].index, e->wait_set.size_of_subscriptions);
@@ -493,7 +493,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
   printf("rclc_executor: exited spin-while loop\n");
 
   for (size_t i = 0;
-    (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == SUBSCRIPTION);
+    (i < e->max_handles && e->handles[i].initialized) && (e->handles[i].type == RCLC_SUBSCRIPTION);
     i++)
   {
     printf("Stopping worker thread %ld\n", i);
