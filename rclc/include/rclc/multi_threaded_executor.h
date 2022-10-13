@@ -42,7 +42,7 @@ extern "C"
  * \param [in] msg pointer to an allocated message
  * \param [in] callback    function pointer to a callback
  * \param [in] invocation  invocation type for the callback (ALWAYS or only ON_NEW_DATA)
- * \param [in] param scheduling parameters for the thread that is executing the callback
+ * \param [in] sparam thread scheduling parameter (e.g. thread priority)
  * \return `RCL_RET_OK` if add-operation was successful
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
@@ -54,7 +54,7 @@ rclc_executor_add_subscription_multi_threaded(
   void * msg,
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation,
-  rclc_executor_sched_parameter_t * param);
+  rclc_executor_sched_parameter_t * sparam);
 
 /**
  * Initialization of multi-threaded Executor.
