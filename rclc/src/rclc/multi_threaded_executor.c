@@ -15,25 +15,7 @@
 
 #include "rclc/multi_threaded_executor.h"
 
-/*
-Features
-- multi-threaded scheduling for embedded ROS 2 applications with scheduling parameter assignment
-  (example: thread priority, NuttX: sporadic server(budget, period))
-
-Limitations:
-- only subscription (no timer, services, clients, gc)
-- no trigger
-- no LET semantics
-- NuttX: sporadic server: one thread for each subscription
-(reservation based scheduling: one thread for multiple subscriptions - later)
-*/
-
 static pthread_mutex_t * rclc_micro_ros_mutex;
-
-void rclc_gc_callback(void)
-{
-  printf("guard condition called.\n");
-}
 
 rcl_ret_t rclc_executor_publish(
   const rcl_publisher_t * publisher,
@@ -110,26 +92,6 @@ void rclc_executor_init_multi_threaded(rclc_executor_t * e)
     pthread_cond_init(&e->handles[i].new_msg_cond, NULL);
   }
   rclc_micro_ros_mutex = &e->micro_ros_mutex;
-
-/*
-  // initialization of guard condition
-  printf("initialization guard condition\n");
-  rcl_ret_t rc;
-  e->gc_some_thread_is_ready = rcl_get_zero_initialized_guard_condition();
-  rcl_guard_condition_options_t guard_options = rcl_guard_condition_get_default_options();
-  rc = rcl_guard_condition_init(&e->gc_some_thread_is_ready, e->context, guard_options);
-  if (rc != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Could not create gc_thread_is_ready guard");
-    PRINT_RCLC_ERROR(rclc_executor_init_multi_threaded, rcl_guard_condition_init);
-  }
-  // add guard condition to executor
-  // todo add max_handles + 1  for guard condition!
-  rc = rclc_executor_add_guard_condition(e, &e->gc_some_thread_is_ready, rclc_gc_callback);
-  if (rc != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Could not add guard condition to executor");
-    PRINT_RCLC_ERROR(rclc_executor_init_multi_threaded, rclc_executor_add_guard_condition);
-  }
-  */
 }
 
 static
@@ -137,24 +99,8 @@ void rclc_executor_change_worker_thread_state(
   rclc_executor_worker_thread_param_t * p,
   rclc_executor_thread_state_t new_state)
 {
-  /*
-  printf("change thread %ld to state ", p->handle->index);
-  if (new_state == RCLC_THREAD_READY) {
-    printf("READY\n");
-  } else if (new_state == RCLC_THREAD_BUSY) {
-    printf("BUSY\n");
-  }
-  */
   pthread_mutex_lock(p->thread_state_mutex);
   p->handle->worker_thread_state = new_state;
-  /*
-  if (new_state == RCLC_THREAD_READY) {
-    rcl_ret_t rc = rcl_trigger_guard_condition(p->gc);
-    if (rc != RCL_RET_OK) {
-      printf("Error triggering guard condition.\n");
-    }
-  }
-  */
   pthread_mutex_unlock(p->thread_state_mutex);
 }
 
@@ -163,8 +109,6 @@ bool rclc_executor_worker_thread_is_ready(rclc_executor_t * e, rclc_executor_han
 {
   bool thread_is_ready = false;
   pthread_mutex_lock(&e->thread_state_mutex);
-  // assume that the thread state is initialized with RCLC_THREAD_READY
-  // and is not RCLC_THREAD_NONE
   if (handle->worker_thread_state == RCLC_THREAD_READY) {
     thread_is_ready = true;
   }
@@ -317,7 +261,6 @@ void * rclc_executor_worker_thread(void * p)
   result = sched_getparam(0, &sp);
   if (result < 0) {
     printf("uros_rbs: sched_getparam failed: %d\n", result);
-    // todo (jast) is * void necessary?
     return p;
   }
   printf("worker thread with prio %d\n", sp.sched_priority);
@@ -409,15 +352,6 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
       return RCL_RET_ERROR;
     }
 
-    /*
-    result = pthread_attr_setstacksize(&e->handles[i].tattr, 2048); // STM32-E407: 196 kB RAM
-    if (result != 0) {
-      PRINT_RCLC_ERROR(rclc_executor_spin_multi_threaded,
-                       pthread_attr_setstacksize);
-      return RCL_RET_ERROR;
-    }
-    */
-
     result = pthread_create(
       &e->handles[i].worker_thread, &e->handles[i].tattr, &rclc_executor_worker_thread,
       &params[i]);
@@ -435,17 +369,10 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
   int ii = 0;
   while (rcl_context_is_valid(e->context) ) {
     ii++;
-    // printf("round %d\n", ii);
-
-    // update wait_set only for subscriptions with a READY worker thread
     rclc_executor_rebuild_wait_set(e);
-
-    // wait for new messages
     pthread_mutex_lock(&e->micro_ros_mutex);
     rc = rcl_wait(&e->wait_set, e->timeout_ns);
     pthread_mutex_unlock(&e->micro_ros_mutex);
-
-    // take new messages (only if its corresponding worker thread is READY)
     for (size_t i = 0;
       (i < e->max_handles && e->handles[i].initialized);
       i++)
@@ -453,9 +380,6 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
       rc = RCL_RET_ERROR;
       if (e->handles[i].type == RCLC_SUBSCRIPTION) {
         if (rclc_executor_worker_thread_is_ready(e, &e->handles[i])) {
-          // printf("accessing wait_set.subscriptions[%ld] size: %ld\n",
-          //   e->handles[i].index, e->wait_set.size_of_subscriptions);
-
           assert(e->handles[i].index < e->wait_set.size_of_subscriptions);
           if (e->wait_set.subscriptions[e->handles[i].index]) {
             rmw_message_info_t messageInfo;
@@ -511,19 +435,3 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * e)
     return RCL_RET_ERROR;
   }
 }
-
-/*
-
-// real-time executor feature:
-// - assignment of priority and budget of NuttX threads
-// - dispatching messages to NuttX-threads based on priority and not based how the wait_set was created
-// - reacting as-fast as possible to new message (when thread becomes ready - rcl_wait is interrupted by gc) and wait_set is re-created
-// when user adds subscription X with priority i (X, i);
-(A,1)
-(B,5)
-(C,3)
-
-reorder them according to their priority:
-handle[] =( (B,5) (C,3) (A,1))
-
-*/

@@ -56,7 +56,6 @@ typedef struct
   pthread_mutex_t * thread_state_mutex;
   pthread_mutex_t * micro_ros_mutex;
   rclc_executor_handle_t * handle;
-  // rcl_guard_condition_t * gc;
 }
 rclc_executor_worker_thread_param_t;
 
@@ -93,8 +92,6 @@ typedef struct
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
-  /// multi-threaded executor: notification thread READY state
-  // rcl_guard_condition_t gc_some_thread_is_ready;
   /// multi-threaded executor: mutex for worker threads
   pthread_mutex_t thread_state_mutex;
   /// multi-threaded executor: mutex for RCL layer
