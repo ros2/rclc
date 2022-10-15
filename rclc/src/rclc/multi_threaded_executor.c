@@ -154,7 +154,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
     return rc;
   }
 
-  // (jst3si) put in a sub-function - for improved readability
+  // (JanStaschulat) put in a sub-function - for improved readability
   // only add handles, of which its worker thread is ready, to wait_set
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "wait_set_add_* %d", executor->handles[i].type);
