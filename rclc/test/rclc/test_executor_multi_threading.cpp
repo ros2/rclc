@@ -1,6 +1,5 @@
 // Copyright (c) 2020 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
-// Copyright 2014 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +20,6 @@
 #include <thread>
 #include <vector>
 
-#include "rclc/executor.h"
 #include "rclc/multi_threaded_executor.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
