@@ -12,9 +12,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Note: include "rclc/multi_threaded_executor.h" cannot be in the first
+// position, cpplinter only accepts the following order of include files:
+#include <gtest/gtest.h>
 #include <std_msgs/msg/int32.h>
 #include <example_interfaces/srv/add_two_ints.h>
-#include <gtest/gtest.h>
 
 #include <chrono>
 #include <thread>
