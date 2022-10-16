@@ -219,7 +219,8 @@ int main(int argc, const char * argv[])
   // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
   // my_pub is global, so that the timer callback can access this publisher.
 
-  /* <jst3si>  duplicated declaration
+  /* <JanStaschulat>  duplicated declaration
+
   const char * ping_topic_name = "ping";
   const rosidl_message_type_support_t * ping_type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
