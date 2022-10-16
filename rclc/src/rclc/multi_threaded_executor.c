@@ -263,7 +263,7 @@ void * rclc_executor_worker_thread(void * p)
   }
   printf("worker thread with prio %d\n", sp.sched_priority);
 
-  // endless worker_thread loop
+  // Worker-thread loop
   while (1) {
     // printf("worker-thread %ld.\n",param->handle->index); // not thread-safe
     pthread_mutex_lock(&param->handle->new_msg_mutex);
