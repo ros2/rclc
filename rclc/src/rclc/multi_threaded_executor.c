@@ -170,9 +170,6 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
             ROS_PACKAGE_NAME,
             "Subscription added to wait_set_subscription[%ld]",
             executor->handles[i].index);
-          // printf(
-          //  "added subscription to wait_set.subscriptions[%ld]\n",
-          //  executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_rebuild_wait_set, rcl_wait_set_add_subscription);
           return rc;
