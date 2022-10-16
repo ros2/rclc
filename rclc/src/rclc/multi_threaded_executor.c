@@ -248,6 +248,7 @@ rcl_ret_t rclc_executor_rebuild_wait_set(rclc_executor_t * executor)
   }
   return RCL_RET_OK;
 }
+
 void * rclc_executor_worker_thread(void * p)
 {
   rclc_executor_worker_thread_param_t * param = (rclc_executor_worker_thread_param_t *)p;
