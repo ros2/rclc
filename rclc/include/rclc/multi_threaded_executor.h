@@ -70,7 +70,7 @@ rclc_executor_add_subscription_multi_threaded(
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
 void
-rclc_executor_init_multi_threaded(rclc_executor_t * e);
+rclc_executor_init_multi_threaded(rclc_executor_t * executor);
 
 /**
  * Starts the multi-threaded Executor.
@@ -86,7 +86,7 @@ rclc_executor_init_multi_threaded(rclc_executor_t * e);
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
 rcl_ret_t
-rclc_executor_spin_multi_threaded(rclc_executor_t * e);
+rclc_executor_spin_multi_threaded(rclc_executor_t * executor);
 
 /**
  * Publish a ROS message on a topic using a publisher.
