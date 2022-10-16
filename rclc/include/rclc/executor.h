@@ -23,7 +23,7 @@ extern "C"
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <pthread.h>  // for NuttX sporadic scheduling
+#include <pthread.h>
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
