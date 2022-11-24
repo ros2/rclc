@@ -1,4 +1,4 @@
-// Copyright (c) 2020 - for information on the respective copyright owner
+// Copyright (c) 2022 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rclc/multi_threaded_executor.h"
+#include "rclc_dispatching_executor/dispatching_executor.h"
+#include <rcutils/logging_macros.h>
 
 static pthread_mutex_t * rclc_micro_ros_mutex;
 

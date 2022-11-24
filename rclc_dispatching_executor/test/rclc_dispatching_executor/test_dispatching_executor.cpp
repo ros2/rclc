@@ -1,4 +1,4 @@
-// Copyright (c) 2020 - for information on the respective copyright owner
+// Copyright (c) 2022 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,17 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Note: include "rclc/multi_threaded_executor.h" cannot be in the first
-// position, cpplinter only accepts the following order of include files:
+// Note: include ""rclc_dispatching_executor/dispatching_executor.h" cannot be
+// listed first, because cpplinter only accepts the following order of include files:
 #include <gtest/gtest.h>
 #include <std_msgs/msg/int32.h>
-#include <example_interfaces/srv/add_two_ints.h>
+
 
 #include <chrono>
 #include <thread>
 #include <vector>
 
-#include "rclc/multi_threaded_executor.h"
+#include "rclc_dispatching_executor/dispatching_executor.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
 
@@ -333,7 +333,6 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
-  // define a function that is equivalent to spin_some
   // rclc_executor_spin_multi_threaded(&executor);
 
   // test result

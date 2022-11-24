@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(rclc)
+project(rclc_dispatching_executor)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -29,6 +29,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #################################################
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
+find_package(rclc REQUIRED)
 find_package(rcl_action REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
@@ -51,24 +52,8 @@ endif()
 #################################################
 
 add_library(${PROJECT_NAME}
-  src/rclc/init.c
-  src/rclc/publisher.c
-  src/rclc/subscription.c
-  src/rclc/client.c
-  src/rclc/service.c
-  src/rclc/timer.c
-  src/rclc/action_client.c
-  src/rclc/action_server.c
-  src/rclc/action_goal_handle.c
-  src/rclc/node.c
-  src/rclc/executor_handle.c
-  src/rclc/executor.c
-  src/rclc/sleep.c
+  src/rclc_dispatching_executor/dispatching_executor.c
 )
-if("${rcl_VERSION}" VERSION_LESS "1.0.0")
-  target_sources(${PROJECT_NAME}
-    PRIVATE src/rclc/rcl_wait_set_is_valid_backport.c)
-endif()
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
@@ -82,6 +67,7 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   rcl
+  rclc
   rcl_action
   rcutils
   rosidl_generator_c
@@ -96,7 +82,7 @@ ament_target_dependencies(${PROJECT_NAME}
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME}
-  PRIVATE "RCLC_BUILDING_LIBRARY")
+  PRIVATE "RCLC_DISPATCHING_EXECUTOR_BUILDING_LIBRARY")
 
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -139,17 +125,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
-    test/rclc/test_init.cpp
-    test/rclc/test_node.cpp
-    test/rclc/test_publisher.cpp
-    test/rclc/test_subscription.cpp
-    test/rclc/test_client.cpp
-    test/rclc/test_service.cpp
-    test/rclc/test_timer.cpp
-    test/rclc/test_executor_handle.cpp
-    test/rclc/test_executor.cpp
-    test/rclc/test_action_server.cpp
-    test/rclc/test_action_client.cpp
+    test/rclc_dispatching_executor/test_dispatching_executor.cpp
+
   )
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
@@ -158,6 +135,7 @@ if(BUILD_TESTING)
     rclcpp
     rclcpp_action
     rcl
+    rclc
     rcutils
     rosidl_generator_c
     osrf_testing_tools_cpp
@@ -177,6 +155,7 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)
+ament_export_dependencies(rclc)
 ament_export_dependencies(rcl_action)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)

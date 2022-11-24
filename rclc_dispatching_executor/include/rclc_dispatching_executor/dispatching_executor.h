@@ -1,4 +1,4 @@
-// Copyright (c) 2021 - for information on the respective copyright owner
+// Copyright (c) 2022 - for information on the respective copyright owner
 // see the NOTICE file and/or the repository https://github.com/ros2/rclc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +12,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef RCLC__MULTI_THREADED_EXECUTOR_H_
-#define RCLC__MULTI_THREADED_EXECUTOR_H_
+#ifndef RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
+#define RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
 
 #if __cplusplus
 extern "C"
@@ -118,4 +118,4 @@ rcl_ret_t rclc_executor_publish(
 }
 #endif
 
-#endif  // RCLC__MULTI_THREADED_EXECUTOR_H_
+#endif  // RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
