@@ -2,7 +2,13 @@
 
 Supports multi-threaded executor and prioritization of callbacks.
 
-TODO
+TODO-List
+- update package and CMakelist
+- insert void * pointer in executor.h and executor_handle.h
+- add functions in dispatching_executor.c which add the necessary structs
+- add unit test
+- redude dependencies in CmakeLists.txt
+- write documentation
 
 ## Table of contents
 *   [Initialization](#initialization)
