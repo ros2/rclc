@@ -21,7 +21,72 @@ extern "C"
 #endif
 
 #include <rclc/executor.h>
+#include <pthread.h>
+#include <sched.h>
+#include "rclc_dispatching_executor/visibility_control.h"
 
+
+/// Implementation for sporadic server scheduler for NuttX
+typedef enum
+{
+  RCLC_THREAD_NONE,
+  RCLC_THREAD_READY,
+  RCLC_THREAD_BUSY
+} rclc_executor_thread_state_t;
+
+/// Scheduling policy (SCHED_FIFO, SCHED_SPORADIC) and sched_param
+typedef struct
+{
+  int policy;
+  struct sched_param param;
+} rclc_executor_sched_parameter_t;
+
+typedef struct
+{
+  /// mutex for worker threads
+  pthread_mutex_t thread_state_mutex;
+  /// mutex for RCL layer
+  pthread_mutex_t micro_ros_mutex;
+} rclc_executor_multi_threaded_data_t;
+
+typedef struct
+{
+  /// worker thread
+  pthread_t worker_thread;
+  /// worker thread state and its mutex
+  rclc_executor_thread_state_t worker_thread_state;
+  /// signaling condition variable and its mutex
+  pthread_cond_t new_msg_cond;
+  pthread_mutex_t new_msg_mutex;
+  bool new_msg_avail;
+  /// scheduling parameter
+  rclc_executor_sched_parameter_t * sparam;
+  pthread_attr_t tattr;
+} rclc_handle_multi_threaded_data_t;
+
+typedef struct
+{
+  pthread_mutex_t * thread_state_mutex;
+  pthread_mutex_t * micro_ros_mutex;
+  rclc_executor_handle_t * handle;
+} rclc_executor_worker_thread_param_t;
+
+/**
+ * Initialization of multi-threaded Executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+RCLC_DISPATCHING_EXECUTOR_PUBLIC
+rcl_ret_t
+rclc_executor_init_multi_threaded(rclc_executor_t * executor);
 
 /**
  *  Adds a subscription to an executor with scheduling policy.
@@ -47,6 +112,7 @@ extern "C"
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
+RCLC_DISPATCHING_EXECUTOR_PUBLIC
 rcl_ret_t
 rclc_executor_add_subscription_multi_threaded(
   rclc_executor_t * executor,
@@ -55,22 +121,6 @@ rclc_executor_add_subscription_multi_threaded(
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation,
   rclc_executor_sched_parameter_t * sparam);
-
-/**
- * Initialization of multi-threaded Executor.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param [inout] executor pointer to pre-allocated rclc_executor_t
- */
-void
-rclc_executor_init_multi_threaded(rclc_executor_t * executor);
 
 /**
  * Starts the multi-threaded Executor.
@@ -85,6 +135,7 @@ rclc_executor_init_multi_threaded(rclc_executor_t * executor);
  *
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
+RCLC_DISPATCHING_EXECUTOR_PUBLIC
 rcl_ret_t
 rclc_executor_spin_multi_threaded(rclc_executor_t * executor);
 
@@ -109,10 +160,29 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor);
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
+RCLC_DISPATCHING_EXECUTOR_PUBLIC
 rcl_ret_t rclc_executor_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
   rmw_publisher_allocation_t * allocation);
+
+
+/**
+ * Deallocation of multi-threaded Executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes (deallocates)
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+RCLC_DISPATCHING_EXECUTOR_PUBLIC
+rcl_ret_t
+rclc_dispatching_executor_init(rclc_executor_t * executor);
 
 #if __cplusplus
 }

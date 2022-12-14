@@ -30,6 +30,16 @@ rcl_ret_t rclc_executor_publish(
   return ret;
 }
 
+rclc_handle_multi_threaded_data_t * rclc_get_multi_threaded_handle(rclc_executor_handle_t * handle)
+{
+  return (rclc_handle_multi_threaded_data_t *) handle->multi_threaded;
+}
+
+rclc_executor_multi_threaded_data_t * rclc_get_multi_threaded_executor(rclc_executor_t * executor)
+{
+  return (rclc_executor_multi_threaded_data_t *) executor->multi_threaded;
+}
+
 rcl_ret_t
 rclc_executor_add_subscription_multi_threaded(
   rclc_executor_t * executor,
@@ -58,7 +68,7 @@ rclc_executor_add_subscription_multi_threaded(
   executor->handles[executor->index].data = msg;
   executor->handles[executor->index].subscription_callback = callback;
   executor->handles[executor->index].invocation = invocation;
-  executor->handles[executor->index].sparam = sparam;
+  (rclc_get_multi_threaded_handle(&executor->handles[executor->index]))->sparam = sparam;
   executor->handles[executor->index].initialized = true;
 
   // increase index of handle array
@@ -80,22 +90,57 @@ rclc_executor_add_subscription_multi_threaded(
   return ret;
 }
 
-void rclc_executor_init_multi_threaded(rclc_executor_t * executor)
+
+/// initialization of handle object
+rcl_ret_t
+rclc_dispatching_executor_handle_init(
+  rclc_executor_t * executor,
+  rclc_executor_handle_t * handle)
 {
-  // initialization of mutexes and condition variables
-  // init worker_thread_state = READY
-  // lock not necessary, because no worker_thread has been started yet
-  pthread_mutex_init(&executor->thread_state_mutex, NULL);
-  pthread_mutex_init(&executor->micro_ros_mutex, NULL);
-  for (size_t i = 0;
-    (i < executor->max_handles && executor->handles[i].initialized);
-    i++)
-  {
-    executor->handles[i].worker_thread_state = RCLC_THREAD_READY;
-    pthread_mutex_init(&executor->handles[i].new_msg_mutex, NULL);
-    pthread_cond_init(&executor->handles[i].new_msg_cond, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(handle, RCL_RET_INVALID_ARGUMENT);
+
+  handle->multi_threaded = executor->allocator->allocate(
+    sizeof(rclc_handle_multi_threaded_data_t), executor->allocator->state);
+  if (NULL == handle->multi_threaded) {
+    RCL_SET_ERROR_MSG("Could not allocate memory for 'handle->multi_threaded'.");
+    return RCL_RET_BAD_ALLOC;
   }
-  rclc_micro_ros_mutex = &executor->micro_ros_mutex;
+  // note: worker_thread not initialized - okay
+  (rclc_get_multi_threaded_handle(handle))->worker_thread_state = RCLC_THREAD_READY;
+  pthread_cond_init(&(rclc_get_multi_threaded_handle(handle))->new_msg_cond, NULL);
+  pthread_mutex_init(&(rclc_get_multi_threaded_handle(handle))->new_msg_mutex, NULL);
+  (rclc_get_multi_threaded_handle(handle))->new_msg_avail = false;
+  (rclc_get_multi_threaded_handle(handle))->sparam = NULL;
+  // note: tattr not initialized - okay
+  return RCL_RET_OK;
+}
+// note: add multi_threaded_initialized flag
+//       otherwise the functions to add subscription will fail.
+rcl_ret_t rclc_executor_init_multi_threaded(rclc_executor_t * executor)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+
+  // memory allocation and initialization for multi-threaded handles
+  for (size_t i = 0; i < executor->max_handles; i++) {
+    rclc_dispatching_executor_handle_init(executor, &executor->handles[i]);
+  }
+
+  // memory allocation and initialization for multi-threaded executor
+  executor->multi_threaded = executor->allocator->allocate(
+    sizeof(rclc_executor_multi_threaded_data_t), executor->allocator->state);
+  if (NULL == executor->multi_threaded) {
+    RCL_SET_ERROR_MSG("Could not allocate memory for 'executor->multi_threaded'.");
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  // initialization of mutexes and condition variables
+  // note: lock not necessary, because no worker_thread has been started yet
+  pthread_mutex_init(&rclc_get_multi_threaded_executor(executor)->thread_state_mutex, NULL);
+  pthread_mutex_init(&rclc_get_multi_threaded_executor(executor)->micro_ros_mutex, NULL);
+
+  rclc_micro_ros_mutex = &rclc_get_multi_threaded_executor(executor)->micro_ros_mutex;
+  return RCL_RET_OK;
 }
 
 static
@@ -104,7 +149,7 @@ void rclc_executor_change_worker_thread_state(
   rclc_executor_thread_state_t new_state)
 {
   pthread_mutex_lock(p->thread_state_mutex);
-  p->handle->worker_thread_state = new_state;
+  rclc_get_multi_threaded_handle(p->handle)->worker_thread_state = new_state;
   pthread_mutex_unlock(p->thread_state_mutex);
 }
 
@@ -114,11 +159,11 @@ bool rclc_executor_worker_thread_is_ready(
   rclc_executor_handle_t * handle)
 {
   bool thread_is_ready = false;
-  pthread_mutex_lock(&executor->thread_state_mutex);
-  if (handle->worker_thread_state == RCLC_THREAD_READY) {
+  pthread_mutex_lock(&rclc_get_multi_threaded_executor(executor)->thread_state_mutex);
+  if (rclc_get_multi_threaded_handle(handle)->worker_thread_state == RCLC_THREAD_READY) {
     thread_is_ready = true;
   }
-  pthread_mutex_unlock(&executor->thread_state_mutex);
+  pthread_mutex_unlock(&rclc_get_multi_threaded_executor(executor)->thread_state_mutex);
   return thread_is_ready;
 }
 
@@ -274,13 +319,15 @@ void * rclc_executor_worker_thread(void * p)
   // Worker-thread loop
   while (1) {
     // printf("worker-thread %ld.\n",param->handle->index); // not thread-safe
-    pthread_mutex_lock(&param->handle->new_msg_mutex);
-    while (!param->handle->new_msg_avail) {
+    pthread_mutex_lock(&(rclc_get_multi_threaded_handle(param->handle))->new_msg_mutex);
+    while (!(rclc_get_multi_threaded_handle(param->handle))->new_msg_avail) {
       // printf("worker thread: idling\n");
-      pthread_cond_wait(&param->handle->new_msg_cond, &param->handle->new_msg_mutex);
+      pthread_cond_wait(
+        &(rclc_get_multi_threaded_handle(param->handle))->new_msg_cond,
+        &(rclc_get_multi_threaded_handle(param->handle))->new_msg_mutex);
     }
-    param->handle->new_msg_avail = false;
-    pthread_mutex_unlock(&param->handle->new_msg_mutex);
+    (rclc_get_multi_threaded_handle(param->handle))->new_msg_avail = false;
+    pthread_mutex_unlock(&(rclc_get_multi_threaded_handle(param->handle))->new_msg_mutex);
 
     // execute subscription callback
     // pthread_mutex_lock(param->micro_ros_mutex);
@@ -301,7 +348,10 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
   rcl_ret_t rc;
 
   // initialize mutexes and condition variables
-  rclc_executor_init_multi_threaded(executor);
+  // TODO(JanStaschulat): this needs to be done earlier
+  // rclc_executor_init_multi_threaded(executor);
+  // if (! executor->type OR executor->multi_threaded_initialized)
+  //     return RCL_RET_ERROR;
 
   // print priority
   struct sched_param sp;
@@ -333,19 +383,19 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
     (executor->handles[i].type == RCLC_SUBSCRIPTION);
     i++)
   {
-    params[i].thread_state_mutex = &executor->thread_state_mutex;
-    params[i].micro_ros_mutex = &executor->micro_ros_mutex;
+    params[i].thread_state_mutex = &rclc_get_multi_threaded_executor(executor)->thread_state_mutex;
+    params[i].micro_ros_mutex = &rclc_get_multi_threaded_executor(executor)->micro_ros_mutex;
     params[i].handle = &executor->handles[i];
     // params[i].gc = &executor->gc_some_thread_is_ready;
 
     printf(
       "Creating worker thread %ld scheduler: %d (1=FIFO, 3=SPORADIC).\n", i,
-      executor->handles[i].sparam->policy);
-    pthread_attr_init(&executor->handles[i].tattr);
+      rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->policy);
+    pthread_attr_init(&rclc_get_multi_threaded_handle(&executor->handles[i])->tattr);
 
     result = pthread_attr_setschedpolicy(
-      &executor->handles[i].tattr,
-      executor->handles[i].sparam->policy);
+      &rclc_get_multi_threaded_handle(&executor->handles[i])->tattr,
+      rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->policy);
     if (result != 0) {
       PRINT_RCLC_ERROR(
         rclc_executor_spin_multi_threaded,
@@ -354,8 +404,8 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
     }
 
     result = pthread_attr_setschedparam(
-      &executor->handles[i].tattr,
-      &executor->handles[i].sparam->param);
+      &rclc_get_multi_threaded_handle(&executor->handles[i])->tattr,
+      &rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->param);
     if (result != 0) {
       PRINT_RCLC_ERROR(
         rclc_executor_spin_multi_threaded,
@@ -364,7 +414,8 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
     }
 
     result = pthread_create(
-      &executor->handles[i].worker_thread, &executor->handles[i].tattr,
+      &rclc_get_multi_threaded_handle(&executor->handles[i])->worker_thread,
+      &rclc_get_multi_threaded_handle(&executor->handles[i])->tattr,
       &rclc_executor_worker_thread,
       &params[i]);
     if (result != 0) {
@@ -382,9 +433,9 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
   while (rcl_context_is_valid(executor->context) ) {
     ii++;
     rclc_executor_rebuild_wait_set(executor);
-    pthread_mutex_lock(&executor->micro_ros_mutex);
+    pthread_mutex_lock(&rclc_get_multi_threaded_executor(executor)->micro_ros_mutex);
     rc = rcl_wait(&executor->wait_set, executor->timeout_ns);
-    pthread_mutex_unlock(&executor->micro_ros_mutex);
+    pthread_mutex_unlock(&rclc_get_multi_threaded_executor(executor)->micro_ros_mutex);
     for (size_t i = 0;
       (i < executor->max_handles && executor->handles[i].initialized);
       i++)
@@ -395,11 +446,11 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
           assert(executor->handles[i].index < executor->wait_set.size_of_subscriptions);
           if (executor->wait_set.subscriptions[executor->handles[i].index]) {
             rmw_message_info_t messageInfo;
-            pthread_mutex_lock(&executor->micro_ros_mutex);
+            pthread_mutex_lock(&rclc_get_multi_threaded_executor(executor)->micro_ros_mutex);
             rc = rcl_take(
               executor->handles[i].subscription, executor->handles[i].data, &messageInfo,
               NULL);
-            pthread_mutex_unlock(&executor->micro_ros_mutex);
+            pthread_mutex_unlock(&rclc_get_multi_threaded_executor(executor)->micro_ros_mutex);
             if (rc != RCL_RET_OK) {
               // rcl_take might return this error even with successfull rcl_wait
               if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
@@ -414,10 +465,11 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
           // executor->handles[i] and params[i].handle point to the same handle
           if (rc == RCL_RET_OK) {
             rclc_executor_change_worker_thread_state(&params[i], RCLC_THREAD_BUSY);
-            pthread_mutex_lock(&params[i].handle->new_msg_mutex);
-            params[i].handle->new_msg_avail = true;
-            pthread_cond_signal(&params[i].handle->new_msg_cond);
-            pthread_mutex_unlock(&params[i].handle->new_msg_mutex);
+            pthread_mutex_lock(&(rclc_get_multi_threaded_handle(params[i].handle))->new_msg_mutex);
+            (rclc_get_multi_threaded_handle(params[i].handle))->new_msg_avail = true;
+            pthread_cond_signal(&(rclc_get_multi_threaded_handle(params[i].handle))->new_msg_cond);
+            pthread_mutex_unlock(
+              &(rclc_get_multi_threaded_handle(params[i].handle))->new_msg_mutex);
           }
         }
       }
@@ -432,7 +484,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
   {
     printf("Stopping worker thread %ld\n", i);
     result = 0;
-    result += pthread_cancel(executor->handles[i].worker_thread);
+    result += pthread_cancel(rclc_get_multi_threaded_handle(&executor->handles[i])->worker_thread);
     if (result != 0) {
       printf("Error stopping thread %ld\n", i);
     }
@@ -445,4 +497,23 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
   } else {
     return RCL_RET_ERROR;
   }
+}
+
+rcl_ret_t
+rclc_dispatching_executor_fini(rclc_executor_t * executor)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+
+  // de-allocate multi_threaded handles objects
+  for (size_t i = 0; i < executor->max_handles; i++) {
+    executor->allocator->deallocate(
+      executor->handles[i].multi_threaded,
+      executor->allocator->state);
+  }
+
+  // de-allocate multi_threaded executor object
+  executor->allocator->deallocate(executor->multi_threaded, executor->allocator->state);
+  // call 'base-class' de-allocate
+  rclc_executor_fini(executor);
+  return RCL_RET_OK;
 }

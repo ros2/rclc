@@ -294,6 +294,9 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  rc = rclc_executor_init_multi_threaded(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   rclc_executor_sched_parameter_t sched_p1;
   rclc_executor_sched_parameter_t sched_p2;
@@ -301,7 +304,6 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   sched_p1.param.sched_priority = 10;
   sched_p1.policy = SCHED_FIFO;
   sched_p1.param.sched_priority = 20;
-
 
   // add subscriptions to executor
   rc = rclc_executor_add_subscription_multi_threaded(
@@ -314,7 +316,7 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
     &int32_callback_2, ON_NEW_DATA, &sched_p2);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-
+/*
   // ------------------------- test case setup ------------------------
   // sending two messages - expecting to receive two messages
   rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
@@ -334,7 +336,7 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
   // rclc_executor_spin_multi_threaded(&executor);
-
+*/
   // test result
   /*
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);

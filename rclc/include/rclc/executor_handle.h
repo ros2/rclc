@@ -22,14 +22,10 @@ extern "C"
 #endif
 
 #include <rcl/rcl.h>
-#include <sched.h>
 #include <rclc/visibility_control.h>
 
 #include <rclc/action_client.h>
 #include <rclc/action_server.h>
-
-/// TODO (jst3si) Where is this defined? - in my build environment this variable is not set.
-// #define ROS_PACKAGE_NAME "rclc"
 
 /// Enumeration for timer, subscription, guard conditions etc to be waited on.
 typedef enum
@@ -62,21 +58,6 @@ typedef enum
 /// Type definition for subscription callback function
 /// - incoming message
 typedef void (* rclc_subscription_callback_t)(const void *);
-
-/// Implementation for sporadic server scheduler for NuttX
-typedef enum
-{
-  RCLC_THREAD_NONE,
-  RCLC_THREAD_READY,
-  RCLC_THREAD_BUSY
-} rclc_executor_thread_state_t;
-
-/// Scheduling policy (SCHED_FIFO, SCHED_SPORADIC) and sched_param
-typedef struct
-{
-  int policy;
-  struct sched_param param;
-} rclc_executor_sched_parameter_t;
 
 /// Type definition (duplicate) for subscription callback function (alias for foxy and galactic).
 /// - incoming message
@@ -181,18 +162,8 @@ typedef struct
   /// Interval variable. Flag, which is true, if new data is available from DDS queue
   /// (is set after calling rcl_take)
   bool data_available;
-  /// variables for multi-threading
-  /// worker thread
-  pthread_t worker_thread;
-  /// worker thread state and its mutex
-  rclc_executor_thread_state_t worker_thread_state;
-  /// signaling condition variable and its mutex
-  pthread_cond_t new_msg_cond;
-  pthread_mutex_t new_msg_mutex;
-  bool new_msg_avail;
-  /// scheduling parameter
-  rclc_executor_sched_parameter_t * sparam;
-  pthread_attr_t tattr;
+  /// interface for multi-threaded data
+  void * multi_threaded;
 } rclc_executor_handle_t;
 
 /// Information about total number of subscriptions, guard_conditions, timers, subscription etc.

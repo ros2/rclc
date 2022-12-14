@@ -60,9 +60,6 @@ rclc_executor_handle_init(
   handle->index = max_handles;
   handle->initialized = false;
   handle->data_available = false;
-  handle->worker_thread_state = RCLC_THREAD_NONE;
-  handle->new_msg_avail = false;
-  handle->sparam = NULL;
 
   return RCL_RET_OK;
 }

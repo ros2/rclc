@@ -23,7 +23,6 @@ extern "C"
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <pthread.h>
 
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
@@ -50,14 +49,6 @@ typedef enum
   RCLCPP_EXECUTOR,
   LET
 } rclc_executor_semantics_t;
-
-typedef struct
-{
-  pthread_mutex_t * thread_state_mutex;
-  pthread_mutex_t * micro_ros_mutex;
-  rclc_executor_handle_t * handle;
-}
-rclc_executor_worker_thread_param_t;
 
 /// Type definition for trigger function. With the parameters:
 /// - array of executor_handles
@@ -92,10 +83,8 @@ typedef struct
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
-  /// multi-threaded executor: mutex for worker threads
-  pthread_mutex_t thread_state_mutex;
-  /// multi-threaded executor: mutex for RCL layer
-  pthread_mutex_t micro_ros_mutex;
+  /// interface for multi-threaded executor
+  void * multi_threaded;
 } rclc_executor_t;
 
 /**
