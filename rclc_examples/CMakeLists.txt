@@ -26,6 +26,7 @@ find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(rclc_parameter REQUIRED)
+find_package(rclc_dispatcher_executor REQUIRED)
 find_package(Threads REQUIRED)
 
 include_directories(include)
@@ -38,6 +39,9 @@ ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
 
 add_executable(example_executor_trigger src/example_executor_trigger.c)
 ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
+
+add_executable(example_dispatcher_executor src/example_dispatcher_executor.c)
+ament_target_dependencies(example_dispatcher_executor rcl rclc rclc_dispatcher_executor std_msgs)
 
 add_executable(example_service_node src/example_service_node.c)
 ament_target_dependencies(example_service_node rcl rclc example_interfaces)
@@ -68,6 +72,7 @@ install(TARGETS
   example_executor
   example_executor_convenience
   example_executor_trigger
+  example_dispatcher_executor
   example_lifecycle_node
   example_service_node
   example_client_node

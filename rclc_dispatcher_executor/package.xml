@@ -3,7 +3,7 @@
 <package format="2">
   <name>rclc_dispatcher_executor</name>
   <version>3.0.8</version>
-  <description>dispatcher executor</description>
+  <description>Multi-threaded executor which allows to specify a priority per subscription.</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
 
