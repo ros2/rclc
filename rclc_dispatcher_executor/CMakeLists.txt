@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(rclc_dispatching_executor)
+project(rclc_dispatcher_executor)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -52,7 +52,7 @@ endif()
 #################################################
 
 add_library(${PROJECT_NAME}
-  src/rclc_dispatching_executor/dispatching_executor.c
+  src/rclc_dispatcher_executor/dispatcher_executor.c
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -82,7 +82,7 @@ ament_target_dependencies(${PROJECT_NAME}
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME}
-  PRIVATE "RCLC_DISPATCHING_EXECUTOR_BUILDING_LIBRARY")
+  PRIVATE "RCLC_DISPATCHER_EXECUTOR_BUILDING_LIBRARY")
 
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -125,7 +125,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(${PROJECT_NAME}_test
-    test/rclc_dispatching_executor/test_dispatching_executor.cpp
+    test/rclc_dispatcher_executor/test_dispatcher_executor.cpp
 
   )
 

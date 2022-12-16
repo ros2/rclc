@@ -1,14 +1,14 @@
-# The rclc dispatching executor
+# The rclc dispatcher executor
 
 Supports multi-threaded executor and prioritization of callbacks.
 
 TODO-List
 - insert void * pointer in executor.h and executor_handle.h
-  - conversion function/macro for multi_threaded
+  - conversion function/macro for multi_threaded object in rclc_executor_t , rclc_executor_handle_t
   - unit tests for initialization
   - functional test
 
-- add functions in dispatching_executor.c which add the necessary structs
+- add functions in dispatcher_executor.c which add the necessary structs
 - add unit test
 - redude dependencies in CmakeLists.txt
 - write documentation

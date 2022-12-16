@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
-  <name>rclc_dispatching_executor</name>
+  <name>rclc_dispatcher_executor</name>
   <version>3.0.8</version>
-  <description>dispatching executor</description>
+  <description>dispatcher executor</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
 

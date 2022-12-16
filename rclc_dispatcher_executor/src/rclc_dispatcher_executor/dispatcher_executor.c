@@ -13,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rclc_dispatching_executor/dispatching_executor.h"
+#include "rclc_dispatcher_executor/dispatcher_executor.h"
 #include <rcutils/logging_macros.h>
 
 static pthread_mutex_t * rclc_micro_ros_mutex;
 
-rcl_ret_t rclc_executor_publish(
+rcl_ret_t rclc_dispatcher_executor_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
   rmw_publisher_allocation_t * allocation)
@@ -41,7 +41,7 @@ rclc_executor_multi_threaded_data_t * rclc_get_multi_threaded_executor(rclc_exec
 }
 
 rcl_ret_t
-rclc_executor_add_subscription_multi_threaded(
+rclc_dispatcher_executor_add_subscription(
   rclc_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
@@ -93,7 +93,7 @@ rclc_executor_add_subscription_multi_threaded(
 
 /// initialization of handle object
 rcl_ret_t
-rclc_dispatching_executor_handle_init(
+rclc_dispatcher_executor_handle_init(
   rclc_executor_t * executor,
   rclc_executor_handle_t * handle)
 {
@@ -117,13 +117,13 @@ rclc_dispatching_executor_handle_init(
 }
 // note: add multi_threaded_initialized flag
 //       otherwise the functions to add subscription will fail.
-rcl_ret_t rclc_executor_init_multi_threaded(rclc_executor_t * executor)
+rcl_ret_t rclc_dispatcher_executor_init(rclc_executor_t * executor)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
 
   // memory allocation and initialization for multi-threaded handles
   for (size_t i = 0; i < executor->max_handles; i++) {
-    rclc_dispatching_executor_handle_init(executor, &executor->handles[i]);
+    rclc_dispatcher_executor_handle_init(executor, &executor->handles[i]);
   }
 
   // memory allocation and initialization for multi-threaded executor
@@ -342,14 +342,14 @@ void * rclc_executor_worker_thread(void * p)
 }
 
 rcl_ret_t
-rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
+rclc_dispatcher_executor_spin(rclc_executor_t * executor)
 {
   int result;
   rcl_ret_t rc;
 
   // initialize mutexes and condition variables
   // TODO(JanStaschulat): this needs to be done earlier
-  // rclc_executor_init_multi_threaded(executor);
+  // rclc_dispatcher_executor_init(executor);
   // if (! executor->type OR executor->multi_threaded_initialized)
   //     return RCL_RET_ERROR;
 
@@ -373,7 +373,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
     executor->allocator->state);
   if (NULL == params) {
     RCL_SET_ERROR_MSG("Could not allocate memory for 'params'.");
-    PRINT_RCLC_ERROR(rclc_executor_spin_multi_threaded, allocate);
+    PRINT_RCLC_ERROR(rclc_dispatcher_executor_spin, allocate);
     return RCL_RET_ERROR;
   }
 
@@ -398,7 +398,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
       rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->policy);
     if (result != 0) {
       PRINT_RCLC_ERROR(
-        rclc_executor_spin_multi_threaded,
+        rclc_dispatcher_executor_spin,
         pthread_attr_setschedpolicy);
       return RCL_RET_ERROR;
     }
@@ -408,7 +408,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
       &rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->param);
     if (result != 0) {
       PRINT_RCLC_ERROR(
-        rclc_executor_spin_multi_threaded,
+        rclc_dispatcher_executor_spin,
         pthread_attr_setschedparam);
       return RCL_RET_ERROR;
     }
@@ -419,7 +419,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
       &rclc_executor_worker_thread,
       &params[i]);
     if (result != 0) {
-      PRINT_RCLC_ERROR(rclc_executor_spin_multi_threaded, pthread_create);
+      PRINT_RCLC_ERROR(rclc_dispatcher_executor_spin, pthread_create);
       return RCL_RET_ERROR;
     } else {
       printf(" ... started.\n");
@@ -500,7 +500,7 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor)
 }
 
 rcl_ret_t
-rclc_dispatching_executor_fini(rclc_executor_t * executor)
+rclc_dispatcher_executor_fini(rclc_executor_t * executor)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
 

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Note: include ""rclc_dispatching_executor/dispatching_executor.h" cannot be
+// Note: include ""rclc_dispatcher_executor/dispatcher_executor.h" cannot be
 // listed first, because cpplinter only accepts the following order of include files:
 #include <gtest/gtest.h>
 #include <std_msgs/msg/int32.h>
@@ -23,7 +23,7 @@
 #include <thread>
 #include <vector>
 
-#include "rclc_dispatching_executor/dispatching_executor.h"
+#include "rclc_dispatcher_executor/dispatcher_executor.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
 
@@ -294,7 +294,7 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rc = rclc_executor_init_multi_threaded(&executor);
+  rc = rclc_dispatcher_executor_init(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -306,20 +306,21 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   sched_p1.param.sched_priority = 20;
 
   // add subscriptions to executor
-  rc = rclc_executor_add_subscription_multi_threaded(
+  rc = rclc_dispatcher_executor_add_subscription(
     &executor, &this->sub1, &this->sub1_msg,
     &int32_callback_1, ON_NEW_DATA, &sched_p1);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-  rc = rclc_executor_add_subscription_multi_threaded(
+  rc = rclc_dispatcher_executor_add_subscription(
     &executor, &this->sub2, &this->sub2_msg,
     &int32_callback_2, ON_NEW_DATA, &sched_p2);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
-/*
+
+
   // ------------------------- test case setup ------------------------
   // sending two messages - expecting to receive two messages
-  rclc_executor_set_semantics(&executor, RCLCPP_EXECUTOR);
+
   _executor_results_init();
   _results_callback_init();
   this->pub1_msg.data = 991;
@@ -335,10 +336,11 @@ TEST_F(TestMultiThreadedExecutor, base_line) {
   EXPECT_EQ(_cb1_cnt, (unsigned int) 0);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 0);
 
-  // rclc_executor_spin_multi_threaded(&executor);
-*/
-  // test result
   /*
+  rclc_dispatcher_executor_spin_once(&executor);
+
+  // test result
+
   EXPECT_EQ(_cb1_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1);
   EXPECT_EQ(_cb1_int_value, (unsigned int) 991);

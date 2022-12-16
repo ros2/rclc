@@ -12,8 +12,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
-#define RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
+#ifndef RCLC_DISPATCHER_EXECUTOR__DISPATCHER_EXECUTOR_H_
+#define RCLC_DISPATCHER_EXECUTOR__DISPATCHER_EXECUTOR_H_
 
 #if __cplusplus
 extern "C"
@@ -23,7 +23,7 @@ extern "C"
 #include <rclc/executor.h>
 #include <pthread.h>
 #include <sched.h>
-#include "rclc_dispatching_executor/visibility_control.h"
+#include "rclc_dispatcher_executor/visibility_control.h"
 
 
 /// Implementation for sporadic server scheduler for NuttX
@@ -84,9 +84,9 @@ typedef struct
  *
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
-RCLC_DISPATCHING_EXECUTOR_PUBLIC
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
 rcl_ret_t
-rclc_executor_init_multi_threaded(rclc_executor_t * executor);
+rclc_dispatcher_executor_init(rclc_executor_t * executor);
 
 /**
  *  Adds a subscription to an executor with scheduling policy.
@@ -112,15 +112,33 @@ rclc_executor_init_multi_threaded(rclc_executor_t * executor);
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_DISPATCHING_EXECUTOR_PUBLIC
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
 rcl_ret_t
-rclc_executor_add_subscription_multi_threaded(
+rclc_dispatcher_executor_add_subscription(
   rclc_executor_t * executor,
   rcl_subscription_t * subscription,
   void * msg,
   rclc_callback_t callback,
   rclc_executor_handle_invocation_t invocation,
   rclc_executor_sched_parameter_t * sparam);
+
+
+/**
+ * Spin once with multi-threaded Executor.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param [inout] executor pointer to pre-allocated rclc_executor_t
+ */
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
+rcl_ret_t
+rclc_dispatcher_executor_spin_once(rclc_executor_t * executor);
 
 /**
  * Starts the multi-threaded Executor.
@@ -135,9 +153,9 @@ rclc_executor_add_subscription_multi_threaded(
  *
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
-RCLC_DISPATCHING_EXECUTOR_PUBLIC
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
 rcl_ret_t
-rclc_executor_spin_multi_threaded(rclc_executor_t * executor);
+rclc_dispatcher_executor_spin(rclc_executor_t * executor);
 
 /**
  * Publish a ROS message on a topic using a publisher.
@@ -160,8 +178,8 @@ rclc_executor_spin_multi_threaded(rclc_executor_t * executor);
  * \return `RCL_RET_INVALID_ARGUMENT` if any parameter is a null pointer
  * \return `RCL_RET_ERROR` if any other error occured
  */
-RCLC_DISPATCHING_EXECUTOR_PUBLIC
-rcl_ret_t rclc_executor_publish(
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
+rcl_ret_t rclc_dispatcher_executor_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
   rmw_publisher_allocation_t * allocation);
@@ -180,12 +198,12 @@ rcl_ret_t rclc_executor_publish(
  *
  * \param [inout] executor pointer to pre-allocated rclc_executor_t
  */
-RCLC_DISPATCHING_EXECUTOR_PUBLIC
+RCLC_DISPATCHER_EXECUTOR_PUBLIC
 rcl_ret_t
-rclc_dispatching_executor_init(rclc_executor_t * executor);
+rclc_dispatcher_executor_init(rclc_executor_t * executor);
 
 #if __cplusplus
 }
 #endif
 
-#endif  // RCLC_DISPATCHING_EXECUTOR__DISPATCHING_EXECUTOR_H_
+#endif  // RCLC_DISPATCHER_EXECUTOR__DISPATCHER_EXECUTOR_H_
