@@ -357,7 +357,7 @@ rclc_dispatcher_executor_spin(rclc_executor_t * executor)
   struct sched_param sp;
   result = sched_getparam(0, &sp);
   if (result < 0) {
-    printf("uros_rbs: sched_getparam failed: %d\n", result);
+    printf("sched_getparam failed: %d\n", result);
     return 1;
   } else {
     printf("executor thread running with prio: %d\n", sp.sched_priority);
@@ -422,7 +422,9 @@ rclc_dispatcher_executor_spin(rclc_executor_t * executor)
       PRINT_RCLC_ERROR(rclc_dispatcher_executor_spin, pthread_create);
       return RCL_RET_ERROR;
     } else {
-      printf(" ... started.\n");
+      printf(" ... started thread %ld prio %d.\n", 
+        rclc_get_multi_threaded_handle(&executor->handles[i])->worker_thread,
+        rclc_get_multi_threaded_handle(&executor->handles[i])->sparam->param.sched_priority);
     }
   }
 
