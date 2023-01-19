@@ -32,7 +32,6 @@ find_package(rcl REQUIRED)
 find_package(rcl_action REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
-find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   message(STATUS
