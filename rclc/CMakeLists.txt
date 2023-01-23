@@ -31,7 +31,6 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
-find_package(std_msgs REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   message(STATUS "Found rcl version ${rcl_VERSION}, which belongs to Dashing or Eloquent")
