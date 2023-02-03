@@ -104,7 +104,10 @@ rclc_executor_get_zero_initialized_executor(void);
  * running phase in the executor.
  *
  * Also in the XRCE-DDS middleware the maximum number are configured. See [Memory Management Tutorial](https://docs.vulcanexus.org/en/humble/rst/tutorials/micro/memory_management/memory_management.html#entity-creation)
- * for the default values. If you need larger values, you need to update your colcon.meta configuration file and rebuild.
+ * for the default values. If you need larger values, you need to update your colcon.meta
+ * configuration file and rebuild. To make sure that the changes were applied, you can check
+ * the defined values in the following library include file:
+ * build/rmw_microxrcedds/include/rmw_microxrcedds_c/config.h
  *
  * The heap memory of corresponding wait-set is
  * allocated in the first iteration of a spin-method, which calls internally rclc_executor_prepare.
