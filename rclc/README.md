@@ -359,7 +359,9 @@ During the configuration phase, the user shall define:
 - trigger condition (optional, default: ANY)
 - data communcation semantics (optional, default ROS2)
 
-As the Executor is intended for embedded controllers, dynamic memory management is crucial. Therefore at initialization of the rclc Executor, the user defines the total number of callbacks. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. This makes this Executor static in the sense, that during runtime no additional callbacks can be added.
+As the Executor is intended for embedded controllers, dynamic memory management is crucial. Therefore at initialization of the rclc Executor, the user defines the total number of callbacks. The necessary dynamic memory will be allocated only in this phase and no more memory in the running phase. This makes this Executor static in the sense, that during runtime no additional callbacks can be added. 
+
+Also in the XRCE-DDS middleware the maximum number of handles need to be configured. See [Memory Management Tutorial](https://docs.vulcanexus.org/en/humble/rst/tutorials/micro/memory_management/memory_management.html#entity-creation) for the defaults and configuration of the colcon.meta configuration file. To make sure that the changes were applied, you can check the defined values in the following library include file: build/rmw_microxrcedds/include/rmw_microxrcedds_c/config.h.
 
 Then, the user adds handles and the corresponding callbacks (e.g. for subscriptions and timers) to the Executor. The order in which this takes place, defines later the sequential processing order during runtime.
 
