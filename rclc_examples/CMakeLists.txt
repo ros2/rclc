@@ -64,7 +64,7 @@ ament_target_dependencies(example_action_server rcl rcl_action rclc example_inte
 add_executable(example_action_client src/example_action_client.c)
 ament_target_dependencies(example_action_client rcl rcl_action rclc example_interfaces)
 
-add_executable(example_short_timer_long_subscription src/example_executor_short_timer_long_subscription.c)
+add_executable(example_short_timer_long_subscription src/example_short_timer_long_subscription.c)
 ament_target_dependencies(example_short_timer_long_subscription rcl rclc std_msgs)
 
 install(TARGETS

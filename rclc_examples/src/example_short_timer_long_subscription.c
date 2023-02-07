@@ -23,6 +23,7 @@
 rcl_publisher_t my_pub;
 std_msgs__msg__Int32 pub_msg;
 std_msgs__msg__Int32 sub_msg;
+unsigned int short_timer_counter = 0;
 
 /***************************** CALLBACKS ***********************************/
 
@@ -34,6 +35,10 @@ void my_subscriber_callback(const void * msgin)
   } else {
     printf("Callback: I heard: %d\n", msg->data);
   }
+  if (msg->data % 2)
+  {
+    rclc_sleep_ms(900);
+  }
 }
 
 void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
@@ -43,14 +48,23 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&my_pub, &pub_msg, NULL);
+
     if (rc == RCL_RET_OK) {
-      printf("Published message %s\n", pub_msg.data);
+      // printf("Published message %d\n", pub_msg.data);
     } else {
-      printf("timer_callback: Error publishing message %s\n", pub_msg.data);
+      printf("timer_callback: Error publishing message %d\n", pub_msg.data);
     }
+    pub_msg.data++;
   } else {
     printf("timer_callback Error: timer parameter is NULL\n");
   }
+}
+
+void short_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+{
+  RCLC_UNUSED(timer);
+  RCLC_UNUSED(last_call_time);
+  printf("shorttimer %d\n",short_timer_counter++);
 }
 
 /******************** MAIN PROGRAM ****************************************/
@@ -106,8 +120,22 @@ int main(int argc, const char * argv[])
     printf("Created timer with timeout %d ms.\n", timer_timeout);
   }
 
+  rcl_timer_t short_timer = rcl_get_zero_initialized_timer();
+  const unsigned int short_timer_timeout = 100;
+  rc = rclc_timer_init_default(
+    &short_timer,
+    &support,
+    RCL_MS_TO_NS(short_timer_timeout),
+    short_timer_callback);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rcl_timer_init_default.\n");
+    return -1;
+  } else {
+    printf("Created timer with timeout %d ms.\n", short_timer_timeout);
+  }
+
   // assign message to publisher
-  pub_msg.data = 42;
+  pub_msg.data = 1;
 
   // create subscription
   rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
@@ -147,6 +175,11 @@ int main(int argc, const char * argv[])
   }
 
   rclc_executor_add_timer(&executor, &my_timer);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rclc_executor_add_timer.\n");
+  }
+
+  rclc_executor_add_timer(&executor, &short_timer);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_timer.\n");
   }
