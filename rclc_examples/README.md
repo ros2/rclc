@@ -2,12 +2,18 @@ General information about this repository, including legal information, build in
 
 # The rclc_examples package
 
-The rclc_examples package provides examples for using the RCLC-Exector and convenience functions.
-- [example_executor.c](src/example_executor.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
-- [example_executor_convenience.c](src/example_executor_convenience.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly. Then the spin_some() function is demonstrated.
+The rclc_examples package provides examples for using the RCLC-Exector and convenience functions for creating RCL objects like subscriptions and timers. 
+
+- [example_executor.c](src/example_executor.c) provides the example for the RCLC-Executor with the convenience functions from rclc. It creates one publisher and one subscriber and configures the RCLC-Executor accordingly.
 - [example_executor_trigger.c](src/example_executor_trigger.c) demonstrates the trigger condition of the RCLC-Executor.
 - [example_service_node.c](src/example_service_node.c) implements a service node with the RCLC-Executor.
 - [example_client_node.c](src/example_client_node.c) implements a client node with RCLC-Executor.
+<<<<<<< HEAD
+=======
+- [example_executor_only_rcl.c](src/example_executor_only_rcl.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor using only the RCL API.
+- [example_short_timer_long_subscription.c](src/example_short_timer_long_subscription.c) demo with high frequency timer and subscription with long processing time with one executor.
+
+>>>>>>> e63b644 (updated documentation (#332))
 
 The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with RCL objects compared to using the convenience functions is about 24%:
 - example_executor.c: 92 LoC (lines 56-148)
@@ -15,85 +21,30 @@ The reduction of code lines for configuring the necessary RCL objects for RCLC-E
 
  counting only the lines of code in which the RCL objects are defined).
 
-## Example RCLC-Executor using RCL objects directly
+## Example RCLC-Executor
 **Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
 ```C
-~$ source /opt/ros/$ROSDISTRO/setup.bash
+~$ source /opt/ros/ROSDISTRO/setup.bash
 ```
 
 **Step 2** Build the package
-Download and build the the packages `rclc` and `rclc_examples` in a workspace (for example `ros2_ws`). Then source the workspace:
+Download and build the rclc repository in a workspace (for example `ros2_ws`). Then source the workspace:
 ```C
 ~/ros2_ws/$ colcon build --packages-up-to rclc_examples
 ~/ros2_ws/$ source ./install/local_setup.bash
 ```
-It should build these packages:
-- rcl_yaml_param_parser
-- rcl
-- rclc
-- rclc_examples
 
-
-**Step 3** Run the example executor.
+**Step 3** Run the example executor demo.
 
 The binary of the example is `example_executor`.
 
 ```C
-~/ros2_ws/$ ros2 run rclc_examples  example_executor
-```
-The publisher publishes the message `Hello World!`in `topic_0` at a rate of 1Hz and the subscriber prints out in the callback `Callback: I heard: Hello World!`.
-
-You should see the following output:
-
-```C
-Created timer with timeout 1000 ms.
-Created subscriber topic_0:
-Debug: number of DDS handles: 2
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
-Published message Hello World!
-Callback: I heard: Hello World!
+~/ros2_ws/$ ros2 run rclc_examples example_executor
 ```
 
-
-
-## Example RCLC-Executor with convenience functions
-**Step 1** Setup ROS 2 Workspace
-
-Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/eloquent`, setup
-the ROS2 environment by:
-```C
-~$ source /opt/ros/eloquent/setup.bash
-```
-
-**Step 2** Build the package
-Download and build the the packages `rclc` and `rclc_examples` in a workspace (for example `ros2_ws`). Then source the workspace:
-```C
-~/ros2_ws/$ colcon build --packages-up-to rclc_examples
-~/ros2_ws/$ source ./install/local_setup.bash
-```
-It should build these packages:
-- rcl_yaml_param_parser
-- rcl
-- rclc
-- rclc_examples
-
-**Step 3** Run the example executor with the convenience functions from the package rclc.
-
-The binary of the example is `example_executor_convenience`.
-
-```C
-~/ros2_ws/$ ros2 run rclc_examples  example_executor_convenience
-```
-The same setup as in the example_executor, just using the RCLC convenience functions. You should see the exact same output:
+Example output:
 
 ```C
 Created timer with timeout 1000 ms.
@@ -195,14 +146,68 @@ $ ros2 run rclc_examples example_service_node
 INFO: rcl_wait timeout 10 ms
 Service request value: 24 + 42. Seq 1
 Received service response 24 + 42 = 66. Seq 1
-```C
+```
 
 window 2: start client node
 ```C
 ~$ ros2 run rclc_examples example_client_node
 Send service request 24 + 42. Seq 1
 INFO: rcl_wait timeout 10 ms
-```C
+```
 
 A request message is sent from the client node to the service node and answered.
 
+<<<<<<< HEAD
+=======
+## Example RCLC-Executor using RCL objects directly
+**Step 1** Setup ROS 2 Workspace
+
+Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
+```C
+~$ source /opt/ros/$ROSDISTRO/setup.bash
+```
+
+**Step 2** Build the package
+Download the rclc repository in a workspace (for example `ros2_ws`). Then source the workspace:
+```C
+~/ros2_ws/$ colcon build --packages-up-to rclc_examples
+~/ros2_ws/$ source ./install/local_setup.bash
+```
+It should build these packages:
+- rcl_yaml_param_parser
+- rcl
+- rclc
+- rclc_examples
+
+
+**Step 3** Run the example executor.
+
+The binary of the example is `example_executor_only_rcl`.
+
+```C
+~/ros2_ws/$ ros2 run rclc_examples example_executor_only_rcl
+```
+The publisher publishes the message `Hello World!`in `topic_0` at a rate of 1Hz and the subscriber prints out in the callback `Callback: I heard: Hello World!`.
+
+You should see the following output:
+
+```C
+Created timer with timeout 1000 ms.
+Created subscriber topic_0:
+Debug: number of DDS handles: 2
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+Published message Hello World!
+Callback: I heard: Hello World!
+```
+## Example real-time concurrency slow timer and long subscription
+This example demonstrates what happens, if a high frequency timer (every 100ms) and
+a subscription with a long processing time is managed by one executor. This demo shows,
+that the timer events are dropped during the long processing time of the subscription and are also not caught-up when there would be sufficient time. 
+>>>>>>> e63b644 (updated documentation (#332))
