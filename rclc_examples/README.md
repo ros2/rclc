@@ -8,6 +8,7 @@ The rclc_examples package provides examples for using the RCLC-Exector and conve
 - [example_executor_trigger.c](src/example_executor_trigger.c) demonstrates the trigger condition of the RCLC-Executor.
 - [example_service_node.c](src/example_service_node.c) implements a service node with the RCLC-Executor.
 - [example_client_node.c](src/example_client_node.c) implements a client node with RCLC-Executor.
+- [example_short_timer_long_subscription.c](src/example_client_node.c) demo with high frequency timer and subscription with long processing time with one executor.
 
 The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with RCL objects compared to using the convenience functions is about 24%:
 - example_executor.c: 92 LoC (lines 56-148)
@@ -206,3 +207,7 @@ INFO: rcl_wait timeout 10 ms
 
 A request message is sent from the client node to the service node and answered.
 
+## Example real-time concurrency slow timer and long subscription
+This example demonstrates what happens, if a high frequency timer (every 100ms) and
+a subscription with a long processing time is managed by one executor. This demo shows,
+that the timer events are dropped during the long processing time of the subscription and are also not caught-up when there would be sufficient time. 
