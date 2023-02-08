@@ -56,6 +56,9 @@ ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 add_executable(example_pingpong src/example_pingpong.cpp)
 ament_target_dependencies(example_pingpong rcl rclc std_msgs)
 
+add_executable(example_short_timer_long_subscription src/example_short_timer_long_subscription.c)
+ament_target_dependencies(example_short_timer_long_subscription rcl rclc std_msgs)
+
 install(TARGETS
   example_executor
   example_executor_convenience
@@ -66,6 +69,7 @@ install(TARGETS
   example_parameter_server
   example_sub_context
   example_pingpong
+  example_short_timer_long_subscription
   DESTINATION lib/${PROJECT_NAME}
 )
 
