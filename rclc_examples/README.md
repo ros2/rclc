@@ -11,14 +11,13 @@ The rclc_examples package provides examples for using the RCLC-Exector and conve
 - [example_executor_only_rcl.c](src/example_executor_only_rcl.c) provides the example for the RCLC-Executor. It creates one publisher and one subscriber and configures the RCLC-Executor using only the RCL API.
 - [example_short_timer_long_subscription.c](src/example_short_timer_long_subscription.c) demo with high frequency timer and subscription with long processing time with one executor.
 
-
-The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with RCL objects compared to using the convenience functions is about 24%:
-- example_executor.c: 92 LoC (lines 56-148)
-- example_executor_convenience.c: 70 LoC (line 17 + lines 57-126)
-
- counting only the lines of code in which the RCL objects are defined).
-
 ## Example RCLC-Executor
+Remark: The rclc package contains the rclc-Executor and a number of convenience functions to simplify the initialization of RCL objects,
+like subscriptions, timers, etc. The reduction of code lines for configuring the necessary RCL objects for RCLC-Executor directly with only RCL objects (see below)
+compared to using the default rclc-Executor with convenience functions is about 24%. Counting only the lines of code in which the RCL objects are defined:
+- example_executor_only_rcl.c: 92 LoC (lines 56-148)
+- example_executor.c: 70 LoC (line 17 + lines 57-126)
+
 **Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
@@ -155,6 +154,7 @@ INFO: rcl_wait timeout 10 ms
 A request message is sent from the client node to the service node and answered.
 
 ## Example RCLC-Executor using RCL objects directly
+
 **Step 1** Setup ROS 2 Workspace
 
 Open a terminal with ROS 2 workspace. Assuming that the ROS 2 installation resides in `/opt/ros/ROSDISTRO`, setup the ROS2 environment by:
@@ -200,6 +200,7 @@ Callback: I heard: Hello World!
 Published message Hello World!
 Callback: I heard: Hello World!
 ```
+
 ## Example real-time concurrency slow timer and long subscription
 This example demonstrates what happens, if a high frequency timer (every 100ms) and
 a subscription with a long processing time is managed by one executor. This demo shows,
