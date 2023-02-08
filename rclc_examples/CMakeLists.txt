@@ -32,8 +32,8 @@ include_directories(include)
 add_executable(example_executor src/example_executor.c)
 ament_target_dependencies(example_executor rcl rclc std_msgs)
 
-add_executable(example_executor_convenience src/example_executor_convenience.c)
-ament_target_dependencies(example_executor_convenience rcl rclc std_msgs)
+add_executable(example_executor_only_rcl src/example_executor_only_rcl.c)
+ament_target_dependencies(example_executor_only_rcl rcl rclc std_msgs)
 
 add_executable(example_executor_trigger src/example_executor_trigger.c)
 ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
@@ -61,7 +61,7 @@ ament_target_dependencies(example_short_timer_long_subscription rcl rclc std_msg
 
 install(TARGETS
   example_executor
-  example_executor_convenience
+  example_executor_only_rcl
   example_executor_trigger
   example_lifecycle_node
   example_service_node

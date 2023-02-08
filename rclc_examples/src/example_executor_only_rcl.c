@@ -14,9 +14,9 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <std_msgs/msg/string.h>
+
 #include <rclc/executor.h>
-#include <rclc/rclc.h>
+#include <std_msgs/msg/string.h>
 
 // these data structures for the publisher and subscriber are global, so that
 // they can be configured in main() and can be used in the corresponding callback.
@@ -56,22 +56,31 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 /******************** MAIN PROGRAM ****************************************/
 int main(int argc, const char * argv[])
 {
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  rclc_support_t support;
   rcl_ret_t rc;
 
   // create init_options
-  rc = rclc_support_init(&support, argc, argv, &allocator);
+  rc = rcl_init_options_init(&init_options, allocator);
   if (rc != RCL_RET_OK) {
-    printf("Error rclc_support_init.\n");
+    printf("Error rcl_init_options_init.\n");
+    return -1;
+  }
+
+  // create context
+  rc = rcl_init(argc, argv, &init_options, &context);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rcl_init.\n");
     return -1;
   }
 
   // create rcl_node
   rcl_node_t my_node = rcl_get_zero_initialized_node();
-  rc = rclc_node_init_default(&my_node, "node_0", "executor_examples", &support);
+  rcl_node_options_t node_ops = rcl_node_get_default_options();
+  rc = rcl_node_init(&my_node, "node_0", "executor_examples", &context, &node_ops);
   if (rc != RCL_RET_OK) {
-    printf("Error in rclc_node_init_default\n");
+    printf("Error in rcl_node_init\n");
     return -1;
   }
 
@@ -80,27 +89,36 @@ int main(int argc, const char * argv[])
   const char * topic_name = "topic_0";
   const rosidl_message_type_support_t * my_type_support =
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
-
-  rc = rclc_publisher_init_default(
+  rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
+  rc = rcl_publisher_init(
     &my_pub,
     &my_node,
     my_type_support,
-    topic_name);
+    topic_name,
+    &pub_options);
   if (RCL_RET_OK != rc) {
-    printf("Error in rclc_publisher_init_default %s.\n", topic_name);
+    printf("Error in rcl_publisher_init %s.\n", topic_name);
     return -1;
   }
 
-  // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
+  // create a timer, which will call the publisher every 'period' ms in the 'my_timer_callback'
+  rcl_clock_t clock;
+  rc = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  if (rc != RCL_RET_OK) {
+    printf("Error in rcl_clock_init.\n");
+    return -1;
+  }
   rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 1000;
-  rc = rclc_timer_init_default(
+  rc = rcl_timer_init(
     &my_timer,
-    &support,
+    &clock,
+    &context,
     RCL_MS_TO_NS(timer_timeout),
-    my_timer_callback);
+    my_timer_callback,
+    allocator);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init_default.\n");
+    printf("Error in rcl_timer_init.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);
@@ -116,11 +134,16 @@ int main(int argc, const char * argv[])
 
   // create subscription
   rcl_subscription_t my_sub = rcl_get_zero_initialized_subscription();
-  rc = rclc_subscription_init_default(
+  rcl_subscription_options_t my_subscription_options = rcl_subscription_get_default_options();
+
+
+  rc = rcl_subscription_init(
     &my_sub,
     &my_node,
     my_type_support,
-    topic_name);
+    topic_name,
+    &my_subscription_options);
+
   if (rc != RCL_RET_OK) {
     printf("Failed to create subscriber %s.\n", topic_name);
     return -1;
@@ -135,11 +158,22 @@ int main(int argc, const char * argv[])
   // Configuration of RCL Executor
   ////////////////////////////////////////////////////////////////////////////
   rclc_executor_t executor;
-  executor = rclc_executor_get_zero_initialized_executor();
-  // total number of handles = #subscriptions + #timers
+
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you 
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init() 
+  // for more details. 
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
-  rclc_executor_init(&executor, &support.context, num_handles, &allocator);
+  rclc_executor_init(&executor, &context, num_handles, &allocator);
+
+  // set timeout for rcl_wait()
+  unsigned int rcl_wait_timeout = 1000;   // in ms
+  rc = rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout));
+  if (rc != RCL_RET_OK) {
+    printf("Error in rclc_executor_set_timeout.");
+  }
 
   // add subscription to executor
   rc = rclc_executor_add_subscription(
@@ -154,22 +188,15 @@ int main(int argc, const char * argv[])
     printf("Error in rclc_executor_add_timer.\n");
   }
 
-  // Optional prepare for avoiding allocations during spin
-  rclc_executor_prepare(&executor);
+  rclc_executor_spin(&executor);
 
-  for (unsigned int i = 0; i < 10; i++) {
-    // timeout specified in nanoseconds (here 1s)
-    rclc_executor_spin_some(&executor, 1000 * (1000 * 1000));
-  }
-
-  // clean up
+  // clean up (never reached)
   rc = rclc_executor_fini(&executor);
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_timer);
   rc += rcl_subscription_fini(&my_sub, &my_node);
   rc += rcl_node_fini(&my_node);
-  rc += rclc_support_fini(&support);
-
+  rc += rcl_init_options_fini(&init_options);
   std_msgs__msg__String__fini(&pub_msg);
   std_msgs__msg__String__fini(&sub_msg);
 
