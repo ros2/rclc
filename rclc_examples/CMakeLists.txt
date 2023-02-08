@@ -56,19 +56,9 @@ ament_target_dependencies(example_sub_context rcl rclc std_msgs)
 add_executable(example_pingpong src/example_pingpong.cpp)
 ament_target_dependencies(example_pingpong rcl rclc std_msgs)
 
-<<<<<<< HEAD
-=======
-add_executable(example_action_server src/example_action_server.c)
-target_link_libraries(example_action_server Threads::Threads)
-ament_target_dependencies(example_action_server rcl rcl_action rclc example_interfaces)
-
-add_executable(example_action_client src/example_action_client.c)
-ament_target_dependencies(example_action_client rcl rcl_action rclc example_interfaces)
-
 add_executable(example_short_timer_long_subscription src/example_short_timer_long_subscription.c)
 ament_target_dependencies(example_short_timer_long_subscription rcl rclc std_msgs)
 
->>>>>>> fd648d9 (Example real-time concurreny timer and subscription (#329))
 install(TARGETS
   example_executor
   example_executor_convenience
@@ -79,12 +69,7 @@ install(TARGETS
   example_parameter_server
   example_sub_context
   example_pingpong
-<<<<<<< HEAD
-=======
-  example_action_server
-  example_action_client
   example_short_timer_long_subscription
->>>>>>> fd648d9 (Example real-time concurreny timer and subscription (#329))
   DESTINATION lib/${PROJECT_NAME}
 )
 
