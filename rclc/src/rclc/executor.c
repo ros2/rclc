@@ -1810,6 +1810,12 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
     return RCL_RET_ERROR;
   }
 
+  // (js) performance overhead to check this in every spin_some
+  // however, if spin_some is available as API, then this is necessary
+  if (executor->type == NONE) {
+    rclc_single_threaded_executor_configure(executor);
+  }
+
   rclc_executor_prepare(executor);
 
   // set rmw fields to NULL
@@ -1979,6 +1985,11 @@ rclc_executor_spin(rclc_executor_t * executor)
     ROS_PACKAGE_NAME,
     "INFO: rcl_wait timeout %ld ms",
     ((executor->timeout_ns / 1000) / 1000));
+
+  if (executor->type == NONE) {
+    rclc_single_threaded_executor_configure(executor);
+  }
+  executor->spin_init(executor);
   while (true) {
     ret = rclc_executor_spin_some(executor, executor->timeout_ns);
     if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
@@ -2118,4 +2129,20 @@ bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int
   RCLC_UNUSED(size);
   RCLC_UNUSED(obj);
   return true;
+}
+
+rcl_ret_t
+rclc_single_threaded_executor_spin_init(rclc_executor_t * executor)
+{
+  RCLC_UNUSED(executor);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rclc_single_threaded_executor_configure(rclc_executor_t * executor)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
+  executor->type = SINGLE_THREADED;
+  executor->spin_init = rclc_single_threaded_executor_spin_init;
+  return RCL_RET_OK;
 }
