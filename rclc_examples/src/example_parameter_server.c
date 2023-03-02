@@ -137,9 +137,9 @@ int main()
   rclc_parameter_get_int(&param_server, "param2", &param2);
   rclc_parameter_get_double(&param_server, "param3", &param3);
 
-  // Optional prepare for avoiding allocations during spin
+  // Optional: avoids memory allocations after calling spin()
   rclc_executor_prepare(&executor);
-
+  // Start Executor
   rclc_executor_spin(&executor);
 
   // clean up

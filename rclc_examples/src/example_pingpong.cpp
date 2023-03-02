@@ -417,12 +417,9 @@ int main(int argc, const char * argv[])
       printf("Error in rclc_executor_add_timer.\n");
     }
 
-  
-    // Optional prepare for avoiding allocations during spin
+    // Optional: prepare for avoiding allocations during spin
     rclc_executor_prepare(&ping_executor);
     rclc_executor_prepare(&pong_executor);
-
-    // rclc_executor_spin(&executor ); end less loop
 
     for (unsigned int i = 0; i < 10; i++) {
         // timeout specified in nanoseconds (here 1s)
