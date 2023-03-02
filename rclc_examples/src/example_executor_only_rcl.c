@@ -187,7 +187,7 @@ int main(int argc, const char * argv[])
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_timer.\n");
   }
-
+  // Start Executor
   rclc_executor_spin(&executor);
 
   // clean up (never reached)
