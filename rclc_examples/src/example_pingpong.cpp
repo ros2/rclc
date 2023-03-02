@@ -366,6 +366,11 @@ int main(int argc, const char * argv[])
     rclc_executor_t ping_executor;
     ping_executor = rclc_executor_get_zero_initialized_executor();
     // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
+    // Note:
+    // If you need more than the default number of publisher/subscribers, etc., you
+    // need to configure the micro-ROS middleware also!
+    // See documentation in the executor.h at the function rclc_executor_init()
+    // for more details.
     unsigned int pingNode_num_handles = 1 + 1;
     printf("Debug: number of DDS handles: %u\n", pingNode_num_handles);
     rclc_executor_init(&ping_executor, &support.context, pingNode_num_handles, &allocator);

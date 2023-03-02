@@ -58,6 +58,11 @@ int main(int argc, const char * const * argv)
       ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts), "/addtwoints"));
 
   // create executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
 

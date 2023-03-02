@@ -139,10 +139,10 @@ int main(int argc, const char * argv[])
   // total number of handles = #subscriptions + #timers
   //
   // Note:
-  // If you need more than the default number of publisher/subscribers, etc., you 
+  // If you need more than the default number of publisher/subscribers, etc., you
   // need to configure the micro-ROS middleware also!
-  // See documentation in the executor.h at the function rclc_executor_init() 
-  // for more details. 
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   unsigned int num_handles = 1 + 1;
   printf("Debug: number of DDS handles: %u\n", num_handles);
   rclc_executor_init(&executor, &support.context, num_handles, &allocator);
