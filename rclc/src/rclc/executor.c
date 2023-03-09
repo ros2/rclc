@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #include "rclc/executor.h"
+#include "rclc/single_threaded_executor.h"
 #include <rcutils/time.h>
 
 #include "./action_generic_types.h"
