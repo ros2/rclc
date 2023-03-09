@@ -15,8 +15,8 @@
 // limitations under the License.
 
 #include "rclc/executor.h"
-#include "rclc/single_threaded_executor.h"
 #include <rcutils/time.h>
+#include "rclc/single_threaded_executor.h"
 
 #include "./action_generic_types.h"
 #include "./action_goal_handle_internal.h"
@@ -2136,4 +2136,3 @@ bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int
   RCLC_UNUSED(obj);
   return true;
 }
-
