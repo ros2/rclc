@@ -2136,18 +2136,3 @@ bool rclc_executor_trigger_always(rclc_executor_handle_t * handles, unsigned int
   return true;
 }
 
-rcl_ret_t
-rclc_single_threaded_executor_spin_init(rclc_executor_t * executor)
-{
-  RCLC_UNUSED(executor);
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rclc_single_threaded_executor_configure(rclc_executor_t * executor)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
-  executor->type = SINGLE_THREADED;
-  executor->spin_init = rclc_single_threaded_executor_spin_init;
-  return RCL_RET_OK;
-}
