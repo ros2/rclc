@@ -61,6 +61,7 @@ add_library(${PROJECT_NAME}
   src/rclc/action_goal_handle.c
   src/rclc/node.c
   src/rclc/executor_handle.c
+  src/rclc/single_threaded_executor.c
   src/rclc/executor.c
   src/rclc/sleep.c
 )

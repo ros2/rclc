@@ -22,6 +22,7 @@ extern "C"
 #endif
 
 #include <rcl/rcl.h>
+#include <rclc/executor.h>
 #include <rclc/visibility_control.h>
 
 RCLC_PUBLIC
