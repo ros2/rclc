@@ -96,6 +96,11 @@ int main(int argc, const char * argv[])
   }
 
   // Executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   rclc_executor_t executor;
   RCCHECK(rclc_executor_init(
     &executor,

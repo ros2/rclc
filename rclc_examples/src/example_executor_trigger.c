@@ -317,8 +317,12 @@ int main(int argc, const char * argv[])
   rclc_executor_t executor_pub;
   rclc_executor_t executor_sub;
 
-
-  // Executor for publishing messages
+  // Executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   unsigned int num_handles_pub = 2;
   printf("Executor_pub: number of DDS handles: %u\n", num_handles_pub);
   rclc_executor_init(&executor_pub, &support.context, num_handles_pub, &allocator);

@@ -162,6 +162,11 @@ int main(int argc, const char * argv[])
   // total number of handles = #subscriptions + #timers
   // check also xrce-dds configuration for maximum number of publisher, 
   // subscribers, timers etc. 
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   unsigned int num_handles = 1 + 2;
   printf("Debug: number of DDS handles: %u\n", num_handles);
   rclc_executor_init(&executor, &support.context, num_handles, &allocator);
@@ -183,9 +188,8 @@ int main(int argc, const char * argv[])
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_executor_add_timer.\n");
   }
-
+  // Start Executor
   rclc_executor_spin(&executor);
-
 
   // clean up
   rc = rclc_executor_fini(&executor);
