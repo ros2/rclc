@@ -139,6 +139,11 @@ int main()
   );
 
   // Create executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   rclc_executor_t executor;
   rclc_executor_init(&executor, &support.context, 1, &allocator);
 
