@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.2 (2023-03-22)
+------------------
+* Fix parameter change event (#310)
+
 4.0.1 (2022-07-20)
 ------------------
 * improved doxygen-generated API documentation (#301) (#302)
