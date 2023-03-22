@@ -366,6 +366,11 @@ int main(int argc, const char * argv[])
     rclc_executor_t ping_executor;
     ping_executor = rclc_executor_get_zero_initialized_executor();
     // total number of handles = #subscriptions + #timers + #Services (in below case services are 0)
+    // Note:
+    // If you need more than the default number of publisher/subscribers, etc., you
+    // need to configure the micro-ROS middleware also!
+    // See documentation in the executor.h at the function rclc_executor_init()
+    // for more details.
     unsigned int pingNode_num_handles = 1 + 1;
     printf("Debug: number of DDS handles: %u\n", pingNode_num_handles);
     rclc_executor_init(&ping_executor, &support.context, pingNode_num_handles, &allocator);
@@ -412,12 +417,9 @@ int main(int argc, const char * argv[])
       printf("Error in rclc_executor_add_timer.\n");
     }
 
-  
-    // Optional prepare for avoiding allocations during spin
+    // Optional: prepare for avoiding allocations during spin
     rclc_executor_prepare(&ping_executor);
     rclc_executor_prepare(&pong_executor);
-
-    // rclc_executor_spin(&executor ); end less loop
 
     for (unsigned int i = 0; i < 10; i++) {
         // timeout specified in nanoseconds (here 1s)
