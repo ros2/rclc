@@ -1,6 +1,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+4.0.2 (2022-03-22)
+* Drop build dependency on std_msgs (backport #314) (#315)
+* Updated ros-tooling/setup-ros@0.4.2 and ros-tooling/action-ros-ci@0.2.7 (#318) (#320)
+* Removed build status for Galactic in README (EOL November 2022) (#321) (#322)
+* Update documentation about number_of_handles (#326) (#327)
 
 4.0.1 (2022-07-20)
 ------------------

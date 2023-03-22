@@ -2,6 +2,9 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.2 (2022-03-22)
+* none
+
 4.0.1 (2022-07-20)
 ------------------
 * improved doxygen-generated API documentation (#301) (#302)
