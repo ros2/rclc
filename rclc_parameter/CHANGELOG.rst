@@ -2,6 +2,11 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.9 (2023-03-22)
+------------------
+* Added documentation (#301)
+* Fix parameter change event (#310) (#311)
+
 3.0.8 (2022-04-14)
 ------------------
 * Parameters fini memory (#253)
