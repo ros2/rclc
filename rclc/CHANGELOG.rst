@@ -1,6 +1,17 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.1.2 (2023-03-31)
+------------------
+* Added build status of bloom-releases for Humble distribution (backport #291) (#294)
+* [rolling] updated ros-tooling versions (backport #289) (#299)
+* added documentation (#301) (#304)
+* Drop build dependency on std_msgs (backport #314) (#317)
+* Updated ros-tooling versions (backport #318) (#319)
+* removed build status for Galactic distribution in README (backport #321) (#323)
+* Update documentation about number_of_handles (#326) (#328)
+
 1.1.1 (2022-03-16)
 ------------------
 * Fix enum naming for avoid collision (backport #242) (#243)
