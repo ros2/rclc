@@ -87,36 +87,7 @@ int main(int argc, const char * argv[])
     return -1;
   }
 
-<<<<<<< HEAD
   // register callbacks
-=======
-  // Executor
-  // Note:
-  // If you need more than the default number of publisher/subscribers, etc., you
-  // need to configure the micro-ROS middleware also!
-  // See documentation in the executor.h at the function rclc_executor_init()
-  // for more details.
-  rclc_executor_t executor;
-  RCCHECK(rclc_executor_init(
-    &executor,
-    &support.context,
-    4,  // 1 for the node + 1 for each lifecycle service
-    &allocator));
-
-  unsigned int rcl_wait_timeout = 1000;  // in ms
-  RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
-
-  // Register lifecycle services
-  printf("registering lifecycle services...\n");
-  rclc_lifecycle_service_context_t context;
-  context.lifecycle_node = &lifecycle_node;
-  RCCHECK(rclc_lifecycle_init_get_state_server(&context, &executor));
-  RCCHECK(rclc_lifecycle_init_get_available_states_server(&context, &executor));
-  RCCHECK(rclc_lifecycle_init_change_state_server(&context, &executor));
-
-  // Register lifecycle service callbacks
-  printf("registering callbacks...\n");
->>>>>>> 810afe1 (added documentation about number_of_handles in all examples. (#341))
   rclc_lifecycle_register_on_configure(&lifecycle_node, &my_on_configure);
   rclc_lifecycle_register_on_deactivate(&lifecycle_node, &my_on_deactivate);
 

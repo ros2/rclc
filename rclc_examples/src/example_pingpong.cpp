@@ -413,12 +413,7 @@ int main(int argc, const char * argv[])
       printf("Error in rclc_executor_add_timer.\n");
     }
 
-<<<<<<< HEAD
-
-    // Optional prepare for avoiding allocations during spin
-=======
     // Optional: prepare for avoiding allocations during spin
->>>>>>> 810afe1 (added documentation about number_of_handles in all examples. (#341))
     rclc_executor_prepare(&ping_executor);
     rclc_executor_prepare(&pong_executor);
 
