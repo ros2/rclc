@@ -144,6 +144,9 @@ rclc_executor_init(
   // default semantics
   rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR);
 
+  // custom initialization
+  executor->init(executor);
+
   return ret;
 }
 

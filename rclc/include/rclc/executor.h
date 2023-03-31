@@ -97,10 +97,11 @@ struct rclc_executor_t_
   void * trigger_object;
   /// data communication semantics
   rclc_executor_semantics_t data_comm_semantics;
-  /// pointer to 'sub-class' executor
-  void * sub_class;
+  /// pointer to custom executor data structure
+  void * custom;
 
   /// interface functions
+  rclc_executor_func_t init;
   rclc_executor_func_t spin_init;
 };
 

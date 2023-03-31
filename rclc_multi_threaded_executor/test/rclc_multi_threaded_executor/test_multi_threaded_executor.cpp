@@ -20,6 +20,31 @@ extern "C"
 #include "rclc/rclc.h"
 }
 
+
+TEST(Test, rclc_single_threaded_executor) {
+  // Init rclc
+  rclc_support_t support;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ASSERT_EQ(rclc_support_init(&support, 0, nullptr, &allocator), RCL_RET_OK);
+
+  // Init node
+  rcl_node_t node;
+  ASSERT_EQ(rclc_node_init_default(&node, "test_node", "", &support), RCL_RET_OK);
+
+
+  rclc_executor_t executor;
+  // Configure multi-threaded executor
+  ASSERT_EQ(rclc_single_threaded_executor_configure(&executor), RCL_RET_OK);
+  ASSERT_EQ(rclc_executor_init(&executor, &support.context, 10, &allocator), RCL_RET_OK);
+  ASSERT_EQ(rclc_executor_add_subscription(&executor, &sub_1, nullptr), RCL_RET_OK);
+  // rclc_executor_spin_some(&executor);
+
+
+  // Clean up
+  ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
+  ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
+}
+
 TEST(Test, rclc_multi_threaded_executor) {
   // Init rclc
   rclc_support_t support;
@@ -30,19 +55,14 @@ TEST(Test, rclc_multi_threaded_executor) {
   rcl_node_t node;
   ASSERT_EQ(rclc_node_init_default(&node, "test_node", "", &support), RCL_RET_OK);
 
-  // Init executor
+  // Init multi-threaded executor
   rclc_executor_t executor;
-  rclc_executor_init(
-    &executor, &support.context, 10,
-    &allocator);
-  // Configure multi-threaded executor
   ASSERT_EQ(rclc_multi_threaded_executor_configure(&executor), RCL_RET_OK);
-
+  ASSERT_EQ(rclc_executor_init(&executor, &support.context, 10, &allocator), RCL_RET_OK);
   // ASSERT_EQ(rclc_executor_add_subscription(&executor, &sub_1, nullptr), RCL_RET_OK);
   // rclc_executor_spin_some(&executor);
 
-
-  // Destroy parameter server
+  // Clean up
   ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
   ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
