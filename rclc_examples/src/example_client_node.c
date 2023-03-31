@@ -58,6 +58,11 @@ int main(int argc, const char * const * argv)
       ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts), "/addtwoints"));
 
   // create executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
 
@@ -75,9 +80,7 @@ int main(int argc, const char * const * argv)
   RCCHECK(rcl_send_request(&client, &req, &seq))
   printf("Send service request %ld + %ld.\n", req.a, req.b);
 
-  // Optional prepare for avoiding allocations during spin
-  rclc_executor_prepare(&executor);
-
+  // Start Executor
   rclc_executor_spin(&executor);
 
   RCCHECK(rcl_client_fini(&client, &node));

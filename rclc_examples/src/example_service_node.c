@@ -66,6 +66,11 @@ int main(int argc, const char * const * argv)
 
   // create executor
   rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
 
   unsigned int rcl_wait_timeout = 10;         // in ms

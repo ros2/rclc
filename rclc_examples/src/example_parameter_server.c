@@ -83,6 +83,11 @@ int main()
     timer_callback);
 
   // Create executor
+  // Note:
+  // If you need more than the default number of publisher/subscribers, etc., you
+  // need to configure the micro-ROS middleware also!
+  // See documentation in the executor.h at the function rclc_executor_init()
+  // for more details.
   rclc_executor_t executor;
   rclc_executor_init(
     &executor, &support.context, RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER + 1,
@@ -107,9 +112,7 @@ int main()
   rclc_parameter_get_int(&param_server, "param2", &param2);
   rclc_parameter_get_double(&param_server, "param3", &param3);
 
-  // Optional prepare for avoiding allocations during spin
-  rclc_executor_prepare(&executor);
-
+  // Start Executor
   rclc_executor_spin(&executor);
 
   // clean up
