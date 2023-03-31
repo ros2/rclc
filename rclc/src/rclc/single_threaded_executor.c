@@ -29,5 +29,6 @@ rclc_single_threaded_executor_configure(rclc_executor_t * executor)
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   executor->type = SINGLE_THREADED;
   executor->spin_init = rclc_single_threaded_executor_spin_init;
+  executor->custom = NULL;
   return RCL_RET_OK;
 }

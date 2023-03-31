@@ -22,8 +22,56 @@ extern "C"
 #endif
 
 #include <rcl/rcl.h>
+#include <pthread.h>
+#include <sched.h>
 #include <rclc/executor.h>
 #include <rclc/visibility_control.h>
+
+
+/// Thread state: READY, BUSY
+typedef enum
+{
+  RCLC_THREAD_NONE,
+  RCLC_THREAD_READY,
+  RCLC_THREAD_BUSY
+} rclc_executor_thread_state_t;
+
+/// Scheduling policy (SCHED_FIFO, SCHED_SPORADIC) and POSIX parameter sched_param
+typedef struct
+{
+  int policy;
+  struct sched_param param;
+} rclc_executor_sched_parameter_t;
+
+typedef struct
+{
+  /// mutex for worker threads
+  pthread_mutex_t thread_state_mutex;
+  /// mutex for RCL layer access
+  pthread_mutex_t micro_ros_mutex;
+} rclc_executor_multi_threaded_data_t;
+
+typedef struct
+{
+  /// worker thread
+  pthread_t worker_thread;
+  /// thread scheduling parameters
+  rclc_executor_sched_parameter_t * sparam;
+  pthread_attr_t tattr;
+  /// worker thread state
+  rclc_executor_thread_state_t worker_thread_state;
+  /// condition variable to signal worker threads
+  pthread_cond_t new_msg_cond;
+  pthread_mutex_t new_msg_mutex;
+  bool new_msg_avail;
+} rclc_handle_multi_threaded_data_t;
+
+typedef struct
+{
+  pthread_mutex_t * thread_state_mutex;
+  pthread_mutex_t * micro_ros_mutex;
+  rclc_executor_handle_t * handle;
+} rclc_executor_worker_thread_param_t;
 
 RCLC_PUBLIC
 rcl_ret_t
@@ -31,8 +79,18 @@ rclc_multi_threaded_executor_configure(rclc_executor_t * executor);
 
 RCLC_PUBLIC
 rcl_ret_t
+rclc_multi_threaded_executor_init(rclc_executor_t * executor);
+
+RCLC_PUBLIC
+rcl_ret_t
 rclc_multi_threaded_executor_spin_init(rclc_executor_t * executor);
 
+RCLC_PUBLIC
+rcl_ret_t
+rclc_multi_threaded_executor_subscription_set_sched_param(
+  rclc_executor_t * executor,
+  rcl_subscription_t * subscription,
+  rclc_executor_sched_parameter_t * sparam);
 
 #if __cplusplus
 }
