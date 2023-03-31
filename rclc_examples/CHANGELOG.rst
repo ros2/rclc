@@ -2,6 +2,12 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2023-03-31)
+------------------
+* Example real-time concurreny timer and subscription (backport #329) (#331)
+* updated rclc_examples (backport #332) (#333)
+* Updated README in rclc_examples (backport #335) (#337)
+
 1.1.1 (2022-03-16)
 ------------------
 * Backport parameters (#263)

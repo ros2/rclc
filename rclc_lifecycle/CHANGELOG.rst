@@ -2,6 +2,11 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2023-03-31)
+------------------
+* Fix rclc lifecyle header (#279) (#280)
+* added documentation (#301) (#304)
+
 1.1.1 (2022-03-16)
 ------------------
 * no changes
