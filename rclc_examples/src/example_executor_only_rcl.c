@@ -15,6 +15,8 @@
 
 #include <stdio.h>
 
+#include <rcl/logging.h>
+#include <rcl/logging_rosout.h>
 #include <rclc/executor.h>
 #include <std_msgs/msg/string.h>
 
@@ -82,6 +84,13 @@ int main(int argc, const char * argv[])
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_node_init\n");
     return -1;
+  }
+  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
+    rc = rcl_logging_rosout_init_publisher_for_node(&my_node);
+    if (rc != RCL_RET_OK) {
+      printf("Error in rcl_logging_rosout_init_publisher_for_node\n");
+      return -1;
+    }
   }
 
   // create a publisher to publish topic 'topic_0' with type std_msg::msg::String
