@@ -23,9 +23,6 @@ extern "C"
 #include <lifecycle_msgs/msg/state.h>
 #include <lifecycle_msgs/msg/transition.h>
 
-#include <rcl/logging.h>
-#include <rcl/logging_rosout.h>
-
 #include "rclc_lifecycle/rclc_lifecycle.h"
 }
 
@@ -66,9 +63,6 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
-  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
-    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
-  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -106,9 +100,6 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
-  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
-    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
-  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -179,9 +170,6 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
-  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
-    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
-  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -247,9 +235,6 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
-  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
-    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
-  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();

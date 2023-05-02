@@ -17,8 +17,6 @@
 #include "rclc/node.h"
 
 #include <rcl/error_handling.h>
-#include <rcl/logging.h>
-#include <rcl/logging_rosout.h>
 #include <rcutils/logging_macros.h>
 
 rcl_ret_t
@@ -81,24 +79,6 @@ rclc_node_init_with_options(
     node_ops);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_WARN(rclc_node_init_with_options, rcl_node_init);
-    return rc;
   }
-
-  // The initialization for the rosout publisher
-  if (rcl_logging_rosout_enabled() && node_ops->enable_rosout) {
-    rc = rcl_logging_rosout_init_publisher_for_node(node);
-    if (rc != RCL_RET_OK) {
-      PRINT_RCLC_WARN(
-        rclc_node_init_with_options,
-        rcl_logging_rosout_init_publisher_for_node);
-      if (rcl_logging_rosout_fini_publisher_for_node(node) != RCL_RET_OK) {
-        PRINT_RCLC_WARN(
-          rclc_node_init_with_options,
-          rcl_logging_rosout_fini_publisher_for_node);
-      }
-      return rc;
-    }
-  }
-
   return rc;
 }
