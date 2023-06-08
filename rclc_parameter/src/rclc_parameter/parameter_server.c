@@ -1043,7 +1043,8 @@ rclc_parameter_server_fini_memory(
 
   // Finish set atomically msgs
   for (size_t i = 0; i < parameter_server->set_atomically_request.parameters.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->set_atomically_request.parameters.data[i].name);
+    rosidl_runtime_c__String__fini(
+      &parameter_server->set_atomically_request.parameters.data[i].name);
   }
 
   rosidl_runtime_c__String__fini(&parameter_server->set_atomically_response.result.reason);
