@@ -1,5 +1,14 @@
 # The rclc package
 
+
+## Notice
+In this feature branch (feature/restructured-executor), a new modular rclc-Executor is developed. It will provide the following functionality:
+
+- single-threaded Executor
+- multi-threaded Executor
+- AUTOSAR-like Executor (for periodic operating systems)
+
+
 ## Table of contents
 
 *   [Introduction](#introduction)

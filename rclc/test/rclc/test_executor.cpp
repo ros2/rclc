@@ -609,6 +609,22 @@ public:
 /*
  * Test suite
  */
+
+
+TEST_F(TestDefaultExecutor, executor_get_zero_initialized_executor) {
+  rcl_ret_t rc;
+  rclc_executor_t executor;
+  executor = rclc_executor_get_zero_initialized_executor();
+  EXPECT_EQ(NONE, executor.type) << "expected type=NONE";
+  // EXPECT_EQ(NULL, executor.context) << "expected context=NULL";
+  // EXPECT_EQ(1, executor.max_handles) << "expected max_handles=0";
+
+  // tear down
+  rc = rclc_executor_fini(&executor);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+}
+
+
 TEST_F(TestDefaultExecutor, executor_init) {
   rcl_ret_t rc;
 
