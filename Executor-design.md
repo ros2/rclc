@@ -6,7 +6,7 @@ In this feature branch (feature/restructured-executor), a new modular rclc-Execu
 - AUTOSAR-like Executor (for periodic operating systems)
 
 
-# Design of modular rclc Executor
+# Software Design
 
 - one base rclc package with single-threaded Executor
 - several packages for additional configurations (multi-threaded, AUTOSAR-like OS)
@@ -15,8 +15,7 @@ In this feature branch (feature/restructured-executor), a new modular rclc-Execu
 - this fn-pointer is set in the configuration function
 
 
-
-# Comparison of Executor Implementations
+# Comparison of Executor Implementation
 
 This table gives an overview of the differences between the Executor implementations. 
 Each function in the rclc-library might have a function pointer to a specialization function, e.g. work that is specific to the particular Executor. 
