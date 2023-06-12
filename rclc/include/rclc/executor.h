@@ -71,6 +71,8 @@ typedef rcl_ret_t (* rclc_executor_func_t)(rclc_executor_t *);
 /// Container for RCLC-Executor
 struct rclc_executor_t_
 {
+  /// Type of Executor
+  rclc_executor_type_t type;
   /// Context (to get information if ROS is up-and-running)
   rcl_context_t * context;
   /// Container for dynamic array for DDS-handles
