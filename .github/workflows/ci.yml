@@ -1,10 +1,10 @@
-name: CI RCLC Rolling
+name: CI RCLC Iron
 
 on:
   push:
-    branches: [ master ]
+    branches: [ iron ]
   pull_request:
-    branches: [ master ]
+    branches: [ iron ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -16,15 +16,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04 ]
-        ros_distribution: [ rolling ]
+        ros_distribution: [ iron ]
         include:
           - docker_image: ubuntu:jammy
-            ros_distribution: rolling
+            ros_distribution: iron
     container:
       image: ${{ matrix.docker_image }}
     steps:
     - uses: actions/checkout@v2
-    - uses: ros-tooling/setup-ros@0.4.2
+    - uses: ros-tooling/setup-ros@0.6.2
       with:
         use-ros2-testing: true
         required-ros-distributions: ${{ matrix.ros_distribution }}
@@ -35,7 +35,7 @@ jobs:
         apt-get install ros-${{ matrix.ros_distribution }}-rclcpp-action
         apt-get install ros-${{ matrix.ros_distribution }}-mimick-vendor
         apt-get -y install ros-${{ matrix.ros_distribution }}-performance-test-fixture
-    - uses : ros-tooling/action-ros-ci@0.2.7
+    - uses : ros-tooling/action-ros-ci@0.3.2
       with:
         package-name: "rclc rclc_examples rclc_lifecycle rclc_parameter"
         target-ros2-distro: ${{ matrix.ros_distribution }}
