@@ -2,9 +2,9 @@ name: CI RCLC Rolling
 
 on:
   push:
-    branches: [ master ]
+    branches: [ rolling ]
   pull_request:
-    branches: [ master ]
+    branches: [ rolling ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
