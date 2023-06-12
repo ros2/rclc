@@ -327,6 +327,19 @@ rclc_parameter_server_set_service_callback(
   }
 }
 
+void
+rclc_parameter_server_set_atomically_service_callback(
+  const void * req,
+  void * res,
+  void * parameter_server)
+{
+  (void) req;
+  (void) res;
+  (void) parameter_server;
+
+  return;
+}
+
 const rclc_parameter_options_t DEFAULT_PARAMETER_SERVER_OPTIONS = {
   .notify_changed_over_dds = true,
   .max_params = 4,
@@ -429,6 +442,26 @@ init_parameter_server_memory(
     mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
       &parameter_server->set_response.results.data[i].reason);
   }
+
+  // Init SetAtomically service msgs
+  mem_allocs_ok &=
+    rcl_interfaces__srv__SetParametersAtomically_Request__init(
+    &parameter_server->set_atomically_request);
+  mem_allocs_ok &=
+    rcl_interfaces__srv__SetParametersAtomically_Response__init(
+    &parameter_server->set_atomically_response);
+  mem_allocs_ok &= rcl_interfaces__msg__Parameter__Sequence__init(
+    &parameter_server->set_atomically_request.parameters,
+    options->max_params);
+  parameter_server->set_atomically_request.parameters.size = 0;
+  mem_allocs_ok &= rclc_parameter_descriptor_initialize_string(
+    &parameter_server->set_atomically_response.result.reason);
+
+  // Set response result to unimplemented
+  rclc_parameter_set_string(
+    &parameter_server->set_atomically_response.result.reason,
+    "Unimplemented service");
+  parameter_server->set_atomically_response.result.successful = false;
 
   // Init Get types service msgs
   mem_allocs_ok &= rcl_interfaces__srv__GetParameterTypes_Request__init(
@@ -651,6 +684,28 @@ rcl_ret_t init_parameter_server_memory_low(
     &parameter_server->set_response.results.data[0].reason,
     RCLC_SET_ERROR_MAX_STRING_LENGTH);
 
+  // Init SetAtomically service msgs
+  parameter_server->set_atomically_request.parameters.data = allocator.zero_allocate(
+    1, sizeof(Parameter),
+    allocator.state);
+  parameter_server->set_atomically_request.parameters.size = 0;
+  parameter_server->set_atomically_request.parameters.capacity = 1;
+
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->set_atomically_request.parameters.data[0].name,
+    RCLC_PARAMETER_MAX_STRING_LENGTH);
+
+  char * unimplemented_msg = "Unimplemented service";
+  ret |= rclc_parameter_initialize_empty_string(
+    &parameter_server->set_atomically_response.result.reason,
+    strlen(unimplemented_msg) + 1);
+
+  // Set response result to unimplemented
+  rclc_parameter_set_string(
+    &parameter_server->set_atomically_response.result.reason,
+    unimplemented_msg);
+  parameter_server->set_atomically_response.result.successful = false;
+
   // Get parameter types:
   //    - Only one parameter type can be retrieved per request
   parameter_server->get_types_request.names.data =
@@ -764,6 +819,14 @@ rclc_parameter_server_init_with_option(
     &parameter_server->set_service, node, "/set_parameters",
     set_ts);
 
+  const rosidl_service_type_support_t * set_atom_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    rcl_interfaces,
+    srv,
+    SetParametersAtomically);
+  ret |= rclc_parameter_server_init_service(
+    &parameter_server->set_atomically_service, node, "/set_parameters_atomically",
+    set_atom_ts);
+
   const rosidl_service_type_support_t * list_ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     rcl_interfaces,
     srv,
@@ -839,6 +902,19 @@ rclc_parameter_server_fini_memory_low(
   allocator.deallocate(parameter_server->set_response.results.data, allocator.state);
   parameter_server->set_response.results.capacity = 0;
   parameter_server->set_response.results.size = 0;
+
+  // Set atomically request
+  allocator.deallocate(
+    parameter_server->set_atomically_request.parameters.data[0].name.data,
+    allocator.state);
+  allocator.deallocate(parameter_server->set_atomically_request.parameters.data, allocator.state);
+  parameter_server->set_atomically_request.parameters.capacity = 0;
+  parameter_server->set_atomically_request.parameters.size = 0;
+
+  // Set atomically response
+  allocator.deallocate(
+    parameter_server->set_atomically_response.result.reason.data,
+    allocator.state);
 
   // List response
   for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; ++i) {
@@ -965,6 +1041,20 @@ rclc_parameter_server_fini_memory(
   rcl_interfaces__srv__SetParameters_Response__fini(&parameter_server->set_response);
   rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
 
+  // Finish set atomically msgs
+  for (size_t i = 0; i < parameter_server->set_atomically_request.parameters.capacity; ++i) {
+    rosidl_runtime_c__String__fini(
+      &parameter_server->set_atomically_request.parameters.data[i].name);
+  }
+
+  rosidl_runtime_c__String__fini(&parameter_server->set_atomically_response.result.reason);
+  rcl_interfaces__msg__Parameter__Sequence__fini(
+    &parameter_server->set_atomically_request.parameters);
+  rcl_interfaces__srv__SetParametersAtomically_Response__fini(
+    &parameter_server->set_atomically_response);
+  rcl_interfaces__srv__SetParametersAtomically_Request__fini(
+    &parameter_server->set_atomically_request);
+
   // Finish get msgs
   for (size_t i = 0; i < parameter_server->get_request.names.capacity; ++i) {
     rosidl_runtime_c__String__fini(&parameter_server->get_request.names.data[i]);
@@ -1025,6 +1115,7 @@ rclc_parameter_server_fini(
 
   ret |= rcl_service_fini(&parameter_server->list_service, node);
   ret |= rcl_service_fini(&parameter_server->set_service, node);
+  ret |= rcl_service_fini(&parameter_server->set_atomically_service, node);
   ret |= rcl_service_fini(&parameter_server->get_service, node);
   ret |= rcl_service_fini(&parameter_server->get_types_service, node);
   ret |= rcl_service_fini(&parameter_server->describe_service, node);
@@ -1083,6 +1174,12 @@ rclc_executor_add_parameter_server_with_context(
     executor, &parameter_server->set_service,
     &parameter_server->set_request, &parameter_server->set_response,
     rclc_parameter_server_set_service_callback,
+    parameter_server);
+
+  ret |= rclc_executor_add_service_with_context(
+    executor, &parameter_server->set_atomically_service,
+    &parameter_server->set_atomically_request, &parameter_server->set_atomically_response,
+    rclc_parameter_server_set_atomically_service_callback,
     parameter_server);
 
   ret |= rclc_executor_add_service_with_context(
