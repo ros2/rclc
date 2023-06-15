@@ -2,6 +2,13 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2023-06-15)
+------------------
+* Data structures interfaces for multi-threaded executor (#355)
+* Updated ros-tooling versions (#361)
+* Updated actions/checkout version (#367)
+* Updated branch and distribution name to iron (#371)
+
 3.0.9 (2023-03-22)
 ------------------
 * Added build status of bloom-releases for Humble distribution (#291)
