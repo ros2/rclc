@@ -40,9 +40,14 @@ extern "C"
     processed in a user-defined order.
 */
 
-/* defines the semantics of data communication
-   SEMANTICS_RCLCPP_EXECUTOR        - same semantics as in the rclcpp Executor ROS2(Eloquent)
-   LOGICAL_EXECUTION_TIME_SEMANTICS - logical execution time semantics
+/** Defines the semantics when data is taken from DDS
+ *  SEMANTICS_RCLCPP_EXECUTOR        - same semantics as in rclcpp Executor. Data of a subscription
+ *                                     is taken from DDS just before the corresponding callback
+ *                                     is called by the Executor.
+ *  SEMANTICS_LOGICAL_EXECUTION_TIME - logical execution time semantics (at one sampling point t
+ *                                     all data of ready subscriptions are "taken" from DDS.
+ *                                     During (sequential) processing of multiple callbacks they
+ *                                     all see the data as available at sampling point t.
 */
 typedef enum
 {
@@ -50,6 +55,9 @@ typedef enum
   SEMANTICS_LOGICAL_EXECUTION_TIME
 } rclc_executor_semantics_t;
 
+/**
+ * Different types of Executors.
+*/
 typedef enum
 {
   EXECUTOR_NOT_INITIALIZED,
