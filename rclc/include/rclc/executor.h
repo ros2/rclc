@@ -44,10 +44,13 @@ extern "C"
  *  SEMANTICS_RCLCPP_EXECUTOR        - same semantics as in rclcpp Executor. Data of a subscription
  *                                     is taken from DDS just before the corresponding callback
  *                                     is called by the Executor.
- *  SEMANTICS_LOGICAL_EXECUTION_TIME - logical execution time semantics (at one sampling point t
- *                                     all data of ready subscriptions are "taken" from DDS.
- *                                     During (sequential) processing of multiple callbacks they
- *                                     all see the data as available at sampling point t.
+ *  SEMANTICS_LOGICAL_EXECUTION_TIME - logical execution time semantics. At one sampling point t
+ *                                     new data of all ready subscriptions are taken from DDS.
+ *                                     During (sequential) processing of these callbacks the
+ *                                     data is used as per sampling point t. If new data arrived
+ *                                     between the sampling point t and the time point at which
+ *                                     the callback is called, it would not be considered in this
+ *                                     `rclc_executor_spin_some` iteration.
 */
 typedef enum
 {
