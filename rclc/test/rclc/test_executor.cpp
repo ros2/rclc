@@ -1903,7 +1903,7 @@ TEST_F(TestDefaultExecutor, semantics_RCLCPP) {
   _pub_int_ptr = &this->pub1;
   _pub_int_msg_ptr = &this->pub1_msg;
   // ------------------------- test case setup ------------------------
-  rclc_executor_set_semantics(&executor, SEMANTICS_RCLCPP_EXECUTOR);
+  rclc_executor_set_semantics(&executor, RCLC_SEMANTICS_RCLCPP_EXECUTOR);
   this->pub1_msg.data = 1;
   _cb5_int_value = 0;  // received value in subscription2
   rc = rcl_publish(&this->pub1, &this->pub1_msg, nullptr);
