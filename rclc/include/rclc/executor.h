@@ -41,21 +41,21 @@ extern "C"
 */
 
 /* defines the semantics of data communication
-   RCLCPP_EXECUTOR_SEMANTICS        - same semantics as in the rclcpp Executor ROS2(Eloquent)
+   SEMANTICS_RCLCPP_EXECUTOR        - same semantics as in the rclcpp Executor ROS2(Eloquent)
    LOGICAL_EXECUTION_TIME_SEMANTICS - logical execution time semantics
 */
 typedef enum
 {
-  RCLCPP_EXECUTOR_SEMANTICS,
-  LOGICAL_EXECUTION_TIME_SEMANTICS
+  SEMANTICS_RCLCPP_EXECUTOR,
+  SEMANTICS_LOGICAL_EXECUTION_TIME
 } rclc_executor_semantics_t;
 
 typedef enum
 {
-  NON_INITIALIZED_EXECUTOR,
-  SINGLE_THREADED_EXECUTOR,
-  MULTI_THREADED_EXECUTOR,
-  NON_POSIX_EXECUTOR,
+  EXECUTOR_NOT_INITIALIZED,
+  EXECUTOR_SINGLE_THREADED,
+  EXECUTOR_MULTI_THREADED,
+  EXECUTOR_NON_POSIX,
 } rclc_executor_type_t;
 
 /// Type definition for trigger function. With the parameters:

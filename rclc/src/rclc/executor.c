@@ -141,7 +141,7 @@ rclc_executor_init(
   rclc_executor_set_trigger(executor, rclc_executor_trigger_any, NULL);
 
   // default semantics
-  rclc_executor_set_semantics(executor, RCLCPP_EXECUTOR_SEMANTICS);
+  rclc_executor_set_semantics(executor, SEMANTICS_RCLCPP_EXECUTOR);
 
   return ret;
 }
@@ -1956,10 +1956,10 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
 
   // based on semantics process input data
   switch (executor->data_comm_semantics) {
-    case LOGICAL_EXECUTION_TIME_SEMANTICS:
+    case SEMANTICS_LOGICAL_EXECUTION_TIME:
       rc = _rclc_let_scheduling(executor);
       break;
-    case RCLCPP_EXECUTOR_SEMANTICS:
+    case SEMANTICS_RCLCPP_EXECUTOR:
       rc = _rclc_default_scheduling(executor);
       break;
     default:
