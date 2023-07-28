@@ -181,7 +181,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pingNode_ping_msg);
   const unsigned int PUB_MSG_CAPACITY = 20;
-  pingNode_ping_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
+  pingNode_ping_msg.data.data = (char *) allocator.reallocate(pingNode_ping_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
   pingNode_ping_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pingNode_ping_msg.data.data, pingNode_ping_msg.data.capacity, "AAAAAAAAAAAAAAAAAAA");
   pingNode_ping_msg.data.size = strlen(pingNode_ping_msg.data.data);
@@ -258,7 +258,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pongNode_pong_msg);
   //const unsigned int PUB_MSG_CAPACITY = 20;
-  pongNode_pong_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
+  pongNode_pong_msg.data.data = (char *) allocator.reallocate(pongNode_pong_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
   pongNode_pong_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pongNode_pong_msg.data.data, pongNode_pong_msg.data.capacity, "BAAAAAAAAAAAAAAAAAAA");
   pongNode_pong_msg.data.size = strlen(pongNode_pong_msg.data.data);
