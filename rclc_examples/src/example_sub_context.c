@@ -111,7 +111,7 @@ int main(int argc, const char * argv[])
     // assign message to publisher
     std_msgs__msg__String__init(&( pub_msgs[i] ) );
     const unsigned int PUB_MSG_CAPACITY = 40;
-    pub_msgs[i].data.data = malloc(PUB_MSG_CAPACITY);
+    pub_msgs[i].data.data = allocator.reallocate(pub_msgs[i].data.data, PUB_MSG_CAPACITY, allocator.state);
     pub_msgs[i].data.capacity = PUB_MSG_CAPACITY;
     snprintf(
       pub_msgs[i].data.data, pub_msgs[i].data.capacity, "Hello World! on %s",

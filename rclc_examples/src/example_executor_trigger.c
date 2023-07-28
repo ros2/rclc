@@ -139,6 +139,7 @@ void my_int_subscriber_callback(const void * msgin)
 void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   rcl_ret_t rc;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
@@ -146,7 +147,7 @@ void my_timer_string_callback(rcl_timer_t * timer, int64_t last_call_time)
     std_msgs__msg__String pub_msg;
     std_msgs__msg__String__init(&pub_msg);
     const unsigned int PUB_MSG_CAPACITY = 20;
-    pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
+    pub_msg.data.data = allocator.reallocate(pub_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
     pub_msg.data.capacity = PUB_MSG_CAPACITY;
     snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!%d", string_pub_value++);
     pub_msg.data.size = strlen(pub_msg.data.data);
