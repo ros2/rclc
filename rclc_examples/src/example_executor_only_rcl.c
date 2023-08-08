@@ -116,9 +116,10 @@ int main(int argc, const char * argv[])
     &context,
     RCL_MS_TO_NS(timer_timeout),
     my_timer_callback,
-    allocator);
+    allocator,
+    true);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init.\n");
+    printf("Error in rcl_timer_init2.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);

@@ -38,9 +38,10 @@ rclc_timer_init_default(
     &support->context,
     timeout_ns,
     callback,
-    (*support->allocator));
+    (*support->allocator),
+    true);
   if (rc != RCL_RET_OK) {
-    PRINT_RCLC_ERROR(rclc_timer_init_default, rcl_timer_init);
+    PRINT_RCLC_ERROR(rclc_timer_init_default, rcl_timer_init2);
   } else {
     RCUTILS_LOG_INFO("Created a timer with period %ld ms.\n", timeout_ns / 1000000);
   }
