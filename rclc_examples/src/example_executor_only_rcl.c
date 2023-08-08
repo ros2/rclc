@@ -110,7 +110,7 @@ int main(int argc, const char * argv[])
   }
   rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 1000;
-  rc = rcl_timer_init(
+  rc = rcl_timer_init2(
     &my_timer,
     &clock,
     &context,

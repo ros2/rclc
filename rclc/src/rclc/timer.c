@@ -32,7 +32,7 @@ rclc_timer_init_default(
     support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
   (*timer) = rcl_get_zero_initialized_timer();
-  rcl_ret_t rc = rcl_timer_init(
+  rcl_ret_t rc = rcl_timer_init2(
     timer,
     &support->clock,
     &support->context,
