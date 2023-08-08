@@ -572,9 +572,9 @@ public:
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->timer1 = rcl_get_zero_initialized_timer();
     ret =
-      rcl_timer_init(
+      rcl_timer_init2(
       &this->timer1, &this->clock, &this->context, RCL_MS_TO_NS(
-        this->timer1_timeout), my_timer_callback, this->clock_allocator);
+        this->timer1_timeout), my_timer_callback, this->clock_allocator, true);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
