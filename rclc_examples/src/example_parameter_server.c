@@ -98,8 +98,7 @@ int main()
     &timer,
     &support,
     RCL_MS_TO_NS(1000),
-    timer_callback,
-    true);
+    timer_callback);
 
   // Create executor
   // Note:

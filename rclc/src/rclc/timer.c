@@ -24,8 +24,7 @@ rclc_timer_init_default(
   rcl_timer_t * timer,
   rclc_support_t * support,
   const uint64_t timeout_ns,
-  const rcl_timer_callback_t callback,
-  bool autostart)
+  const rcl_timer_callback_t callback)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     timer, "timer is a null pointer", return RCL_RET_INVALID_ARGUMENT);
@@ -40,7 +39,7 @@ rclc_timer_init_default(
     timeout_ns,
     callback,
     (*support->allocator),
-    autostart);
+    true);
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(rclc_timer_init_default, rcl_timer_init2);
   } else {
