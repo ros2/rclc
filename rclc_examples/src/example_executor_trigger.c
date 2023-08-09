@@ -229,7 +229,8 @@ int main(int argc, const char * argv[])
     &my_string_timer,
     &support,
     RCL_MS_TO_NS(timer_timeout),
-    my_timer_string_callback);
+    my_timer_string_callback,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_timer_init_default.\n");
     return -1;
@@ -261,7 +262,8 @@ int main(int argc, const char * argv[])
     &my_int_timer,
     &support,
     RCL_MS_TO_NS(timer_int_timeout),
-    my_timer_int_callback);
+    my_timer_int_callback,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in rclc_timer_init_default.\n");
     return -1;

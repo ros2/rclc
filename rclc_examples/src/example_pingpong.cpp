@@ -170,7 +170,8 @@ int main(int argc, const char * argv[])
     &ping_timer,
     &support,
     RCL_MS_TO_NS(timer_timeout),
-    ping_timer_callback);
+    ping_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_timer_init_default.\n");
     return -1;
@@ -247,7 +248,8 @@ int main(int argc, const char * argv[])
     &pong_timer,
     &support,
     RCL_MS_TO_NS(pong_timer_timeout),
-    pong_timer_callback);
+    pong_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_timer_init_default.\n");
     return -1;

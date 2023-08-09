@@ -98,7 +98,8 @@ int main(int argc, const char * argv[])
     &my_timer,
     &support,
     RCL_MS_TO_NS(timer_timeout),
-    my_timer_callback);
+    my_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
     printf("Error in rcl_timer_init_default.\n");
     return -1;
