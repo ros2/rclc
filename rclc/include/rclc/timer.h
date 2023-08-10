@@ -51,7 +51,7 @@ rclc_timer_init_default2(
   rclc_support_t * support,
   const uint64_t timeout_ns,
   const rcl_timer_callback_t callback,
-  bool);
+  bool autostart);
 
 /**
  * \deprecated `rclc_timer_init_default` implementation was removed.
