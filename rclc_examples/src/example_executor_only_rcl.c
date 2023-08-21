@@ -110,15 +110,16 @@ int main(int argc, const char * argv[])
   }
   rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 1000;
-  rc = rcl_timer_init(
+  rc = rcl_timer_init2(
     &my_timer,
     &clock,
     &context,
     RCL_MS_TO_NS(timer_timeout),
     my_timer_callback,
-    allocator);
+    allocator,
+    true);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init.\n");
+    printf("Error in rcl_timer_init2.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);

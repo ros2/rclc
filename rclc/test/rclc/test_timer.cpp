@@ -22,7 +22,7 @@ void my_callback(rcl_timer_t * timer, int64_t last_call)
   RCLC_UNUSED(last_call);
 }
 
-TEST(Test, rclc_timer_init_default) {
+TEST(Test, rclc_timer_init_default2) {
   rclc_support_t support;
   rcl_ret_t rc;
 
@@ -33,18 +33,19 @@ TEST(Test, rclc_timer_init_default) {
   const char * my_namespace = "test_namespace";
   rcl_node_t node = rcl_get_zero_initialized_node();
   rc = rclc_node_init_default(&node, my_name, my_namespace, &support);
+  bool autostart = true;
 
   // test with valid arguments
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  rc = rclc_timer_init_default(&timer, &support, 10000000, my_callback);
+  rc = rclc_timer_init_default2(&timer, &support, 10000000, my_callback, autostart);
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // tests with invalid arguments
-  rc = rclc_timer_init_default(nullptr, &support, 10000000, my_callback);
+  rc = rclc_timer_init_default2(nullptr, &support, 10000000, my_callback, autostart);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
-  rc = rclc_timer_init_default(&timer, nullptr, 10000000, my_callback);
+  rc = rclc_timer_init_default2(&timer, nullptr, 10000000, my_callback, autostart);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rc);
   rcutils_reset_error();
 
