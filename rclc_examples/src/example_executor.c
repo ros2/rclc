@@ -94,13 +94,14 @@ int main(int argc, const char * argv[])
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
   rcl_timer_t my_timer = rcl_get_zero_initialized_timer();
   const unsigned int timer_timeout = 1000;
-  rc = rclc_timer_init_default(
+  rc = rclc_timer_init_default2(
     &my_timer,
     &support,
     RCL_MS_TO_NS(timer_timeout),
-    my_timer_callback);
+    my_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init_default.\n");
+    printf("Error in rclc_timer_init_default2.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);
@@ -109,7 +110,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pub_msg);
   const unsigned int PUB_MSG_CAPACITY = 20;
-  pub_msg.data.data = malloc(PUB_MSG_CAPACITY);
+  pub_msg.data.data = allocator.reallocate(pub_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
   pub_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pub_msg.data.data, pub_msg.data.capacity, "Hello World!");
   pub_msg.data.size = strlen(pub_msg.data.data);

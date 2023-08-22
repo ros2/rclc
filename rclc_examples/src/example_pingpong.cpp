@@ -166,13 +166,14 @@ int main(int argc, const char * argv[])
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
   rcl_timer_t ping_timer ;
   const unsigned int timer_timeout = 50; //50 milliseconds userdefined value
-  rc = rclc_timer_init_default(
+  rc = rclc_timer_init_default2(
     &ping_timer,
     &support,
     RCL_MS_TO_NS(timer_timeout),
-    ping_timer_callback);
+    ping_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init_default.\n");
+    printf("Error in rclc_timer_init_default2.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);
@@ -181,7 +182,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pingNode_ping_msg);
   const unsigned int PUB_MSG_CAPACITY = 20;
-  pingNode_ping_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
+  pingNode_ping_msg.data.data = (char *) allocator.reallocate(pingNode_ping_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
   pingNode_ping_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pingNode_ping_msg.data.data, pingNode_ping_msg.data.capacity, "AAAAAAAAAAAAAAAAAAA");
   pingNode_ping_msg.data.size = strlen(pingNode_ping_msg.data.data);
@@ -243,13 +244,14 @@ int main(int argc, const char * argv[])
   // create a timer, which will call the publisher with period=`timer_timeout` ms in the 'my_timer_callback'
   rcl_timer_t pong_timer ;
   const unsigned int pong_timer_timeout = 50; //50 milliseconds userdefined value
-  rc = rclc_timer_init_default(
+  rc = rclc_timer_init_default2(
     &pong_timer,
     &support,
     RCL_MS_TO_NS(pong_timer_timeout),
-    pong_timer_callback);
+    pong_timer_callback,
+    true);
   if (rc != RCL_RET_OK) {
-    printf("Error in rcl_timer_init_default.\n");
+    printf("Error in rclc_timer_init_default2.\n");
     return -1;
   } else {
     printf("Created timer with timeout %d ms.\n", timer_timeout);
@@ -258,7 +260,7 @@ int main(int argc, const char * argv[])
   // assign message to publisher
   std_msgs__msg__String__init(&pongNode_pong_msg);
   //const unsigned int PUB_MSG_CAPACITY = 20;
-  pongNode_pong_msg.data.data = (char *) malloc(PUB_MSG_CAPACITY);
+  pongNode_pong_msg.data.data = (char *) allocator.reallocate(pongNode_pong_msg.data.data, PUB_MSG_CAPACITY, allocator.state);
   pongNode_pong_msg.data.capacity = PUB_MSG_CAPACITY;
   snprintf(pongNode_pong_msg.data.data, pongNode_pong_msg.data.capacity, "BAAAAAAAAAAAAAAAAAAA");
   pongNode_pong_msg.data.size = strlen(pongNode_pong_msg.data.data);
