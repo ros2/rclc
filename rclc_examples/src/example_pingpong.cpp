@@ -348,6 +348,8 @@ int main(int argc, const char * argv[])
     rc += rcl_timer_fini(&pong_timer);
     rc += rcl_subscription_fini(&pong_subscription, &ping_node);
     rc += rcl_subscription_fini(&ping_subscription, &pong_node);
+    rc += rcl_logging_rosout_fini_publisher_for_node(&ping_node);
+    rc += rcl_logging_rosout_fini_publisher_for_node(&pong_node);
     rc += rcl_node_fini(&ping_node);
     rc += rcl_node_fini(&pong_node);
     rc += rclc_support_fini(&support);
@@ -439,6 +441,8 @@ int main(int argc, const char * argv[])
     rc += rcl_timer_fini(&pong_timer);
     rc += rcl_subscription_fini(&pong_subscription, &ping_node);
     rc += rcl_subscription_fini(&ping_subscription, &pong_node);
+    rc += rcl_logging_rosout_fini_publisher_for_node(&ping_node);
+    rc += rcl_logging_rosout_fini_publisher_for_node(&pong_node);
     rc += rcl_node_fini(&ping_node);
     rc += rcl_node_fini(&pong_node);
     rc += rclc_support_fini(&support);

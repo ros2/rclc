@@ -17,8 +17,6 @@
 #include "rclc/node.h"
 
 #include <rcl/error_handling.h>
-#include <rcl/logging.h>
-#include <rcl/logging_rosout.h>
 #include <rcutils/logging_macros.h>
 
 rcl_ret_t

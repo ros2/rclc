@@ -15,8 +15,6 @@
 
 #include <stdio.h>
 
-#include <rcl/logging.h>
-#include <rcl/logging_rosout.h>
 #include <rclc/executor.h>
 #include <std_msgs/msg/string.h>
 
@@ -205,6 +203,9 @@ int main(int argc, const char * argv[])
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_timer);
   rc += rcl_subscription_fini(&my_sub, &my_node);
+  if (rcl_logging_rosout_enabled()) {
+    rc += rcl_logging_rosout_fini_publisher_for_node(&my_node);
+  }
   rc += rcl_node_fini(&my_node);
   rc += rcl_init_options_fini(&init_options);
   std_msgs__msg__String__fini(&pub_msg);

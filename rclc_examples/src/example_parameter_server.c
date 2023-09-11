@@ -144,6 +144,7 @@ int main()
   // clean up
   rc = rclc_executor_fini(&executor);
   rc += rclc_parameter_server_fini(&param_server, &node);
+  rc += rcl_logging_rosout_fini_publisher_for_node(&my_node);
   rc += rcl_node_fini(&node);
 
   if (rc != RCL_RET_OK) {

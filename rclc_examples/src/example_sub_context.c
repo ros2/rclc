@@ -195,6 +195,7 @@ int main(int argc, const char * argv[])
     rc += rcl_publisher_fini(&(my_pubs[i]), &my_node);
     rc += rcl_subscription_fini(&(my_subs[i]), &my_node);
   }
+  rc += rcl_logging_rosout_fini_publisher_for_node(&my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
 
