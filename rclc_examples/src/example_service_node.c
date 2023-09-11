@@ -84,5 +84,6 @@ int main(int argc, const char * const * argv)
   RCSOFTCHECK(rclc_executor_spin(&executor));
 
   RCCHECK(rcl_service_fini(&service, &node));
+  RCCHECK(rcl_logging_rosout_fini_publisher_for_node(&node));
   RCCHECK(rcl_node_fini(&node));
 }

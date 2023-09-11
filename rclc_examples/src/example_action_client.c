@@ -207,6 +207,7 @@ int main()
 
   // clean up
   rclc_executor_fini(&executor);
+  (void)!rcl_logging_rosout_fini_publisher_for_node(&node);
   (void)!rcl_node_fini(&node);
 
   return 0;

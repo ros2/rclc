@@ -52,6 +52,10 @@ TEST(Test, rclc_timer_init_default2) {
   // clean up
   rc = rcl_timer_fini(&timer);
   EXPECT_EQ(RCL_RET_OK, rc);
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rclc_support_fini(&support);

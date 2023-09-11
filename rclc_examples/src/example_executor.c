@@ -169,6 +169,7 @@ int main(int argc, const char * argv[])
   rc += rcl_publisher_fini(&my_pub, &my_node);
   rc += rcl_timer_fini(&my_timer);
   rc += rcl_subscription_fini(&my_sub, &my_node);
+  rc += rcl_logging_rosout_fini_publisher_for_node(&my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_support_fini(&support);
 

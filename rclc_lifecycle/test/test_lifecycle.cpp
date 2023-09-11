@@ -23,9 +23,6 @@ extern "C"
 #include <lifecycle_msgs/msg/state.h>
 #include <lifecycle_msgs/msg/transition.h>
 
-#include <rcl/logging.h>
-#include <rcl/logging_rosout.h>
-
 #include "rclc_lifecycle/rclc_lifecycle.h"
 }
 
@@ -87,6 +84,10 @@ TEST(TestRclcLifecycle, lifecycle_node) {
     rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine));
 
   // clean up
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -160,6 +161,10 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_node.state_machine->current_state->id);
 
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -228,6 +233,10 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
 
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -301,6 +310,10 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   // Cleanup
   res = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
   EXPECT_EQ(RCL_RET_OK, res);
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rclc_executor_fini(&executor);

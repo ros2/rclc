@@ -63,6 +63,10 @@ TEST(Test, rclc_service_init_default) {
   // clean up
   rc = rcl_service_fini(&service, &node);
   EXPECT_EQ(RCL_RET_OK, rc);
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rclc_support_fini(&support);
@@ -119,6 +123,10 @@ TEST(Test, rclc_service_init_best_effort) {
   // clean up
   rc = rcl_service_fini(&service, &node);
   EXPECT_EQ(RCL_RET_OK, rc);
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rclc_support_fini(&support);
@@ -178,6 +186,10 @@ TEST(Test, rclc_service_init_qos) {
   // clean up
   rc = rcl_service_fini(&service, &node);
   EXPECT_EQ(RCL_RET_OK, rc);
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rclc_support_fini(&support);
