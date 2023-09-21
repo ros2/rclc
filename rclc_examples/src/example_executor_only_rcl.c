@@ -16,6 +16,7 @@
 #include <stdio.h>
 
 #include <rclc/executor.h>
+#include <rclc/rclc.h>
 #include <std_msgs/msg/string.h>
 
 // these data structures for the publisher and subscriber are global, so that
