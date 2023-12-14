@@ -38,6 +38,10 @@ TEST(Test, rclc_node_init_default) {
   rcutils_reset_error();
 
   // test case: null pointer for name
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
 
@@ -56,6 +60,10 @@ TEST(Test, rclc_node_init_default) {
   rcutils_reset_error();
 
   // clean up
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rcutils_reset_error();
@@ -106,6 +114,10 @@ TEST(Test, rclc_node_init_with_options) {
   EXPECT_EQ(RCL_RET_OK, rc);
 
   // clean up
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rcutils_reset_error();

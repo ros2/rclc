@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 #include <rcl/node.h>
+#include <rcl/logging.h>
+#include <rcl/logging_rosout.h>
 #include <rclc/types.h>
 
 #include <rclc/init.h>
