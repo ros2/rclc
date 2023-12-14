@@ -1,5 +1,5 @@
 # The rclc repository
-This repository provides the rclc package, which complements the [ROS Client Support Library (rcl)](https://github.com/ros2/rcl/) to make up a complete ROS 2 client library for the C programming language. That is, rclc does not add a new layer of types on top of rcl (like rclcpp and rclpy do) but only provides convenience functions that ease the programming with the rcl types. New types are introduced only for concepts that are missing in rcl, most important an Executor, Lifecycle Node and the Parameter server. 
+This repository provides the rclc package, which complements the [ROS Client Support Library (rcl)](https://github.com/ros2/rcl/) to make up a complete ROS 2 client library for the C programming language. That is, rclc does not add a new layer of types on top of rcl (like rclcpp and rclpy do) but only provides convenience functions that ease the programming with the rcl types. New types are introduced only for concepts that are missing in rcl, most important an Executor, Lifecycle Node and the Parameter server.
 
 In detail, this repository contains four packages:
 
