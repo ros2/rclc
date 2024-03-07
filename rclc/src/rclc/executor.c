@@ -1833,7 +1833,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME,
-            "Subscription added to wait_set_subscription[%ld]",
+            "Subscription added to wait_set_subscription[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_subscription);
@@ -1849,7 +1849,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
           &executor->handles[i].index);
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
+            ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_timer);
@@ -1866,7 +1866,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
           &executor->handles[i].index);
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Service added to wait_set_service[%ld]",
+            ROS_PACKAGE_NAME, "Service added to wait_set_service[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_service);
@@ -1884,7 +1884,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
           &executor->handles[i].index);
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Client added to wait_set_client[%ld]",
+            ROS_PACKAGE_NAME, "Client added to wait_set_client[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_client);
@@ -1900,7 +1900,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
           &executor->handles[i].index);
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Guard_condition added to wait_set_client[%ld]",
+            ROS_PACKAGE_NAME, "Guard_condition added to wait_set_client[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_guard_condition);
@@ -1916,7 +1916,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME,
-            "Action client added to wait_set_action_clients[%ld]",
+            "Action client added to wait_set_action_clients[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_action_client);
@@ -1932,7 +1932,7 @@ rclc_executor_spin_some(rclc_executor_t * executor, const uint64_t timeout_ns)
         if (rc == RCL_RET_OK) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME,
-            "Action server added to wait_set_action_servers[%ld]",
+            "Action server added to wait_set_action_servers[%u]",
             executor->handles[i].index);
         } else {
           PRINT_RCLC_ERROR(rclc_executor_spin_some, rcl_wait_set_add_action_server);
@@ -1977,7 +1977,7 @@ rclc_executor_spin(rclc_executor_t * executor)
   rcl_ret_t ret = RCL_RET_OK;
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
-    "INFO: rcl_wait timeout %ld ms",
+    "INFO: rcl_wait timeout %llu ms",
     ((executor->timeout_ns / 1000) / 1000));
   while (true) {
     ret = rclc_executor_spin_some(executor, executor->timeout_ns);
