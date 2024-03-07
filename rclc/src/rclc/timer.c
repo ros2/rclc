@@ -42,7 +42,7 @@ rclc_timer_init_default(
   if (rc != RCL_RET_OK) {
     PRINT_RCLC_ERROR(rclc_timer_init_default, rcl_timer_init);
   } else {
-    RCUTILS_LOG_INFO("Created a timer with period %ld ms.\n", timeout_ns / 1000000);
+    RCUTILS_LOG_INFO("Created a timer with period %lld ms.\n", timeout_ns / 1000000);
   }
   return rc;
 }
