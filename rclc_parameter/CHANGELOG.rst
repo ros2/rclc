@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.0 (2024-10-15)
+------------------
+* Use fully qualified node name in parameter events (#402)
+
 6.1.0 (2023-06-15)
 ------------------
 * Add empty set_atomically parameter service (#354)

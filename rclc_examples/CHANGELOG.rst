@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.0 (2024-10-15)
+------------------
+* fix rclc_example: memory leaking in msg.data allocation (backport #386) (#387)
+
 6.1.0 (2023-06-15)
 ------------------
 * no changes
