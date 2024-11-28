@@ -1017,6 +1017,7 @@ rclc_parameter_server_fini_memory(
 
   if (parameter_server->notify_changed_over_dds) {
     // Free event list
+    rclc_parameter_reset_parameter_event(&parameter_server->event_list);
     rcl_interfaces__msg__ParameterEvent__fini(&parameter_server->event_list);
   }
 }
