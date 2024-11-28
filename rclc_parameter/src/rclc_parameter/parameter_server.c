@@ -1001,104 +1001,42 @@ rclc_parameter_server_fini_memory(
     parameter_server, "parameter_server is a null pointer", return );
 
   // Fini describe msgs
-  for (size_t i = 0; i < parameter_server->describe_request.names.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->describe_request.names.data[i]);
-    rosidl_runtime_c__String__fini(&parameter_server->describe_response.descriptors.data[i].name);
-    rosidl_runtime_c__String__fini(
-      &parameter_server->describe_response.descriptors.data[i].description);
-    rosidl_runtime_c__String__fini(
-      &parameter_server->describe_response.descriptors.data[i].additional_constraints);
-    rcl_interfaces__msg__IntegerRange__Sequence__fini(
-      &parameter_server->describe_response.descriptors.data[i].integer_range);
-    rcl_interfaces__msg__FloatingPointRange__Sequence__fini(
-      &parameter_server->describe_response.descriptors.data[i].floating_point_range);
-  }
-
-  rcl_interfaces__msg__ParameterDescriptor__Sequence__fini(
-    &parameter_server->describe_response.descriptors);
-  rosidl_runtime_c__String__Sequence__fini(&parameter_server->describe_request.names);
   rcl_interfaces__srv__DescribeParameters_Response__fini(&parameter_server->describe_response);
   rcl_interfaces__srv__DescribeParameters_Request__fini(&parameter_server->describe_request);
 
   // Fini get types msgs
-  for (size_t i = 0; i < parameter_server->get_types_request.names.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->get_types_request.names.data[i]);
-  }
-
-  rosidl_runtime_c__uint8__Sequence__fini(&parameter_server->get_types_response.types);
-  rosidl_runtime_c__String__Sequence__fini(&parameter_server->get_types_request.names);
   rcl_interfaces__srv__GetParameterTypes_Response__fini(&parameter_server->get_types_response);
   rcl_interfaces__srv__GetParameterTypes_Request__fini(&parameter_server->get_types_request);
 
   // Finish set msgs
-  for (size_t i = 0; i < parameter_server->set_request.parameters.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->set_request.parameters.data[i].name);
-    rosidl_runtime_c__String__fini(&parameter_server->set_response.results.data[i].reason);
-  }
-
-  rcl_interfaces__msg__SetParametersResult__Sequence__fini(&parameter_server->set_response.results);
-  rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->set_request.parameters);
   rcl_interfaces__srv__SetParameters_Response__fini(&parameter_server->set_response);
   rcl_interfaces__srv__SetParameters_Request__fini(&parameter_server->set_request);
 
   // Finish set atomically msgs
-  for (size_t i = 0; i < parameter_server->set_atomically_request.parameters.capacity; ++i) {
-    rosidl_runtime_c__String__fini(
-      &parameter_server->set_atomically_request.parameters.data[i].name);
-  }
-
-  rosidl_runtime_c__String__fini(&parameter_server->set_atomically_response.result.reason);
-  rcl_interfaces__msg__Parameter__Sequence__fini(
-    &parameter_server->set_atomically_request.parameters);
   rcl_interfaces__srv__SetParametersAtomically_Response__fini(
     &parameter_server->set_atomically_response);
   rcl_interfaces__srv__SetParametersAtomically_Request__fini(
     &parameter_server->set_atomically_request);
 
   // Finish get msgs
-  for (size_t i = 0; i < parameter_server->get_request.names.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->get_request.names.data[i]);
-  }
-
-  rcl_interfaces__msg__ParameterValue__Sequence__fini(&parameter_server->get_response.values);
-  rosidl_runtime_c__String__Sequence__fini(&parameter_server->get_request.names);
   rcl_interfaces__srv__GetParameters_Response__fini(&parameter_server->get_response);
   rcl_interfaces__srv__GetParameters_Request__fini(&parameter_server->get_request);
 
   // Finish list msgs
-  for (size_t i = 0; i < parameter_server->list_response.result.names.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->list_response.result.names.data[i]);
-  }
-
-  rosidl_runtime_c__String__Sequence__fini(&parameter_server->list_response.result.names);
   rcl_interfaces__srv__ListParameters_Response__fini(&parameter_server->list_response);
   rcl_interfaces__srv__ListParameters_Request__fini(&parameter_server->list_request);
 
   // Free parameter list
-  for (size_t i = 0; i < parameter_server->parameter_list.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->parameter_list.data[i].name);
-  }
-
   rcl_interfaces__msg__Parameter__Sequence__fini(&parameter_server->parameter_list);
 
   // Free parameter descriptor list
-  for (size_t i = 0; i < parameter_server->parameter_descriptors.capacity; ++i) {
-    rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].name);
-    rosidl_runtime_c__String__fini(&parameter_server->parameter_descriptors.data[i].description);
-    rosidl_runtime_c__String__fini(
-      &parameter_server->parameter_descriptors.data[i].additional_constraints);
-    rcl_interfaces__msg__IntegerRange__Sequence__fini(
-      &parameter_server->parameter_descriptors.data[i].integer_range);
-    rcl_interfaces__msg__FloatingPointRange__Sequence__fini(
-      &parameter_server->parameter_descriptors.data[i].floating_point_range);
-  }
-
-  if (parameter_server->notify_changed_over_dds) {
-    rosidl_runtime_c__String__fini(&parameter_server->event_list.node);
-  }
-
   rcl_interfaces__msg__ParameterDescriptor__Sequence__fini(
     &parameter_server->parameter_descriptors);
+
+  if (parameter_server->notify_changed_over_dds) {
+    // Free event list
+    rcl_interfaces__msg__ParameterEvent__fini(&parameter_server->event_list);
+  }
 }
 
 rcl_ret_t
