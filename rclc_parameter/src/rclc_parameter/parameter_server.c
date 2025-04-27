@@ -282,6 +282,12 @@ rclc_parameter_server_set_service_callback(
             param_server, parameter->name.data,
             request->parameters.data[i].value.double_value);
           break;
+        
+        case RCLC_PARAMETER_STRING:
+          ret = rclc_parameter_set_string2(
+            param_server, parameter->name.data, 
+            request->parameters.data[i].value.string_value.data);
+          break;
 
         default:
           rclc_parameter_set_string(message, "Type not supported");
@@ -1230,6 +1236,12 @@ rclc_add_parameter(
   parameter_server->parameter_list.data[index].value.type = type;
   ++parameter_server->parameter_list.size;
 
+
+  // allocate memory for string parameter
+  if(type == RCLC_PARAMETER_STRING){
+    rclc_parameter_descriptor_initialize_string(&parameter_server->parameter_list.data[index].value.string_value);
+  };
+
   // Add to parameter descriptors
   if (!parameter_server->low_mem_mode && !rclc_parameter_set_string(
       &parameter_server->parameter_descriptors.data[index].name,
@@ -1497,11 +1509,59 @@ rclc_parameter_set_double(
   return RCL_RET_OK;
 }
 
+rcl_ret_t rclc_parameter_set_string2(
+  rclc_parameter_server_t *parameter_server, 
+  const char *parameter_name,
+  const char *value)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    parameter_name, "parameter_name is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+
+  if (parameter_server->on_callback) {
+    return RCLC_PARAMETER_DISABLED_ON_CALLBACK;
+  }
+
+  Parameter * parameter =
+    rclc_parameter_search(&parameter_server->parameter_list, parameter_name);
+
+  if (parameter == NULL) {
+    return RCL_RET_ERROR;
+  }
+
+  if (parameter->value.type != RCLC_PARAMETER_STRING) {
+    return RCLC_PARAMETER_TYPE_MISMATCH;
+  }
+  
+  rosidl_runtime_c__String blank = {};
+  Parameter new_parameter = *parameter;
+  new_parameter.value.string_value = blank;
+  rclc_parameter_descriptor_initialize_string(&new_parameter.value.string_value);
+  rclc_parameter_set_string(&new_parameter.value.string_value, value);
+  
+  if (RCL_RET_OK !=
+    rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
+  {
+      return RCLC_PARAMETER_MODIFICATION_REJECTED;
+  }
+
+  rosidl_runtime_c__String__fini(&new_parameter.value.string_value);
+  rclc_parameter_set_string(&parameter->value.string_value, value);
+
+  if (parameter_server->notify_changed_over_dds) {
+    rclc_parameter_prepare_changed_event(&parameter_server->event_list, parameter);
+    rclc_parameter_service_publish_event(parameter_server);
+  }
+
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rclc_parameter_get_bool(
-  rclc_parameter_server_t * parameter_server,
-  const char * parameter_name,
-  bool * output)
+    rclc_parameter_server_t *parameter_server,
+    const char *parameter_name,
+    bool *output)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     parameter_server, "parameter_server is a null pointer", return RCL_RET_INVALID_ARGUMENT);
