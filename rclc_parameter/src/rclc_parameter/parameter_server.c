@@ -284,7 +284,9 @@ rclc_parameter_server_set_service_callback(
           break;
         
         case RCLC_PARAMETER_STRING:
-          ret = rclc_parameter_set_string(&parameter->value.string_value, request->parameters.data[i].value.string_value.data);
+          ret = rclc_parameter_set_string2(
+            param_server, parameter->name.data, 
+            request->parameters.data[i].value.string_value.data);
           break;
 
         default:
@@ -1435,7 +1437,9 @@ rcl_ret_t rclc_parameter_set_string2(
     return RCLC_PARAMETER_TYPE_MISMATCH;
   }
   
+  rosidl_runtime_c__String blank = {};
   Parameter new_parameter = *parameter;
+  new_parameter.value.string_value = blank;
   rclc_parameter_descriptor_initialize_string(&new_parameter.value.string_value);
   rclc_parameter_set_string(&new_parameter.value.string_value, value);
   
@@ -1443,8 +1447,9 @@ rcl_ret_t rclc_parameter_set_string2(
     rclc_parameter_execute_callback(parameter_server, parameter, &new_parameter))
   {
       return RCLC_PARAMETER_MODIFICATION_REJECTED;
-    }
+  }
 
+  rosidl_runtime_c__String__fini(&new_parameter.value.string_value);
   rclc_parameter_set_string(&parameter->value.string_value, value);
 
   if (parameter_server->notify_changed_over_dds) {
