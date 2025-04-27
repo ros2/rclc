@@ -106,7 +106,8 @@ typedef enum rclc_parameter_type_t
   RCLC_PARAMETER_NOT_SET = 0,
   RCLC_PARAMETER_BOOL,
   RCLC_PARAMETER_INT,
-  RCLC_PARAMETER_DOUBLE
+  RCLC_PARAMETER_DOUBLE,
+  RCLC_PARAMETER_STRING
 } rclc_parameter_type_t;
 
 // RCLC parameter server options
@@ -382,6 +383,16 @@ rclc_parameter_set_double(
   rclc_parameter_server_t * parameter_server,
   const char * parameter_name,
   double value);
+
+
+
+// TODO: rename this function
+RCLC_PARAMETER_PUBLIC
+rcl_ret_t
+rclc_parameter_set_string2(
+  rclc_parameter_server_t * parameter_server,
+  const char * parameter_name,
+  const char* value);
 
 /**
  *  Get the value of an existing a RCLC bool parameter

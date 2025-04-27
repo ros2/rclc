@@ -39,6 +39,9 @@ rclc_parameter_value_copy(
     case RCLC_PARAMETER_DOUBLE:
       dst->double_value = src->double_value;
       return RCL_RET_OK;
+    case RCLC_PARAMETER_STRING:
+      rosidl_runtime_c__String__copy(&src->string_value, &dst->string_value);
+      return RCL_RET_OK;
     case RCLC_PARAMETER_NOT_SET:
     default:
       dst->type = RCLC_PARAMETER_NOT_SET;
