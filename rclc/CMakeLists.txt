@@ -160,7 +160,7 @@ if(BUILD_TESTING)
     rcl::rcl
     rcutils::rcutils
     ${rosidl_generator_c_LIBRARIES}
-    osrf_testing_tools_cpp
+    ${osrf_testing_tools_cpp_TARGETS}
     ${std_msgs_TARGETS}
     ${test_msgs_TARGETS}
   )

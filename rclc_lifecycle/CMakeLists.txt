@@ -97,7 +97,7 @@ if(BUILD_TESTING)
     rcl_lifecycle::rcl_lifecycle
     rclc::rclc
     ${lifecycle_msgs_TARGETS}
-    osrf_testing_tools_cpp
+    ${osrf_testing_tools_cpp_TARGETS}
   )
 endif()
 
