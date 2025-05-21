@@ -31,41 +31,41 @@ find_package(Threads REQUIRED)
 include_directories(include)
 
 add_executable(example_executor src/example_executor.c)
-ament_target_dependencies(example_executor rcl rclc std_msgs)
+target_link_libraries(example_executor rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 add_executable(example_executor_only_rcl src/example_executor_only_rcl.c)
-ament_target_dependencies(example_executor_only_rcl rcl rclc std_msgs)
+target_link_libraries(example_executor_only_rcl rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 add_executable(example_executor_trigger src/example_executor_trigger.c)
-ament_target_dependencies(example_executor_trigger rcl rclc std_msgs)
+target_link_libraries(example_executor_trigger rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 add_executable(example_service_node src/example_service_node.c)
-ament_target_dependencies(example_service_node rcl rclc example_interfaces)
+target_link_libraries(example_service_node rcl::rcl rclc::rclc ${example_interfaces_TARGETS})
 
 add_executable(example_client_node src/example_client_node.c)
-ament_target_dependencies(example_client_node rcl rclc example_interfaces)
+target_link_libraries(example_client_node rcl::rcl rclc::rclc ${example_interfaces_TARGETS})
 
 add_executable(example_lifecycle_node src/example_lifecycle_node.c)
-ament_target_dependencies(example_lifecycle_node rcutils rcl rcl_lifecycle rclc rclc_lifecycle lifecycle_msgs)
+target_link_libraries(example_lifecycle_node rcutils::rcutils rcl::rcl rcl_lifecycle::rcl_lifecycle rclc::rclc rclc_lifecycle::rclc_lifecycle ${lifecycle_msgs_TARGETS})
 
 add_executable(example_parameter_server src/example_parameter_server.c)
-ament_target_dependencies(example_parameter_server rclc rclc_parameter)
+target_link_libraries(example_parameter_server rclc::rclc rclc_parameter::rclc_parameter)
 
 add_executable(example_sub_context src/example_sub_context.c)
-ament_target_dependencies(example_sub_context rcl rclc std_msgs)
+target_link_libraries(example_sub_context rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 add_executable(example_pingpong src/example_pingpong.cpp)
-ament_target_dependencies(example_pingpong rcl rclc std_msgs)
+target_link_libraries(example_pingpong rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 add_executable(example_action_server src/example_action_server.c)
 target_link_libraries(example_action_server Threads::Threads)
-ament_target_dependencies(example_action_server rcl rcl_action rclc example_interfaces)
+target_link_libraries(example_action_server rcl::rcl rcl_action::rcl_action rclc::rclc ${example_interfaces_TARGETS})
 
 add_executable(example_action_client src/example_action_client.c)
-ament_target_dependencies(example_action_client rcl rcl_action rclc example_interfaces)
+target_link_libraries(example_action_client rcl::rcl rcl_action::rcl_action rclc::rclc ${example_interfaces_TARGETS})
 
 add_executable(example_short_timer_long_subscription src/example_short_timer_long_subscription.c)
-ament_target_dependencies(example_short_timer_long_subscription rcl rclc std_msgs)
+target_link_libraries(example_short_timer_long_subscription rcl::rcl rclc::rclc ${std_msgs_TARGETS})
 
 install(TARGETS
   example_executor
