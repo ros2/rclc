@@ -14,8 +14,11 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <unistd.h>
-#include <pthread.h>
+#ifdef _WIN32
+  #include <windows.h>
+#else
+  #include <pthread.h>
+#endif
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -28,7 +31,11 @@ const char * goalResult[] =
 {[GOAL_STATE_SUCCEEDED] = "succeeded", [GOAL_STATE_CANCELED] = "canceled",
   [GOAL_STATE_ABORTED] = "aborted"};
 
+#ifdef _WIN32
+DWORD WINAPI fibonacci_worker(LPVOID args)
+#else
 void * fibonacci_worker(void * args)
+#endif
 {
   (void) args;
   rclc_action_goal_handle_t * goal_handle = (rclc_action_goal_handle_t *) args;
@@ -63,7 +70,7 @@ void * fibonacci_worker(void * args)
       }
 
       rclc_action_publish_feedback(goal_handle, &feedback);
-      usleep(100000);
+      rclc_sleep_ms(100);
     }
 
     if (!goal_handle->goal_cancelled) {
@@ -81,11 +88,15 @@ void * fibonacci_worker(void * args)
   rcl_ret_t rc;
   do {
     rc = rclc_action_send_result(goal_handle, goal_state, &response);
-    usleep(1e6);
+    rclc_sleep_ms(1e3);
   } while (rc != RCL_RET_OK);
 
   free(feedback.feedback.sequence.data);
+#ifdef _WIN32
+  return 0;
+#else
   pthread_exit(NULL);
+#endif
 }
 
 rcl_ret_t handle_goal(rclc_action_goal_handle_t * goal_handle, void * context)
@@ -103,8 +114,14 @@ rcl_ret_t handle_goal(rclc_action_goal_handle_t * goal_handle, void * context)
 
   printf("Goal %d accepted\n", req->goal.order);
 
+#ifdef _WIN32
+  HANDLE thread_id = CreateThread(
+    NULL, 0, (LPTHREAD_START_ROUTINE) fibonacci_worker, goal_handle, 0, NULL);
+  CloseHandle(thread_id);  // libère immédiatement le handle, le thread continue
+#else
   pthread_t * thread_id = malloc(sizeof(pthread_t));
   pthread_create(thread_id, NULL, fibonacci_worker, goal_handle);
+#endif
   return RCL_RET_ACTION_GOAL_ACCEPTED;
 }
 
@@ -161,7 +178,7 @@ int main()
 
   while (1) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-    usleep(100000);
+    rclc_sleep_ms(100);
   }
 
   // clean up
