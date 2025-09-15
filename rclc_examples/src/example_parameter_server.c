@@ -14,7 +14,6 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <unistd.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
