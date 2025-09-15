@@ -14,7 +14,6 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <unistd.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -191,7 +190,7 @@ int main()
     (void *) &action_client
   );
 
-  sleep(1);
+  rclc_sleep_ms(1000);
 
   if (RCL_RET_OK !=
     rclc_action_send_goal_request(&action_client, &ros_goal_request[0], NULL))
@@ -202,7 +201,7 @@ int main()
 
   while (!goals_completed) {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-    usleep(100000);
+    rclc_sleep_ms(100);
   }
 
   // clean up
