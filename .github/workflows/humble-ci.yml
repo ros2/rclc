@@ -1,0 +1,16 @@
+name: RCLC CI humble
+
+on:
+  push:
+    branches: [ humble ]
+  pull_request:
+    branches: [ humble ]
+
+jobs:
+  humble-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: humble
+      os: ubuntu-22.04
+      docker-image: ubuntu:jammy
+      ros-distribution: humble
