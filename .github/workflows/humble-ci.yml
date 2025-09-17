@@ -1,4 +1,4 @@
-name: RCLC CI humble
+name: RCLC CI Humble
 
 on:
   push:
