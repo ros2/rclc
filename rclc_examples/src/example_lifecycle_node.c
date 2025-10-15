@@ -87,6 +87,7 @@ int main(int argc, const char * argv[])
   rc = rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+    &support.clock,
     &state_machine_,
     &allocator,
     true);

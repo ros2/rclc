@@ -38,6 +38,7 @@ rcl_ret_t
 rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
+  rcl_clock_t * clock,
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_allocator_t * allocator,
   bool enable_communication_interface
@@ -47,6 +48,8 @@ rclc_make_node_a_lifecycle_node(
     lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    clock, "clock is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
@@ -61,6 +64,7 @@ rclc_make_node_a_lifecycle_node(
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
     node,
+    clock,
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, ChangeState),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetState),
