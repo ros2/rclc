@@ -1,10 +1,10 @@
-This document is a declaration of software quality for the `rclc_parameter` package, based on the guidelines in [REP-2004](https://www.ros.org/reps/rep-2004.html).
+This document is a declaration of software quality for the `rclc_parameter` package, based on the guidelines in [REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 # `rclc_parameter` Quality Declaration
 
 The package `rclc_parameter` claims to be in the **Quality Level 2** category when it is used with a **Quality Level 2** middleware.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 ## Version Policy [1]
 
@@ -169,13 +169,13 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 ## Platform Support [6]
 
-`rclc_parameter` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
+`rclc_parameter` supports all of the tier 1 platforms as described in [REP-2000](https://reps.openrobotics.org/rep-2000/#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
 
 ## Security [7]
 
 ### Vulnerability Disclosure Policy [7.i]
 
-This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://reps.openrobotics.org/rep-2006/).
 
 # Current status Summary
 
