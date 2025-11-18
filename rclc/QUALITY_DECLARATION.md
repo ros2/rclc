@@ -1,10 +1,10 @@
-This document is a declaration of software quality for the `rclc` package, based on the guidelines in [REP-2004](https://www.ros.org/reps/rep-2004.html).
+This document is a declaration of software quality for the `rclc` package, based on the guidelines in [REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 # `rclc` Quality Declaration
 
 The package `rclc` claims to be in the **Quality Level 2** category when it is used with a **Quality Level 2** middleware.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 ## Version Policy [1]
 
@@ -33,7 +33,7 @@ All installed headers are in the [`include`](./include/rclc) directory of the pa
 
 ### API and ABI Stability Within a Released ROS Distribution [1.vi]
 
-`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released. 
+`rclc` will not break API nor ABI within a released ROS distribution, i.e. no major releases once the ROS distribution is released.
 
 ## Change Control Process [2]
 
@@ -70,7 +70,7 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Feature Documentation [3.i]
 
-`rclc` features are documented in the package [README.md](README.md) and in the header files. 
+`rclc` features are documented in the package [README.md](README.md) and in the header files.
 
 ### Public API Documentation [3.ii]
 
@@ -157,13 +157,13 @@ The quality statement for this repository is not available.
 
 ## Platform Support [6]
 
-`rclc` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
+`rclc` supports all of the tier 1 platforms as described in [REP-2000](https://reps.openrobotics.org/rep-2000/#support-tiers) for Galactic Release (i.e.: Linux amd64, Linux arm64 and Windows 10), and tests each change against all of them.
 
 ## Security [7]
 
 ### Vulnerability Disclosure Policy [7.i]
 
-This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://reps.openrobotics.org/rep-2006/).
 
 # Current status Summary
 
