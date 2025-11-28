@@ -63,6 +63,7 @@ TEST(ParameterTestUnitary, rclc_parameter_server_init_default) {
   // Destroy parameter server
   ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
   ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
+  ASSERT_EQ(rcl_logging_rosout_fini_publisher_for_node(&node), RCL_RET_OK);
   ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
 
@@ -103,6 +104,7 @@ TEST(ParameterTestUnitary, rclc_add_parameter) {
 
   // Destroy parameter server
   ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
+  ASSERT_EQ(rcl_logging_rosout_fini_publisher_for_node(&node), RCL_RET_OK);
   ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
 }
 
@@ -178,6 +180,7 @@ public:
     // Destroy parameter server
     ASSERT_EQ(rclc_parameter_server_fini(&param_server, &node), RCL_RET_OK);
     ASSERT_EQ(rclc_executor_fini(&executor), RCL_RET_OK);
+    ASSERT_EQ(rcl_logging_rosout_fini_publisher_for_node(&node), RCL_RET_OK);
     ASSERT_EQ(rcl_node_fini(&node), RCL_RET_OK);
   }
 

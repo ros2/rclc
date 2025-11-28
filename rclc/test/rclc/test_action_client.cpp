@@ -127,6 +127,10 @@ TEST(Test, rclc_action_client) {
   // clean up
   rc = rclc_action_client_fini(&action_client, &node);
   EXPECT_EQ(RCL_RET_OK, rc);
+  if (rcl_logging_rosout_enabled()) {
+    rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+  }
   rc = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, rc);
   rc = rclc_support_fini(&support);
@@ -245,6 +249,10 @@ public:
 
     rc = rclc_action_client_fini(&action_client, &node);
     EXPECT_EQ(RCL_RET_OK, rc);
+    if (rcl_logging_rosout_enabled()) {
+      rc = rcl_logging_rosout_fini_publisher_for_node(&node);
+      EXPECT_EQ(RCL_RET_OK, rc);
+    }
     rc = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, rc);
     rc = rclc_support_fini(&support);

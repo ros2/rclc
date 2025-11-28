@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "rclc/executor.h"
+#include "rclc/node.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/time.h"
 
@@ -545,6 +546,10 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(&this->node, name, "", &this->context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled() && node_options.enable_rosout) {
+      ret = rcl_logging_rosout_init_publisher_for_node(&this->node);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
     const rcl_node_options_t * node_ops = rcl_node_get_options(&this->node);
     this->allocator_ptr = &node_ops->allocator;
 
@@ -591,6 +596,14 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_clock_fini(&this->clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled()) {
+      ret = rcl_logging_rosout_fini_publisher_for_node(&this->node);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
+    if (rcl_logging_rosout_enabled()) {
+      ret = rcl_logging_rosout_fini_publisher_for_node(&this->node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    }
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(&this->context);

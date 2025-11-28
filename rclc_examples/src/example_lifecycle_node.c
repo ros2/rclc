@@ -132,6 +132,7 @@ int main(int argc, const char * argv[])
   // Cleanup
   printf("cleaning up...\n");
   rc = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
+  rc += rcl_logging_rosout_fini_publisher_for_node(&my_node);
   rc += rcl_node_fini(&my_node);
   rc += rclc_executor_fini(&executor);
   rc += rclc_support_fini(&support);

@@ -63,6 +63,9 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
+    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
+  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -81,6 +84,10 @@ TEST(TestRclcLifecycle, lifecycle_node) {
     rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine));
 
   // clean up
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -100,6 +107,9 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
+    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
+  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -151,6 +161,10 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_node.state_machine->current_state->id);
 
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -170,6 +184,9 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
+    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
+  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -216,6 +233,10 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
 
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -235,6 +256,9 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   rcl_node_t my_node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
+  if (rcl_logging_rosout_enabled() && node_ops.enable_rosout) {
+    res += rcl_logging_rosout_init_publisher_for_node(&my_node);
+  }
 
   rclc_lifecycle_node_t lifecycle_node;
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
@@ -286,6 +310,10 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   // Cleanup
   res = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
   EXPECT_EQ(RCL_RET_OK, res);
+  if (rcl_logging_rosout_enabled()) {
+    res = rcl_logging_rosout_fini_publisher_for_node(&my_node);
+    EXPECT_EQ(RCL_RET_OK, res);
+  }
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rclc_executor_fini(&executor);
