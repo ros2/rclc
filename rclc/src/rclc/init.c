@@ -22,6 +22,8 @@
 #include <rcl/init_options.h>
 #include <rcutils/logging_macros.h>
 
+#include <stdlib.h>
+
 rcl_ret_t
 rclc_support_init(
   rclc_support_t * support,
@@ -105,3 +107,74 @@ rclc_support_fini(rclc_support_t * support)
   }
   return result;
 }
+
+rclc_support_t *
+rclc_support_alloc(const rcl_allocator_t * const allocator)
+{
+  rclc_support_t * support = (rclc_support_t *)
+    allocator->allocate(sizeof(rclc_support_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return support);
+  return support;
+}
+
+rcl_ret_t
+rclc_support_free(rclc_support_t * support, const rcl_allocator_t * const allocator)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  allocator->deallocate(support, allocator->state);
+  return RCL_RET_OK;
+}
+
+
+rcl_context_t *
+rclc_get_context(rclc_support_t * support)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return (rcl_context_t *) NULL);
+  return &(support->context);
+}
+
+rcl_allocator_t *
+rclc_get_allocator(rclc_support_t * support)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return (rcl_allocator_t *) NULL);
+  return support->allocator;
+}
+
+rcl_clock_t *
+rclc_get_clock(rclc_support_t * support)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    support, "support is a null pointer", return (rcl_clock_t *) NULL);
+  return &(support->clock);
+}
+
+rcl_allocator_t *
+rclc_allocator_alloc_default()
+{
+  rcl_allocator_t allocator_stack = rcl_get_default_allocator();
+  rcl_allocator_t * allocator = (rcl_allocator_t *)
+    allocator_stack.allocate(sizeof(rcutils_allocator_t), allocator_stack.state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator, "allocator is a null pointer", return allocator);
+  memcpy(allocator, &allocator_stack, sizeof(rcl_allocator_t));
+  return allocator;
+}
+
+rcl_ret_t
+rclc_allocator_free(rcl_allocator_t * allocator)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  allocator->deallocate(allocator, allocator->state);
+  return RCL_RET_OK;
+}
+
+
+const int32_t rcl_ret_ok = RCL_RET_OK;
+const int32_t rcl_ret_error = RCL_RET_ERROR;
+const int32_t rcl_ret_timeout = RCL_RET_TIMEOUT;
+const int32_t rcl_ret_unsupported = RCL_RET_UNSUPPORTED;

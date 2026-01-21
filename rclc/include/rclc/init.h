@@ -104,6 +104,152 @@ rcl_ret_t
 rclc_support_fini(
   rclc_support_t * support);
 
+/**
+ *  Allocates memory for an rclc_support_t object.
+ *  Can be used if no stack allocation can or should be used.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] allocator the rcl_allocator_t to be used
+ * \return pointer to the support (rclc_support_t)
+ * \return NULL, if no memory could be allocated.
+ */
+RCLC_PUBLIC
+rclc_support_t *
+rclc_support_alloc(const rcl_allocator_t * const allocator);
+
+/**
+ *  Return the pointer to the context member of struct support.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] support an instance of type rclc_support_t
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+rcl_context_t *
+rclc_get_context(
+  rclc_support_t * support);
+
+/**
+ *  Return the pointer to the allocator member of struct support.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] support an instance of type rclc_support_t
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+rcl_allocator_t *
+rclc_get_allocator(
+  rclc_support_t * support);
+
+/**
+ *  Return the pointer to the clock member of struct support.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] support an instance of type rclc_support_t
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+rcl_clock_t *
+rclc_get_clock(
+  rclc_support_t * support);
+
+/**
+ *  De-allocates an rclc_support_t object.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[inout] support a heap-allocated rclc_support_t
+ * \param[in] allocator the rcl_allocator_t to be used
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+rcl_ret_t
+rclc_support_free(
+  rclc_support_t * support,
+  const rcl_allocator_t * const allocator);
+
+
+/**
+ *  Allocates the rcl_allocator_t object and sets it to default values.
+ *  Can be used as an alternative to rcl_get_default_allocator() if no
+ *  stack allocation can or should be used.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \return pointer to the allocator (rcl_allocator_t)
+ * \return NULL, if no memory could be allocated.
+ */
+RCLC_PUBLIC
+rcl_allocator_t *
+rclc_allocator_alloc_default();
+
+/**
+ *  De-allocates an rcl_allocator_t object.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[inout] allocator a heap-allocated rcl_allocator_t
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_allocator_free(
+  rcl_allocator_t * allocator);
+
+
+/** Can be used if the node cannot access defines.*/
+RCLC_PUBLIC extern const int32_t rcl_ret_ok;
+RCLC_PUBLIC extern const int32_t rcl_ret_error;
+RCLC_PUBLIC extern const int32_t rcl_ret_timeout;
+RCLC_PUBLIC extern const int32_t rcl_ret_unsupported;
+
 #if __cplusplus
 }
 #endif

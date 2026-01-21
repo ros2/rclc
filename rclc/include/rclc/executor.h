@@ -982,6 +982,47 @@ rclc_executor_trigger_one(
   unsigned int size,
   void * obj);
 
+/**
+ * Allocates an rclc_executor_t object and sets its values to zero. Can be
+ * used as an alternative to rclc_executor_get_zero_initialized_executor() if
+ * no stack allocation can or should be used.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] allocator the rcl_allocator_t to be used
+ * \return pointer to the executor (rclc_executor_t)
+ * \return NULL, if no memory could be allocated.
+ */
+RCLC_PUBLIC
+rclc_executor_t *
+rclc_alloc_zero_initialized_executor(const rcl_allocator_t * const allocator);
+
+/**
+ *  De-allocates an rclc_executor_t object.
+ *
+ *  * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[inout] executor a heap-allocated rclc_executor_t
+ * \return `RCL_RET_OK` if operation was successful
+ * \return `RCL_RET_INVALID_ARGUMENT` if any null pointer as argument
+ */
+RCLC_PUBLIC
+rcl_ret_t
+rclc_executor_free(
+  rclc_executor_t * executor);
+
 #if __cplusplus
 }
 #endif

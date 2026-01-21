@@ -84,3 +84,36 @@ TEST(Test, rclc_support_fini) {
   EXPECT_EQ(RCL_RET_ERROR, rc);
   rcutils_reset_error();
 }
+
+TEST(Test, rclc_support_alloc) {
+  // test heap allocation and freeing
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rclc_support_t * support = rclc_support_alloc(&allocator);
+  EXPECT_NE(nullptr, support);
+  rcl_ret_t rc = rclc_support_free(support, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  support = nullptr;
+}
+
+TEST(Test, rclc_get_context) {
+  rclc_support_t support;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t rc = rclc_support_init(&support, 0, nullptr, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  rcl_context_t *context = rclc_get_context(&support);
+  EXPECT_NE(nullptr, context);
+  EXPECT_TRUE(rcl_context_is_valid(context));
+
+  rc = rclc_support_fini(&support);
+  EXPECT_EQ(RCL_RET_OK, rc);
+}
+
+TEST(Test, rclc_allocator_alloc_default) {
+  // test heap allocation and freeing
+  rcl_allocator_t * allocator = rclc_allocator_alloc_default();
+  EXPECT_NE(nullptr, allocator);
+  rcl_ret_t rc = rclc_allocator_free(allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  allocator = nullptr;
+}

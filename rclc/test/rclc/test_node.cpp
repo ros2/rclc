@@ -113,3 +113,13 @@ TEST(Test, rclc_node_init_with_options) {
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
 }
+
+TEST(Test, rclc_alloc_zero_initialized_node) {
+  // test heap allocation and freeing
+  const rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_node_t * node = rclc_alloc_zero_initialized_node(&allocator);
+  EXPECT_NE(nullptr, node);
+  rcl_ret_t rc = rclc_node_free(node, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  node = nullptr;
+}

@@ -57,6 +57,9 @@ typedef enum
   ON_NEW_DATA,
   ALWAYS
 } rclc_executor_handle_invocation_t;
+/** Can be used if the node cannot access defines.*/
+RCLC_PUBLIC extern const int32_t rclc_on_new_data;
+RCLC_PUBLIC extern const int32_t rclc_always;
 
 /// Type definition for subscription callback function
 /// - incoming message

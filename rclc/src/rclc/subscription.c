@@ -20,6 +20,8 @@
 #include <rcutils/logging_macros.h>
 #include <rmw/qos_profiles.h>
 
+#include <stdlib.h>
+
 rcl_ret_t
 rclc_subscription_init_default(
   rcl_subscription_t * subscription,
@@ -76,4 +78,25 @@ rclc_subscription_init(
     PRINT_RCLC_ERROR(rclc_subscription_init_best_effort, rcl_subscription_init);
   }
   return rc;
+}
+
+rcl_subscription_t *
+rclc_alloc_zero_initialized_subscription(const rcl_allocator_t * const allocator)
+{
+  rcl_subscription_t * subscription = (rcl_subscription_t *)
+    allocator->allocate(sizeof(rcl_subscription_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription is a null pointer", return subscription);
+  *subscription = rcl_get_zero_initialized_subscription();
+  return subscription;
+}
+
+rcl_ret_t
+rclc_subscription_free(
+  rcl_subscription_t * subscription, const rcl_allocator_t * const allocator)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  allocator->deallocate(subscription, allocator->state);
+  return RCL_RET_OK;
 }

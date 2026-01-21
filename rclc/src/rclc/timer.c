@@ -46,3 +46,23 @@ rclc_timer_init_default(
   }
   return rc;
 }
+
+rcl_timer_t *
+rclc_alloc_zero_initialized_timer(const rcl_allocator_t * const allocator)
+{
+  rcl_timer_t * timer = (rcl_timer_t *)
+    allocator->allocate(sizeof(rcl_timer_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    timer, "timer is a null pointer", return timer);
+  *timer = rcl_get_zero_initialized_timer();
+  return timer;
+}
+
+rcl_ret_t
+rclc_timer_free(rcl_timer_t * timer, const rcl_allocator_t * const allocator)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    timer, "timer is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  allocator->deallocate(timer, allocator->state);
+  return RCL_RET_OK;
+}

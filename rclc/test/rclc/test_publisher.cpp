@@ -154,3 +154,13 @@ TEST(Test, rclc_publisher_init_qos) {
   rc = rclc_support_fini(&support);
   EXPECT_EQ(RCL_RET_OK, rc);
 }
+
+TEST(Test, rclc_publisher_alloc) {
+  // test heap allocation and freeing
+  const rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_publisher_t * publisher = rclc_publisher_alloc(&allocator);
+  EXPECT_NE(nullptr, publisher);
+  rcl_ret_t rc = rclc_publisher_free(publisher, &allocator);
+  EXPECT_EQ(RCL_RET_OK, rc);
+  publisher = nullptr;
+}

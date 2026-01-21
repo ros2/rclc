@@ -19,6 +19,8 @@
 #include <rcl/error_handling.h>
 #include <rcutils/logging_macros.h>
 
+const int32_t rclc_on_new_data = ON_NEW_DATA;
+const int32_t rclc_always = ALWAYS;
 
 // initialization of handle_counters object
 rcl_ret_t
