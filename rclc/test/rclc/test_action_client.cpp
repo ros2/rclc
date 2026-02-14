@@ -30,6 +30,7 @@ extern "C"
 #include <utility>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/executors/single_threaded_executor.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <example_interfaces/action/fibonacci.hpp>
 
@@ -200,8 +201,12 @@ public:
     // Init RCLCPP
     using namespace std::placeholders;
 
-    rclcpp::init(0, NULL);
+    if (!rclcpp::ok()) {
+      rclcpp::init(0, NULL);
+    }
     action_server_node = rclcpp::Node::make_shared("action_aux_client");
+    server_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    server_executor->add_node(action_server_node);
     action_server = rclcpp_action::create_server<Fibonacci>(
       action_server_node,
       "fibonacci",
@@ -215,7 +220,7 @@ public:
     server_thread = std::thread(
       [&]() {
         while (run_server) {
-          rclcpp::spin_some(action_server_node);
+          server_executor->spin_some();
         }
       });
 
@@ -242,6 +247,11 @@ public:
 
     run_server = false;
     server_thread.join();
+
+    // Clean up RCLCPP resources before shutting down
+    action_server.reset();
+    server_executor.reset();
+    action_server_node.reset();
 
     rc = rclc_action_client_fini(&action_client, &node);
     EXPECT_EQ(RCL_RET_OK, rc);
@@ -336,6 +346,7 @@ protected:
 
   std::shared_ptr<rclcpp::Node> action_server_node;
   rclcpp_action::Server<Fibonacci>::SharedPtr action_server;
+  std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> server_executor;
 
   std::function<rclcpp_action::GoalResponse(
       const rclcpp_action::GoalUUID & uuid,
