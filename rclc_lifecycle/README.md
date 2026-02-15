@@ -31,7 +31,7 @@ rcl_lifecycle_state_machine_t state_machine_ =
 ...
 
 // create the lifecycle node
-rclc_lifecycle_node_t lifecycle_node;
+rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
 rcl_ret_t rc = rclc_make_node_a_lifecycle_node(
   &lifecycle_node,
   &my_node,
