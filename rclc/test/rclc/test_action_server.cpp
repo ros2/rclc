@@ -20,23 +20,26 @@ extern "C"
 {
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <rclc/action_client.h>
 #include <example_interfaces/action/fibonacci.h>
 }
 
 #include <chrono>
+#include <cmath>
 #include <thread>
 #include <memory>
 #include <map>
+#include <mutex>
 #include <vector>
 #include <utility>
-
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_action/rclcpp_action.hpp>
-#include <example_interfaces/action/fibonacci.hpp>
 
 #define RCLC_MAX_GOALS 10
 
 using namespace std::chrono_literals;
+
+#define GOAL_STATE_SUCCEEDED action_msgs__msg__GoalStatus__STATUS_SUCCEEDED
+#define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
+#define GOAL_STATE_CANCELED action_msgs__msg__GoalStatus__STATUS_CANCELED
 
 TEST(Test, rclc_action_server) {
   rclc_support_t support;
@@ -146,14 +149,10 @@ TEST(Test, rclc_action_server) {
   EXPECT_EQ(RCL_RET_OK, rc);
 }
 
-using Fibonacci = example_interfaces::action::Fibonacci;
-using GoalHandleFibonacci = rclcpp_action::ClientGoalHandle<Fibonacci>;
-
 class ActionServerTest : public ::testing::Test
 {
 public:
-  ActionServerTest()
-  : rclcpp_timeout(100000) {}
+  ActionServerTest() {}
 
   ~ActionServerTest() {}
 
@@ -203,14 +202,66 @@ public:
         }
       });
 
-    // Init RCLCPP
-    rclcpp::init(0, NULL);
-    action_client_node = rclcpp::Node::make_shared("action_aux_client");
-    action_client = rclcpp_action::create_client<Fibonacci>(action_client_node, "fibonacci");
+    // Init RCLC action client (test helper)
+    client_node = rcl_get_zero_initialized_node();
+    rc = rclc_node_init_default(&client_node, "action_client_node", "", &support);
+    EXPECT_EQ(RCL_RET_OK, rc);
 
-    EXPECT_EQ(action_client->wait_for_action_server(rclcpp_timeout), true);
+    rc = rclc_action_client_init_default(
+      &action_client,
+      &client_node,
+      ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci),
+      "fibonacci"
+    );
+    EXPECT_EQ(RCL_RET_OK, rc);
 
-    send_goal_options = rclcpp_action::Client<Fibonacci>::SendGoalOptions();
+    // Init client executor
+    rclc_executor_init(&client_executor, &support.context, 1, &allocator);
+
+    ros_feedback.feedback.sequence.capacity = RCLC_MAX_GOALS;
+    ros_feedback.feedback.sequence.size = 0;
+    ros_feedback.feedback.sequence.data = reinterpret_cast<int32_t *>(malloc(
+        ros_feedback.feedback.sequence.capacity * sizeof(int32_t)));
+
+    ros_result_response.result.sequence.capacity = RCLC_MAX_GOALS;
+    ros_result_response.result.sequence.size = 0;
+    ros_result_response.result.sequence.data = reinterpret_cast<int32_t *>(malloc(
+        ros_result_response.result.sequence.capacity * sizeof(int32_t)));
+
+    rc = rclc_executor_add_action_client(
+      &client_executor,
+      &action_client,
+      RCLC_MAX_GOALS,
+      &ros_result_response,
+      &ros_feedback,
+      client_handle_goal_dispatcher,
+      client_feedback_dispatcher,
+      client_result_dispatcher,
+      client_handle_cancel_dispatcher,
+      this);
+    EXPECT_EQ(RCL_RET_OK, rc);
+
+    // Set default callbacks
+    client_handle_goal = [](rclc_action_goal_handle_t *, bool, void *) {};
+    client_handle_feedback = [](rclc_action_goal_handle_t *, void *, void *) {};
+    client_handle_result = [](rclc_action_goal_handle_t *, void *, void *) {};
+    client_handle_cancel = [](rclc_action_goal_handle_t *, bool, void *) {};
+
+    // Wait for action server match
+    bool server_matched = false;
+    for (size_t i = 0; i < 10; i++) {
+      rc = rcl_action_server_is_available(
+        &client_node, &action_client.rcl_handle, &server_matched);
+
+      if (server_matched) {
+        break;
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    EXPECT_EQ(RCL_RET_OK, rc);
+    EXPECT_TRUE(server_matched);
   }
 
   void TearDown() override
@@ -220,6 +271,13 @@ public:
     run_server = false;
     server_thread.join();
 
+    rc = rclc_executor_fini(&client_executor);
+    EXPECT_EQ(RCL_RET_OK, rc);
+    rc = rclc_action_client_fini(&action_client, &client_node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+    rc = rcl_node_fini(&client_node);
+    EXPECT_EQ(RCL_RET_OK, rc);
+
     rc = rclc_action_server_fini(&action_server, &node);
     EXPECT_EQ(RCL_RET_OK, rc);
     rc = rcl_node_fini(&node);
@@ -227,7 +285,8 @@ public:
     rc = rclc_support_fini(&support);
     EXPECT_EQ(RCL_RET_OK, rc);
 
-    rclcpp::shutdown();
+    free(ros_feedback.feedback.sequence.data);
+    free(ros_result_response.result.sequence.data);
   }
 
   static rcl_ret_t handle_goal_dispatcher(rclc_action_goal_handle_t * goal_handle, void * context)
@@ -238,6 +297,33 @@ public:
   static bool handle_cancel_dispatcher(rclc_action_goal_handle_t * goal_handle, void * context)
   {
     return static_cast<ActionServerTest *>(context)->handle_cancel(goal_handle, context);
+  }
+
+  static void client_handle_goal_dispatcher(
+    rclc_action_goal_handle_t * goal_handle, bool accepted, void * context)
+  {
+    static_cast<ActionServerTest *>(context)->client_handle_goal(goal_handle, accepted, context);
+  }
+
+  static void client_feedback_dispatcher(
+    rclc_action_goal_handle_t * goal_handle, void * ros_feedback, void * context)
+  {
+    static_cast<ActionServerTest *>(context)->client_handle_feedback(
+      goal_handle, ros_feedback, context);
+  }
+
+  static void client_result_dispatcher(
+    rclc_action_goal_handle_t * goal_handle, void * ros_result_response, void * context)
+  {
+    static_cast<ActionServerTest *>(context)->client_handle_result(
+      goal_handle, ros_result_response, context);
+  }
+
+  static void client_handle_cancel_dispatcher(
+    rclc_action_goal_handle_t * goal_handle, bool cancelled, void * context)
+  {
+    static_cast<ActionServerTest *>(context)->client_handle_cancel(
+      goal_handle, cancelled, context);
   }
 
 protected:
@@ -257,75 +343,97 @@ protected:
   bool run_server;
   std::thread server_thread;
 
-  // RCLCPP members
-  std::shared_ptr<rclcpp::Node> action_client_node;
-  rclcpp_action::Client<Fibonacci>::SharedPtr action_client;
+  // RCLC action client (test helper) members
+  rcl_node_t client_node;
+  rclc_action_client_t action_client;
+  rclc_executor_t client_executor;
 
-  rclcpp_action::Client<Fibonacci>::SendGoalOptions send_goal_options;
+  example_interfaces__action__Fibonacci_FeedbackMessage ros_feedback;
+  example_interfaces__action__Fibonacci_GetResult_Response ros_result_response;
 
-  std::chrono::duration<int64_t, std::milli> rclcpp_timeout;
+  std::function<void(rclc_action_goal_handle_t *, bool, void *)> client_handle_goal;
+  std::function<void(rclc_action_goal_handle_t *, void *, void *)> client_handle_feedback;
+  std::function<void(rclc_action_goal_handle_t *, void *, void *)> client_handle_result;
+  std::function<void(rclc_action_goal_handle_t *, bool, void *)> client_handle_cancel;
 };
 
-TEST_F(ActionServerTest, goal_accept) {
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
+inline bool operator<(
+  const unique_identifier_msgs__msg__UUID & lhs,
+  const unique_identifier_msgs__msg__UUID & rhs)
+{
+  uint64_t lhs_high = *(reinterpret_cast<const uint64_t *>(&lhs.uuid[0]));
+  uint64_t lhs_low = *(reinterpret_cast<const uint64_t *>(&lhs.uuid[8]));
 
-  // Prepare RCLC
+  uint64_t rhs_high = *(reinterpret_cast<const uint64_t *>(&rhs.uuid[0]));
+  uint64_t rhs_low = *(reinterpret_cast<const uint64_t *>(&rhs.uuid[8]));
+
+  return (rhs_high == lhs_high) ? (rhs_low < lhs_low) : (rhs_high < lhs_high);
+}
+
+TEST_F(ActionServerTest, goal_accept) {
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       example_interfaces__action__Fibonacci_SendGoal_Request * req =
-        reinterpret_cast<example_interfaces__action__Fibonacci_SendGoal_Request *>(goal_handle->
-        ros_goal_request);
-      EXPECT_EQ(req->goal.order, goal_msg.order);
+        reinterpret_cast<example_interfaces__action__Fibonacci_SendGoal_Request *>(
+        goal_handle->ros_goal_request);
+      EXPECT_EQ(req->goal.order, goal_request.goal.order);
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<uint8_t>>();
-  auto future = promise->get_future().share();
-
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      promise->set_value(goal_handle->get_status());
+  // Run RCLC client
+  bool goal_accepted = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goal_accepted = true;
     };
 
-  action_client->async_send_goal(goal_msg, send_goal_options);
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
-  ASSERT_EQ(future.get(), 1);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_accepted) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
+
+  ASSERT_TRUE(goal_accepted);
 }
 
 TEST_F(ActionServerTest, goal_reject) {
-  // Prepare RCLC
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   handle_goal =
     [](rclc_action_goal_handle_t * /* goal_handle */, void * /* context */) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_REJECTED;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
-
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
-
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_EQ(nullptr, goal_handle);
-      promise->set_value();
+  // Run RCLC client
+  bool goal_rejected = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_FALSE(accepted);
+      goal_rejected = true;
     };
 
-  action_client->async_send_goal(goal_msg, send_goal_options);
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_rejected) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
+
+  ASSERT_TRUE(goal_rejected);
 }
 
 TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
-  // Prepare RCLC
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   std::thread feedback_thread;
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
@@ -355,51 +463,52 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
-
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
-
-  bool accepted = false;
-
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      accepted = true;
+  // Run RCLC client
+  bool goal_accepted = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goal_accepted = true;
     };
 
   size_t feedback_received = 0;
-  send_goal_options.feedback_callback =
-    [&](GoalHandleFibonacci::SharedPtr,
-    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+  client_handle_feedback = [&](rclc_action_goal_handle_t * /* goal_handle */, void * ros_feedback,
+    void * /* context */) {
       feedback_received++;
-      ASSERT_EQ(feedback->sequence.size(), 3U);
+      example_interfaces__action__Fibonacci_FeedbackMessage * feedback =
+        reinterpret_cast<example_interfaces__action__Fibonacci_FeedbackMessage *>(ros_feedback);
+      ASSERT_EQ(feedback->feedback.sequence.size, 3U);
     };
 
-  send_goal_options.result_callback =
-    [&](const GoalHandleFibonacci::WrappedResult & result) -> void {
-      ASSERT_EQ(result.code, rclcpp_action::ResultCode::SUCCEEDED);
-      promise->set_value();
+  bool result_received = false;
+  client_handle_result = [&](rclc_action_goal_handle_t * /* goal_handle */,
+    void * ros_result_response, void * /* context */) {
+      result_received = true;
+      example_interfaces__action__Fibonacci_GetResult_Response * result =
+        reinterpret_cast<example_interfaces__action__Fibonacci_GetResult_Response *>(
+        ros_result_response);
+      ASSERT_EQ(result->status, GOAL_STATE_SUCCEEDED);
     };
 
-  auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  rclcpp::spin_until_future_complete(action_client_node, goal_handle);
-  action_client->async_get_result(goal_handle.get());
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_accepted || !result_received) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
   feedback_thread.join();
 
-  ASSERT_TRUE(accepted);
+  ASSERT_TRUE(goal_accepted);
+  ASSERT_TRUE(result_received);
   ASSERT_EQ(feedback_received, 10U);
 }
 
 TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
-  // Prepare RCLC
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   std::thread feedback_thread;
 
   handle_goal = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
@@ -426,129 +535,136 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
-
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
-
-  bool accepted = false;
-
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      accepted = true;
+  // Run RCLC client
+  bool goal_accepted = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goal_accepted = true;
     };
 
   size_t feedback_received = 0;
-  send_goal_options.feedback_callback =
-    [&](GoalHandleFibonacci::SharedPtr,
-    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+  client_handle_feedback = [&](rclc_action_goal_handle_t * /* goal_handle */, void * ros_feedback,
+    void * /* context */) {
       feedback_received++;
-      ASSERT_EQ(feedback->sequence.size(), 3U);
+      example_interfaces__action__Fibonacci_FeedbackMessage * feedback =
+        reinterpret_cast<example_interfaces__action__Fibonacci_FeedbackMessage *>(ros_feedback);
+      ASSERT_EQ(feedback->feedback.sequence.size, 3U);
     };
 
-  send_goal_options.result_callback =
-    [&](const GoalHandleFibonacci::WrappedResult & result) -> void {
-      ASSERT_EQ(result.code, rclcpp_action::ResultCode::ABORTED);
-      promise->set_value();
+  bool result_received = false;
+  client_handle_result = [&](rclc_action_goal_handle_t * /* goal_handle */,
+    void * ros_result_response, void * /* context */) {
+      result_received = true;
+      example_interfaces__action__Fibonacci_GetResult_Response * result =
+        reinterpret_cast<example_interfaces__action__Fibonacci_GetResult_Response *>(
+        ros_result_response);
+      ASSERT_EQ(result->status, GOAL_STATE_ABORTED);
     };
 
-  auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, goal_handle,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
-  action_client->async_get_result(goal_handle.get());
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, NULL);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_accepted || !result_received) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
   feedback_thread.join();
 
-  ASSERT_TRUE(accepted);
+  ASSERT_TRUE(goal_accepted);
+  ASSERT_TRUE(result_received);
   ASSERT_EQ(feedback_received, 5U);
 }
 
 TEST_F(ActionServerTest, goal_accept_cancel_success) {
-  // Prepare RCLC
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   std::thread feedback_thread;
   handle_goal =
     [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> rcl_ret_t {
       feedback_thread = std::thread(
         [ = ]() {
           std::this_thread::sleep_for(100ms);
-          for (size_t i = 0; i < 5 && !goal_handle->goal_cancelled; i++) {
+          for (size_t i = 0; i < 10 && !goal_handle->goal_cancelled; i++) {
             std::this_thread::sleep_for(100ms);
           }
 
-          ASSERT_TRUE(goal_handle->goal_cancelled);
-
           example_interfaces__action__Fibonacci_GetResult_Response response = {};
-          rcl_ret_t rc = rclc_action_send_result(goal_handle, GOAL_STATE_CANCELED, &response);
+          int8_t status;
+          if (goal_handle->goal_cancelled) {
+            status = GOAL_STATE_CANCELED;
+          } else {
+            status = GOAL_STATE_ABORTED;
+          }
+          rcl_ret_t rc = rclc_action_send_result(goal_handle, status, &response);
           EXPECT_EQ(RCL_RET_OK, rc);
         });
 
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  handle_cancel = [&](rclc_action_goal_handle_t * /* goal_handle */, void * /* context */) -> bool {
+  handle_cancel = [&](rclc_action_goal_handle_t * goal_handle, void * /* context */) -> bool {
+      goal_handle->goal_cancelled = true;
       return true;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
-
-  auto promise_result = std::make_shared<std::promise<void>>();
-  auto future_result = promise_result->get_future().share();
-
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
-
-  bool accepted = false;
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      accepted = true;
+  // Run RCLC client
+  bool goal_accepted = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goal_accepted = true;
     };
 
-  send_goal_options.result_callback =
-    [&](const GoalHandleFibonacci::WrappedResult & result) -> void {
-      ASSERT_EQ(result.code, rclcpp_action::ResultCode::CANCELED);
-      promise_result->set_value();
+  bool cancel_accepted = false;
+  client_handle_cancel = [&](rclc_action_goal_handle_t * /* goal_handle */, bool cancelled,
+    void * /* context */) {
+      cancel_accepted = cancelled;
     };
 
-  auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  rclcpp::spin_until_future_complete(action_client_node, goal_handle);
-  action_client->async_get_result(goal_handle.get());
+  bool result_received = false;
+  client_handle_result = [&](rclc_action_goal_handle_t * /* goal_handle */,
+    void * ros_result_response, void * /* context */) {
+      result_received = true;
+      example_interfaces__action__Fibonacci_GetResult_Response * result =
+        reinterpret_cast<example_interfaces__action__Fibonacci_GetResult_Response *>(
+        ros_result_response);
+      ASSERT_EQ(result->status, GOAL_STATE_CANCELED);
+    };
+
+  rclc_action_goal_handle_t * goal_handle;
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, &goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_accepted) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
   std::this_thread::sleep_for(100ms);
 
-  action_client->async_cancel_goal(
-    goal_handle.get(),
-    [&](auto ans) -> void {
-      EXPECT_EQ(ans->return_code, action_msgs__srv__CancelGoal_Response__ERROR_NONE);
-      promise->set_value();
-    });
+  rc = rclc_action_send_cancel_request(goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future_result,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  size_t max_iterations = 100;
+  size_t iterations = 0;
+  while ((!cancel_accepted || !result_received) && iterations < max_iterations) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+    iterations++;
+  }
 
   feedback_thread.join();
-  ASSERT_TRUE(accepted);
+  ASSERT_TRUE(goal_accepted);
+  ASSERT_TRUE(cancel_accepted);
+  ASSERT_TRUE(result_received);
 }
 
 TEST_F(ActionServerTest, goal_accept_cancel_reject) {
-  // Prepare RCLC
+  example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+  goal_request.goal.order = 10;
+
+  // Prepare RCLC server
   handle_goal =
     [&](rclc_action_goal_handle_t * /* goal_handle */, void * /* context */) -> rcl_ret_t {
       return RCL_RET_ACTION_GOAL_ACCEPTED;
@@ -558,44 +674,46 @@ TEST_F(ActionServerTest, goal_accept_cancel_reject) {
       return false;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
-
-  auto goal_msg = Fibonacci::Goal();
-  goal_msg.order = 10;
-
-  bool accepted = false;
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      accepted = true;
+  // Run RCLC client
+  bool goal_accepted = false;
+  client_handle_goal = [&](rclc_action_goal_handle_t * /* goal_handle */, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goal_accepted = true;
     };
 
-  auto goal_handle = action_client->async_send_goal(goal_msg, send_goal_options);
-  rclcpp::spin_until_future_complete(action_client_node, goal_handle);
-  action_client->async_get_result(goal_handle.get());
+  bool cancel_rejected = false;
+  client_handle_cancel = [&](rclc_action_goal_handle_t * /* goal_handle */, bool cancelled,
+    void * /* context */) {
+      ASSERT_FALSE(cancelled);
+      cancel_rejected = true;
+    };
+
+  rclc_action_goal_handle_t * goal_handle;
+  rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, &goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
+
+  while (!goal_accepted) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
   std::this_thread::sleep_for(100ms);
 
-  action_client->async_cancel_goal(
-    goal_handle.get(),
-    [&](auto ans) -> void {
-      EXPECT_EQ(ans->return_code, action_msgs__srv__CancelGoal_Response__ERROR_REJECTED);
-      promise->set_value();
-    });
+  rc = rclc_action_send_cancel_request(goal_handle);
+  EXPECT_EQ(RCL_RET_OK, rc);
 
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  while (!cancel_rejected) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
-  ASSERT_TRUE(accepted);
+  ASSERT_TRUE(goal_accepted);
+  ASSERT_TRUE(cancel_rejected);
 }
 
 TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
-  // Prepare RCLC
+  // Prepare RCLC server
   std::vector<std::thread> feedback_thread_pool;
+  std::mutex thread_pool_mutex;
 
   size_t feedback_per_goal = 10;
 
@@ -627,63 +745,60 @@ TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
           rclc_action_send_result(goal_handle, GOAL_STATE_SUCCEEDED, &response);
         });
 
+      std::lock_guard<std::mutex> lock(thread_pool_mutex);
       feedback_thread_pool.push_back(std::move(worker));
 
       return RCL_RET_ACTION_GOAL_ACCEPTED;
     };
 
-  // Run RCLCPP
-  auto promise = std::make_shared<std::promise<void>>();
-  auto future = promise->get_future().share();
+  // Run RCLC client
+  std::map<unique_identifier_msgs__msg__UUID, size_t> goals;
+  std::map<unique_identifier_msgs__msg__UUID, bool> goals_accepted;
 
-  std::map<rclcpp_action::GoalUUID, int> goals;
-  std::map<rclcpp_action::GoalUUID, bool> goals_accepted;
-
-  send_goal_options.goal_response_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle) -> void {
-      ASSERT_NE(nullptr, goal_handle);
-      goals_accepted[goal_handle->get_goal_id()] = true;
+  client_handle_goal = [&](rclc_action_goal_handle_t * goal_handle, bool accepted,
+    void * /* context */) {
+      ASSERT_TRUE(accepted);
+      goals_accepted[goal_handle->goal_id] = true;
     };
 
   size_t feedback_received = 0;
-  send_goal_options.feedback_callback =
-    [&](GoalHandleFibonacci::SharedPtr goal_handle,
-    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+  client_handle_feedback = [&](rclc_action_goal_handle_t * goal_handle, void * ros_feedback,
+    void * /* context */) {
       feedback_received++;
-      size_t feedback_size = goals[goal_handle->get_goal_id()];
-      ASSERT_EQ(feedback->sequence.size(), feedback_size);
+      example_interfaces__action__Fibonacci_FeedbackMessage * feedback =
+        reinterpret_cast<example_interfaces__action__Fibonacci_FeedbackMessage *>(ros_feedback);
+      size_t feedback_size = goals[goal_handle->goal_id];
+      ASSERT_EQ(feedback->feedback.sequence.size, feedback_size);
     };
 
-  send_goal_options.result_callback =
-    [&](const GoalHandleFibonacci::WrappedResult & result) -> void {
-      ASSERT_EQ(result.code, rclcpp_action::ResultCode::SUCCEEDED);
-      ASSERT_TRUE(goals_accepted[result.goal_id]);
-      goals.erase(result.goal_id);
-      if (goals.size() == 0) {
-        promise->set_value();
-      }
+  client_handle_result = [&](rclc_action_goal_handle_t * goal_handle,
+    void * ros_result_response, void * /* context */) {
+      example_interfaces__action__Fibonacci_GetResult_Response * result =
+        reinterpret_cast<example_interfaces__action__Fibonacci_GetResult_Response *>(
+        ros_result_response);
+      ASSERT_EQ(result->status, GOAL_STATE_SUCCEEDED);
+      ASSERT_TRUE(goals_accepted[goal_handle->goal_id]);
+      goals.erase(goal_handle->goal_id);
     };
 
   size_t num_goals = std::floor(RCLC_MAX_GOALS / 2);
 
   for (size_t i = 0; i < num_goals; i++) {
-    auto goal_msg = Fibonacci::Goal();
-    goal_msg.order = 10 * (i + 1);
+    example_interfaces__action__Fibonacci_SendGoal_Request goal_request;
+    goal_request.goal.order = 10 * (i + 1);
 
-    auto goal_handle_future = action_client->async_send_goal(goal_msg, send_goal_options);
-    rclcpp::spin_until_future_complete(action_client_node, goal_handle_future);
-    auto goal_handle = goal_handle_future.get();
+    rclc_action_goal_handle_t * goal_handle;
+    rcl_ret_t rc = rclc_action_send_goal_request(&action_client, &goal_request, &goal_handle);
+    EXPECT_EQ(RCL_RET_OK, rc);
 
-    action_client->async_get_result(goal_handle);
-
-    goals.insert({goal_handle->get_goal_id(), goal_msg.order});
-    goals_accepted.insert({goal_handle->get_goal_id(), false});
+    goals.insert({goal_handle->goal_id, goal_request.goal.order});
+    goals_accepted.insert({goal_handle->goal_id, false});
   }
 
-  ASSERT_EQ(
-    rclcpp::spin_until_future_complete(
-      action_client_node, future,
-      rclcpp_timeout), rclcpp::FutureReturnCode::SUCCESS);
+  // Spin until all goals complete
+  while (goals.size() > 0) {
+    rclc_executor_spin_some(&client_executor, RCL_MS_TO_NS(100));
+  }
 
   for (auto & thread : feedback_thread_pool) {
     thread.join();
