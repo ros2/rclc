@@ -67,7 +67,7 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_clock_t my_clock;
   res += rcl_clock_init(RCL_SYSTEM_TIME, &my_clock, &allocator);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
@@ -110,7 +110,7 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   rcl_clock_t my_clock;
   res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
@@ -186,7 +186,7 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   rcl_clock_t my_clock;
   res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
@@ -257,7 +257,7 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   rcl_clock_t my_clock;
   res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
