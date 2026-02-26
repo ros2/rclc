@@ -64,12 +64,16 @@ TEST(TestRclcLifecycle, lifecycle_node) {
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rcl_clock_t my_clock;
+  res += rcl_clock_init(RCL_SYSTEM_TIME, &my_clock, &allocator);
+
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+    &my_clock,
     &state_machine,
     &allocator,
     true);
@@ -81,6 +85,8 @@ TEST(TestRclcLifecycle, lifecycle_node) {
     rcl_lifecycle_state_machine_is_initialized(lifecycle_node.state_machine));
 
   // clean up
+  res = rcl_clock_fini(&my_clock);
+  EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -101,12 +107,16 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rcl_clock_t my_clock;
+  res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
+
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+    &my_clock,
     &state_machine,
     &allocator,
     false);
@@ -151,6 +161,8 @@ TEST(TestRclcLifecycle, lifecycle_node_transitions) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_node.state_machine->current_state->id);
 
+  res = rcl_clock_fini(&my_clock);
+  EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -171,12 +183,16 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rcl_clock_t my_clock;
+  res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
+
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+    &my_clock,
     &state_machine,
     &allocator,
     true);
@@ -216,6 +232,8 @@ TEST(TestRclcLifecycle, lifecycle_node_callbacks) {
   EXPECT_EQ(RCL_RET_OK, res);
   EXPECT_EQ(15, callback_mockup_counter);
 
+  res = rcl_clock_fini(&my_clock);
+  EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_options_fini(&node_ops);
@@ -236,12 +254,16 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
   rcl_node_options_t node_ops = rcl_node_get_default_options();
   res += rcl_node_init(&my_node, "lifecycle_node", "rclc", &context, &node_ops);
 
-  rclc_lifecycle_node_t lifecycle_node;
+  rcl_clock_t my_clock;
+  res += rcl_clock_init(RCL_ROS_TIME, &my_clock, &allocator);
+
+  rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   res += rclc_make_node_a_lifecycle_node(
     &lifecycle_node,
     &my_node,
+    &my_clock,
     &state_machine,
     &allocator,
     true);
@@ -285,6 +307,8 @@ TEST(TestRclcLifecycle, lifecycle_node_servers) {
 
   // Cleanup
   res = rclc_lifecycle_node_fini(&lifecycle_node, &allocator);
+  EXPECT_EQ(RCL_RET_OK, res);
+  res = rcl_clock_fini(&my_clock);
   EXPECT_EQ(RCL_RET_OK, res);
   res = rcl_node_fini(&my_node);
   EXPECT_EQ(RCL_RET_OK, res);
