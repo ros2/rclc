@@ -2,6 +2,10 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.2 (2026-02-27)
+------------------
+* updated ci.yml
+
 6.1.1 (2026-02-26)
 ------------------
 * added CI status for iron builds (#377)

@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.2 (2026-02-27)
+------------------
+* no changes
+
 6.1.1 (2026-02-26)
 ------------------
 * Use fully qualified node name in parameter events (#402)
