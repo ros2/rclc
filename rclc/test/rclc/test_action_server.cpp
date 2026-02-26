@@ -373,7 +373,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_result) {
   size_t feedback_received = 0;
   send_goal_options.feedback_callback =
     [&](GoalHandleFibonacci::SharedPtr,
-      const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
       feedback_received++;
       ASSERT_EQ(feedback->sequence.size(), 3U);
     };
@@ -444,7 +444,7 @@ TEST_F(ActionServerTest, goal_accept_feedback_and_abort) {
   size_t feedback_received = 0;
   send_goal_options.feedback_callback =
     [&](GoalHandleFibonacci::SharedPtr,
-      const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
       feedback_received++;
       ASSERT_EQ(feedback->sequence.size(), 3U);
     };
@@ -648,7 +648,7 @@ TEST_F(ActionServerTest, multi_goal_accept_feedback_and_result) {
   size_t feedback_received = 0;
   send_goal_options.feedback_callback =
     [&](GoalHandleFibonacci::SharedPtr goal_handle,
-      const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
+    const std::shared_ptr<const Fibonacci::Feedback> feedback) -> void {
       feedback_received++;
       size_t feedback_size = goals[goal_handle->get_goal_id()];
       ASSERT_EQ(feedback->sequence.size(), feedback_size);
