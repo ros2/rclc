@@ -2,6 +2,11 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.1 (2025-05-22)
+------------------
+* Use target_link_libraries instead of ament_target_dependencies (#419)
+* Do not return error when rcl_send_response timeout. (#408)
+
 6.2.0 (2024-10-15)
 ------------------
 * added CI status for iron builds (#377)
