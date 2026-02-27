@@ -35,8 +35,7 @@ void my_subscriber_callback(const void * msgin)
   } else {
     printf("Callback: I heard: %d\n", msg->data);
   }
-  if (msg->data % 2)
-  {
+  if (msg->data % 2) {
     rclc_sleep_ms(900);
   }
 }
@@ -64,7 +63,7 @@ void short_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
   RCLC_UNUSED(timer);
   RCLC_UNUSED(last_call_time);
-  printf("shorttimer %d\n",short_timer_counter++);
+  printf("shorttimer %d\n", short_timer_counter++);
 }
 
 /******************** MAIN PROGRAM ****************************************/
@@ -162,8 +161,8 @@ int main(int argc, const char * argv[])
   rclc_executor_t executor;
   executor = rclc_executor_get_zero_initialized_executor();
   // total number of handles = #subscriptions + #timers
-  // check also xrce-dds configuration for maximum number of publisher, 
-  // subscribers, timers etc. 
+  // check also xrce-dds configuration for maximum number of publisher,
+  // subscribers, timers etc.
   // Note:
   // If you need more than the default number of publisher/subscribers, etc., you
   // need to configure the micro-ROS middleware also!

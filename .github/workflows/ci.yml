@@ -1,10 +1,10 @@
-name: CI RCLC Rolling
+name: CI RCLC Jazzy
 
 on:
   push:
-    branches: [ rolling ]
+    branches: [ jazzy ]
   pull_request:
-    branches: [ rolling ]
+    branches: [ jazzy ]
   schedule:
     # Run once per day to detect broken dependencies.
     - cron: '33 6 * * *'
@@ -15,11 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04 ]
-        ros_distribution: [ rolling ]
+        os: [ ubuntu-24.04 ]
+        ros_distribution: [ jazzy ]
         include:
-          - docker_image: ubuntu:jammy
-            ros_distribution: rolling
+          - docker_image: ubuntu:noble
+            ros_distribution: jazzy
     container:
       image: ${{ matrix.docker_image }}
     steps:

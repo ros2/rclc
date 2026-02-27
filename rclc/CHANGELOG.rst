@@ -2,6 +2,22 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.2 (2026-02-27)
+------------------
+* updated ci.yml
+
+6.1.1 (2026-02-26)
+------------------
+* added CI status for iron builds (#377)
+* rclc_executor: improve enum type names (#379)
+* fix rclc_example: memory leaking in msg.data allocation (backport#386)…(#387)
+* updated ci versions (#396)
+* Add Antón as mantainer (#420) (#423)
+* windows port (#426) (#427)
+* Add Eugenio and Carlos as maintainers (#430) (#433)
+* Fix REP url locations (#436) (#438)
+
+
 6.1.0 (2023-06-15)
 ------------------
 * Data structures interfaces for multi-threaded executor (#355)

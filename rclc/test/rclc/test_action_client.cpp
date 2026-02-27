@@ -195,7 +195,7 @@ public:
 
     handle_feedback =
       [&](rclc_action_goal_handle_t * /* goal_handle */, void * /* ros_feedback */,
-        void * /* context */) {};
+      void * /* context */) {};
 
     // Init RCLCPP
     using namespace std::placeholders;
@@ -352,7 +352,7 @@ TEST_F(ActionClientTest, goal_accept) {
 
   // Prepare RCLCPP
   server_handle_goal = [ = ](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     };
@@ -381,7 +381,7 @@ TEST_F(ActionClientTest, goal_reject) {
 
   // Prepare RCLCPP
   server_handle_goal = [ = ](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::REJECT;
     };
@@ -414,7 +414,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
   // Prepare RCLCPP
 
   server_handle_goal = [&](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     };
@@ -467,7 +467,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_result) {
   bool goal_result_received = false;
   handle_result =
     [&](rclc_action_goal_handle_t * /* goal_handle */, void * ros_result_response,
-      void * /* context */) {
+    void * /* context */) {
       goal_result_received = true;
 
       example_interfaces__action__Fibonacci_GetResult_Response * result =
@@ -499,7 +499,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_abort) {
   // Prepare RCLCPP
 
   server_handle_goal = [&](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     };
@@ -552,7 +552,7 @@ TEST_F(ActionClientTest, goal_accept_feedback_and_abort) {
   bool goal_result_received = false;
   handle_result =
     [&](rclc_action_goal_handle_t * /* goal_handle */, void * ros_result_response,
-      void * /* context */) {
+    void * /* context */) {
       goal_result_received = true;
 
       example_interfaces__action__Fibonacci_GetResult_Response * result =
@@ -584,7 +584,7 @@ TEST_F(ActionClientTest, goal_accept_cancel_success) {
   // Prepare RCLCPP
 
   server_handle_goal = [&](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     };
@@ -627,7 +627,7 @@ TEST_F(ActionClientTest, goal_accept_cancel_success) {
   bool goal_result_received = false;
   handle_result =
     [&](rclc_action_goal_handle_t * /* goal_handle */, void * /* ros_result_response */,
-      void * /* context */) {
+    void * /* context */) {
       goal_result_received = true;
     };
 
@@ -668,7 +668,7 @@ TEST_F(ActionClientTest, goal_accept_cancel_reject) {
   // Prepare RCLCPP
 
   server_handle_goal = [&](const rclcpp_action::GoalUUID & /* uuid */,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request.goal.order, goal->order);
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     };
@@ -727,7 +727,7 @@ TEST_F(ActionClientTest, goal_accept_cancel_reject) {
   bool goal_result_received = false;
   handle_result =
     [&](rclc_action_goal_handle_t * /* goal_handle */, void * ros_result_response,
-      void * /* context */) {
+    void * /* context */) {
       goal_result_received = true;
 
       example_interfaces__action__Fibonacci_GetResult_Response * result =
@@ -787,7 +787,7 @@ TEST_F(ActionClientTest, multi_goal_accept_feedback_and_result) {
 
   // Prepare RCLCPP
   server_handle_goal = [&](const rclcpp_action::GoalUUID & uuid,
-      std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
+    std::shared_ptr<const Fibonacci::Goal> goal) -> rclcpp_action::GoalResponse {
       EXPECT_EQ(ros_goal_request[get_raw_uuid(uuid)].goal.order, goal->order);
 
       return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;

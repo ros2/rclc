@@ -2,6 +2,15 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.2 (2026-02-27)
+------------------
+* no changes
+
+6.1.1 (2026-02-26)
+------------------
+* Use fully qualified node name in parameter events (#402)
+* Fix REP url locations (#436) (#438)
+
 6.1.0 (2023-06-15)
 ------------------
 * Add empty set_atomically parameter service (#354)
