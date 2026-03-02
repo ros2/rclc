@@ -2,6 +2,12 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.2 (2026-03-01)
+------------------
+* windows port (backport #426) (#429)
+* Compatiblity with 'Populate Transitions' ros2/rcl#1269 (#435)
+* introduce rclc_get_zero_initialized_lifecycle_node(). (#443)
+
 6.2.1 (2025-05-22)
 ------------------
 * Use target_link_libraries instead of ament_target_dependencies (#419)

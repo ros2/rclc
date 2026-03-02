@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.2 (2026-03-01)
+------------------
+* Fix REP url locations (#436)
+
 6.2.1 (2025-05-22)
 ------------------
 * Use target_link_libraries instead of ament_target_dependencies (#419)
