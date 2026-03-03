@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.3 (2026-03-03)
+------------------
+* version bump (tag 6.2.2 already taken on rolling)
+
 6.2.1 (2025-05-22)
 ------------------
 * Use target_link_libraries instead of ament_target_dependencies (#419)
