@@ -2,6 +2,10 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.1 (2025-05-22)
+------------------
+* Use target_link_libraries instead of ament_target_dependencies (#419)
+
 6.2.0 (2024-10-15)
 ------------------
 * Use fully qualified node name in parameter events (#402)
