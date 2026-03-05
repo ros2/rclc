@@ -2,6 +2,10 @@
 Changelog for package rclc_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.3.0 (2026-03-05)
+------------------
+* version bump
+
 6.2.2 (2026-03-01)
 ------------------
 * Fix REP url locations (#436)
