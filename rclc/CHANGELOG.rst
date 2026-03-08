@@ -2,6 +2,20 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.2.2 (2026-03-01)
+------------------
+* Add Antón as mantainer (#420)
+* Bump setup-ros (#424)
+* windows port (backport #426) (#429)
+* Add Eugenio and Carlos as maintainers (#430)
+* Fix REP url locations (#436)
+* Compatiblity with 'Populate Transitions' ros2/rcl#1269 (#435)
+
+6.2.1 (2025-05-22)
+------------------
+* Use target_link_libraries instead of ament_target_dependencies (#419)
+* Do not return error when rcl_send_response timeout. (#408)
+
 6.2.0 (2024-10-15)
 ------------------
 * added CI status for iron builds (#377)
