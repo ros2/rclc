@@ -148,13 +148,12 @@ rclc_parameter_set_string(
   RCL_CHECK_ARGUMENT_FOR_NULL(str, false);
   RCL_CHECK_ARGUMENT_FOR_NULL(value, false);
 
-  if (str->capacity >= (strlen(value) + 1)) {
-    memcpy(str->data, value, strlen(value) + 1);
-    str->size = strlen(str->data);
-    return true;
+  size_t value_length = strlen(value);
+  if (value_length >= RCLC_PARAMETER_MAX_STRING_LENGTH) {
+    return false;
   }
 
-  return false;
+  return rosidl_runtime_c__String__assignn(str, value, value_length);
 }
 
 rcl_ret_t rclc_parameter_prepare_new_event(
@@ -220,23 +219,17 @@ rcl_ret_t rclc_parameter_initialize_empty_string(
   rosidl_runtime_c__String * str,
   size_t capacity)
 {
+  (void) capacity;
   RCL_CHECK_ARGUMENT_FOR_NULL(str, RCL_RET_INVALID_ARGUMENT);
 
-  if (capacity < 1) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  // Zero-init to ensure clean state (struct memory may be uninitialized)
+  str->data = NULL;
+  str->size = 0;
+  str->capacity = 0;
 
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-
-  str->data = allocator.allocate(sizeof(char) * capacity, allocator.state);
-
-  if (str->data == NULL) {
+  if (!rosidl_runtime_c__String__assignn(str, "", 0)) {
     return RCL_RET_ERROR;
   }
-
-  str->data[0] = '\0';
-  str->capacity = capacity;
-  str->size = 0;
 
   return RCL_RET_OK;
 }
@@ -245,16 +238,7 @@ bool rclc_parameter_descriptor_initialize_string(rosidl_runtime_c__String * str)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(str, false);
 
-  static char empty_string[RCLC_PARAMETER_MAX_STRING_LENGTH] = "";
-  size_t string_capacity = RCLC_PARAMETER_MAX_STRING_LENGTH - 1;
-
-  bool ret = rosidl_runtime_c__String__assignn(
-    str,
-    (const char *) empty_string,
-    string_capacity);
-
-  str->size = 0;
-  return ret;
+  return rosidl_runtime_c__String__assignn(str, "", 0);
 }
 
 #if __cplusplus
