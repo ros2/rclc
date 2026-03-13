@@ -2,6 +2,10 @@
 Changelog for package rclc_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.3.0 (2026-03-05)
+------------------
+* version bump
+
 6.2.2 (2026-03-01)
 ------------------
 * windows port (backport #426) (#429)
