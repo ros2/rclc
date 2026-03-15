@@ -214,8 +214,10 @@ public:
     run_server = true;
     server_thread = std::thread(
       [&]() {
+        rclcpp::executors::SingleThreadedExecutor executor;
+        executor.add_node(action_server_node);
         while (run_server) {
-          rclcpp::spin_some(action_server_node);
+          executor.spin_some();
         }
       });
 
