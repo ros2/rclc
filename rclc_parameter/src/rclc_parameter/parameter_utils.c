@@ -253,7 +253,10 @@ bool rclc_parameter_descriptor_initialize_string(rosidl_runtime_c__String * str)
     (const char *) empty_string,
     string_capacity);
 
-  str->size = 0;
+  if (ret) {
+    str->size = 0;
+  }
+
   return ret;
 }
 
