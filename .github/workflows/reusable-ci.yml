@@ -1,0 +1,56 @@
+name: Reusable RCLC CI
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: "The RCLC branch to use for the workflow"
+        required: true
+        type: string
+      os:
+        description: "The OS to use for the workflow"
+        required: true
+        type: string
+      docker-image:
+        description: "The docker image to use for the workflow"
+        required: true
+        type: string
+      ros-distribution:
+        description: "The ROS distribution to use for the workflow"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    strategy:
+      fail-fast: false
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+    - uses: actions/checkout@v5
+    - uses: ros-tooling/setup-ros@0.7.15
+      with:
+        use-ros2-testing: true
+        required-ros-distributions: ${{ inputs.ros-distribution }}
+    - name : Download and install rclc-dependencies
+      run: |
+        apt-get install ros-${{ inputs.ros-distribution }}-osrf-testing-tools-cpp
+        apt-get install ros-${{ inputs.ros-distribution }}-test-msgs
+        apt-get install ros-${{ inputs.ros-distribution }}-rclcpp-action
+        apt-get install ros-${{ inputs.ros-distribution }}-mimick-vendor
+        apt-get -y install ros-${{ inputs.ros-distribution }}-performance-test-fixture
+    - uses : ros-tooling/action-ros-ci@0.4.5
+      with:
+        package-name: "rclc rclc_examples rclc_lifecycle rclc_parameter"
+        target-ros2-distro: ${{ inputs.ros-distribution }}
+        colcon-defaults: |
+          {
+            "build": {
+              "mixin": [ "coverage-gcc" ]
+            }
+          }
+        colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ros_ws/lcov/total_coverage.info
