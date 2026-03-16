@@ -42,12 +42,12 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-ament_target_dependencies(${PROJECT_NAME}
-  rclc
-  rcutils
-  rcl_lifecycle
-  std_msgs
-  lifecycle_msgs
+target_link_libraries(${PROJECT_NAME}
+  rclc::rclc
+  rcutils::rcutils
+  rcl_lifecycle::rcl_lifecycle
+  ${std_msgs_TARGETS}
+  ${lifecycle_msgs_TARGETS}
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -92,12 +92,12 @@ if(BUILD_TESTING)
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
-  ament_target_dependencies(${PROJECT_NAME}_test
-    rcl
-    rcl_lifecycle
-    rclc
-    lifecycle_msgs
-    osrf_testing_tools_cpp
+  target_link_libraries(${PROJECT_NAME}_test
+    rcl::rcl
+    rcl_lifecycle::rcl_lifecycle
+    rclc::rclc
+    ${lifecycle_msgs_TARGETS}
+    ${osrf_testing_tools_cpp_TARGETS}
   )
 endif()
 

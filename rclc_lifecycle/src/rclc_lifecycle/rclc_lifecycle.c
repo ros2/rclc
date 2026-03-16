@@ -34,10 +34,29 @@
 #include <lifecycle_msgs/srv/get_state.h>
 
 
+rclc_lifecycle_node_t
+rclc_get_zero_initialized_lifecycle_node(void)
+{
+  static rclc_lifecycle_node_t null_lifecycle_node;
+  // Setting all fields to 0
+  null_lifecycle_node.node = NULL;
+  null_lifecycle_node.state_machine = NULL;
+  memset(&null_lifecycle_node.callbacks, 0, sizeof(rclc_lifecycle_callback_map_t));
+  null_lifecycle_node.publish_transitions = false;
+  memset(&null_lifecycle_node.cs_req, 0, sizeof(lifecycle_msgs__srv__ChangeState_Request));
+  memset(&null_lifecycle_node.cs_res, 0, sizeof(lifecycle_msgs__srv__ChangeState_Response));
+  memset(&null_lifecycle_node.gs_req, 0, sizeof(lifecycle_msgs__srv__GetState_Request));
+  memset(&null_lifecycle_node.gs_res, 0, sizeof(lifecycle_msgs__srv__GetState_Response));
+  memset(&null_lifecycle_node.gas_req, 0, sizeof(lifecycle_msgs__srv__GetAvailableStates_Request));
+  memset(&null_lifecycle_node.gas_res, 0, sizeof(lifecycle_msgs__srv__GetAvailableStates_Response));
+  return null_lifecycle_node;
+}
+
 rcl_ret_t
 rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
+  rcl_clock_t * clock,
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_allocator_t * allocator,
   bool enable_communication_interface
@@ -47,6 +66,8 @@ rclc_make_node_a_lifecycle_node(
     lifecycle_node, "lifecycle_node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node, "node is a null pointer", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    clock, "clock is a null pointer", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
 
@@ -61,6 +82,7 @@ rclc_make_node_a_lifecycle_node(
   rcl_ret_t rcl_ret = rcl_lifecycle_state_machine_init(
     state_machine,
     node,
+    clock,
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, ChangeState),
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetState),

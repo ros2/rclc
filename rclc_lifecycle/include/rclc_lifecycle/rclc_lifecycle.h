@@ -64,6 +64,21 @@ typedef struct rclc_lifecycle_service_context_t
   rclc_lifecycle_node_t * lifecycle_node;
 } rclc_lifecycle_service_context_t;
 
+/// Return a rclc_lifecycle_node_t struct with members initialized to `NULL`.
+/**
+ * This function returns a zero initialized lifecycle node structure.
+ * It should be called to get a null rclc_lifecycle_node_t before passing it to
+ * rclc_make_node_a_lifecycle_node().
+ *
+ * Example:
+ * ```c
+ * rclc_lifecycle_node_t lifecycle_node = rclc_get_zero_initialized_lifecycle_node();
+ * ```
+ */
+RCLC_LIFECYCLE_PUBLIC
+rclc_lifecycle_node_t
+rclc_get_zero_initialized_lifecycle_node(void);
+
 RCLC_LIFECYCLE_PUBLIC
 rcl_ret_t
 rclc_lifecycle_init_get_state_server(
@@ -108,6 +123,7 @@ rcl_ret_t
 rclc_make_node_a_lifecycle_node(
   rclc_lifecycle_node_t * lifecycle_node,
   rcl_node_t * node,
+  rcl_clock_t * clock,
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_allocator_t * allocator,
   bool enable_communication_interface);

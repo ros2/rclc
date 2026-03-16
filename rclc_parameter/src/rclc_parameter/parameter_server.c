@@ -128,7 +128,10 @@ rclc_parameter_server_list_service_callback(
         &response->result.names.data[i],
         param_server->parameter_list.data[i].name.data);
     } else {
+      response->result.names.data[i].data = param_server->parameter_list.data[i].name.data;
       response->result.names.data[i].size = param_server->parameter_list.data[i].name.size;
+      response->result.names.data[i].capacity =
+        param_server->parameter_list.data[i].name.capacity;
     }
   }
 }

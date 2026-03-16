@@ -79,11 +79,11 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 # specific order: dependents before dependencies
-ament_target_dependencies(${PROJECT_NAME}
-  rcl
-  rcl_action
-  rcutils
-  rosidl_generator_c
+target_link_libraries(${PROJECT_NAME}
+  rcl::rcl
+  rcl_action::rcl_action
+  rcutils::rcutils
+  ${rosidl_generator_c_LIBRARIES}
 )
 
 #################################################
@@ -153,16 +153,16 @@ if(BUILD_TESTING)
 
   target_include_directories(${PROJECT_NAME}_test PRIVATE include src)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
-  ament_target_dependencies(${PROJECT_NAME}_test
-    rclcpp
-    rclcpp_action
-    rcl
-    rcutils
-    rosidl_generator_c
-    osrf_testing_tools_cpp
-    std_msgs
-    test_msgs
-    example_interfaces
+  target_link_libraries(${PROJECT_NAME}_test
+    ${example_interfaces_TARGETS}
+    rclcpp::rclcpp
+    rclcpp_action::rclcpp_action
+    rcl::rcl
+    rcutils::rcutils
+    ${rosidl_generator_c_LIBRARIES}
+    ${osrf_testing_tools_cpp_TARGETS}
+    ${std_msgs_TARGETS}
+    ${test_msgs_TARGETS}
   )
 
 
