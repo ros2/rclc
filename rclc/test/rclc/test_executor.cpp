@@ -390,9 +390,10 @@ uint64_t test_case_evaluate_spin_period()
 }
 
 // timer callback
-void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time, uintptr_t user_data)
 {
   RCLC_UNUSED(last_call_time);
+  RCLC_UNUSED(user_data);
   // Do timer work...
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {
