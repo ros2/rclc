@@ -332,8 +332,8 @@ protected:
   rclc_action_client_t action_client;
   rclc_executor_t executor;
 
-  example_interfaces__action__Fibonacci_FeedbackMessage ros_feedback;
-  example_interfaces__action__Fibonacci_GetResult_Response ros_result_response;
+  example_interfaces__action__Fibonacci_FeedbackMessage ros_feedback{};
+  example_interfaces__action__Fibonacci_GetResult_Response ros_result_response{};
 
   std::function<void(rclc_action_goal_handle_t *, bool, void *)> handle_goal;
   std::function<void(rclc_action_goal_handle_t *, void *, void *)> handle_feedback;

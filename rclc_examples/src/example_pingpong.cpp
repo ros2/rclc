@@ -55,10 +55,11 @@ public:
 
 /***************************** PING NODE CALLBACKS ***********************************/
 
-void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time, uintptr_t user_data)
 {
   rcl_ret_t rc;
   RCLC_UNUSED(last_call_time);
+  RCLC_UNUSED(user_data);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&ping_publisher, &pingNode_ping_msg, NULL);
@@ -99,10 +100,11 @@ void ping_subscription_callback(const void * msgin)
   }
 }
 
-void pong_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void pong_timer_callback(rcl_timer_t * timer, int64_t last_call_time, uintptr_t user_data)
 {
   rcl_ret_t rc;
   RCLC_UNUSED(last_call_time);
+  RCLC_UNUSED(user_data);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&pong_publisher, &pongNode_pong_msg, NULL);
@@ -457,3 +459,4 @@ int main(int argc, const char * argv[])
 
   return 0;
 }
+

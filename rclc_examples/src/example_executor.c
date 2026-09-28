@@ -36,10 +36,11 @@ void my_subscriber_callback(const void * msgin)
   }
 }
 
-void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time, uintptr_t user_data)
 {
   rcl_ret_t rc;
   RCLC_UNUSED(last_call_time);
+  RCLC_UNUSED(user_data);
   if (timer != NULL) {
     //printf("Timer: time since last call %d\n", (int) last_call_time);
     rc = rcl_publish(&my_pub, &pub_msg, NULL);

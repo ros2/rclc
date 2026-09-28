@@ -16,10 +16,11 @@
 #include <gtest/gtest.h>
 #include <rclc/rclc.h>
 
-void my_callback(rcl_timer_t * timer, int64_t last_call)
+void my_callback(rcl_timer_t * timer, int64_t last_call, uintptr_t user_data)
 {
   RCLC_UNUSED(timer);
   RCLC_UNUSED(last_call);
+  RCLC_UNUSED(user_data);
 }
 
 TEST(Test, rclc_timer_init_default2) {
