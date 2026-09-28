@@ -720,11 +720,12 @@ rcl_ret_t init_parameter_server_memory_low(
     &parameter_server->get_types_request.names.data[0],
     RCLC_PARAMETER_MAX_STRING_LENGTH);
 
-  parameter_server->get_types_response.types.data = allocator.zero_allocate(
-    1, sizeof(uint8_t),
-    allocator.state);
+  if (!rosidl_runtime_c__uint8__Sequence__init(
+      &parameter_server->get_types_response.types, 1))
+  {
+    ret = RCL_RET_ERROR;
+  }
   parameter_server->get_types_response.types.size = 0;
-  parameter_server->get_types_response.types.capacity = 1;
 
   // Describe parameters:
   //    - Only one description can be retrieved per request
