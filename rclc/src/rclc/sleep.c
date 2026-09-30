@@ -14,11 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Keep nanosleep() and usleep() declared with strict -std=c99 / -std=c11
+#if !defined(WIN32) && !defined(_DEFAULT_SOURCE)
+#define _DEFAULT_SOURCE
+#endif
+
 #include "rclc/sleep.h"
 
 #ifdef WIN32
 #include <Windows.h>
 #else
+#include <time.h>
 #include <unistd.h>
 #endif
 
@@ -26,8 +32,13 @@ void
 rclc_sleep_ms(
   unsigned int ms)
 {
-#ifdef WIN32
+#if defined(WIN32)
   Sleep(ms);
+#elif defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0)
+  struct timespec ts;
+  ts.tv_sec = ms / 1000;
+  ts.tv_nsec = (ms % 1000) * 1000000;
+  nanosleep(&ts, NULL);
 #else
   usleep(ms * 1000);
 #endif
