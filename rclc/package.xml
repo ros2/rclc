@@ -6,7 +6,7 @@
   <description>The ROS client library in C.</description>
   <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
   <maintainer email="eugeniocollado@eprosima.com">Eugenio Collado</maintainer>
-  <maintainer email="carlosespinoza@eprosima.com">Carlos Espinoza</maintainer>
+  <maintainer email="davidlaseca@eprosima.com">David Laseca</maintainer>
 
   <license>Apache License 2.0</license>
 
