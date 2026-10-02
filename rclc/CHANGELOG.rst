@@ -2,6 +2,13 @@
 Changelog for package rclc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.3.1 (2026-10-02)
+------------------
+* fix test failures for rclc. (#442)
+* Address rcl API change and uninitialized rosidl sequence fields (#457)
+* Update deprecated 'usleep' in 'rclc_sleep_ms' (#458)
+* Update maintainers (#459)
+
 6.3.0 (2026-03-05)
 ------------------
 * version bump
