@@ -2,6 +2,11 @@
 Changelog for package rclc_parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.3.1 (2026-10-02)
+------------------
+* use rosidl_runtime_c__String__assignn instead of memcpy. (#455)
+* Address rcl API change and uninitialized rosidl sequence fields (#457)
+
 6.3.0 (2026-03-05)
 ------------------
 * version bump
