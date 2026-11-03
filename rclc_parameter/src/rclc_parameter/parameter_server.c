@@ -23,6 +23,7 @@ extern "C"
 #include <rclc_parameter/rclc_parameter.h>
 #include <rcl_interfaces/msg/floating_point_range.h>
 #include <rcl_interfaces/msg/integer_range.h>
+#include <rmw/qos_profiles.h>
 
 #include "./parameter_utils.h"
 

@@ -37,6 +37,7 @@ find_package(rcutils REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
+find_package(rmw REQUIRED)
 
 #################################################
 # create library
@@ -63,6 +64,7 @@ target_link_libraries(${PROJECT_NAME}
   ${builtin_interfaces_TARGETS}
   ${rcl_interfaces_TARGETS}
   rosidl_runtime_c::rosidl_runtime_c
+  rmw::rmw
 )
 
 

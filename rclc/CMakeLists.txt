@@ -32,6 +32,7 @@ find_package(rcl REQUIRED)
 find_package(rcl_action REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
+find_package(rmw REQUIRED)
 
 if("${rcl_VERSION}" VERSION_LESS "1.0.0")
   message(STATUS
@@ -84,6 +85,7 @@ target_link_libraries(${PROJECT_NAME}
   rcl_action::rcl_action
   rcutils::rcutils
   ${rosidl_generator_c_LIBRARIES}
+  rmw::rmw
 )
 
 #################################################
@@ -179,4 +181,5 @@ ament_export_dependencies(rcl)
 ament_export_dependencies(rcl_action)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
+ament_export_dependencies(rmw)
 ament_package()

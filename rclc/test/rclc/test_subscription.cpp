@@ -16,6 +16,7 @@
 #include <std_msgs/msg/int32.h>
 #include <gtest/gtest.h>
 #include <rclc/rclc.h>
+#include <rmw/qos_profiles.h>
 
 TEST(Test, rclc_subscription_init_default) {
   rclc_support_t support;

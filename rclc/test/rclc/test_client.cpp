@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 #include <rclc/rclc.h>
+#include <rmw/qos_profiles.h>
 #include "test_msgs/srv/basic_types.h"
 #include "rcl/error_handling.h"
 
