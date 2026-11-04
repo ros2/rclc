@@ -1,0 +1,36 @@
+name: RCLC nightly CI (all distributions)
+
+on:
+  schedule:
+    # Run once per day to detect broken dependencies.
+    - cron: '33 6 * * *'
+
+jobs:
+  humble-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: humble
+      os: ubuntu-22.04
+      docker-image: ubuntu:jammy
+      ros-distribution: humble
+  jazzy-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: jazzy
+      os: ubuntu-24.04
+      docker-image: ubuntu:noble
+      ros-distribution: jazzy
+  kilted-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: kilted
+      os: ubuntu-24.04
+      docker-image: ubuntu:noble
+      ros-distribution: kilted
+  rolling-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: rolling
+      os: ubuntu-24.04
+      docker-image: ubuntu:noble
+      ros-distribution: rolling
